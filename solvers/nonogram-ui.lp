@@ -18,21 +18,25 @@ elem(window,window,root).
         %%%%%%%%%%%%%%%%%%%%%%%%
         % Convert row hints to string form
         row_hint_str(Row, @stringify(Length), 1) :- row(Row), row_hint(Row, 1, Length).
-        row_hint_str(Row, @concat("", LStr, ", ", @stringify(Length)), Index) :- row(Row), row_hint(Row, Index, Length), Index > 1, row_hint_str(Row, LStr, Index - 1).
+        row_hint_str(Row, @concat(" ", LStr, " ", @stringify(Length), " "), Index) :- row(Row), row_hint(Row, Index, Length), Index > 1, row_hint_str(Row, LStr, Index - 1).
         row_hint_str_nr(Row, Count) :- row(Row), Count = #count { Index : row_hint(Row, Index, Length) }.
         % Add row hint string to grid
         elem(row_hint_label(Row), label, image) :- row(Row).
-        attr(row_hint_label(Row), width, 100):-row(Row).
+        attr(row_hint_label(Row), width, 200):-row(Row).
+        attr(row_hint_label(Row), class, ("font-weight-bold";"h1")):-row(Row).
+        %attr(row_hint_label(Row), class, "align-items-start"):-row(Row).%does nothing, why?
         attr(row_hint_label(Row), label, Str) :- row(Row), row_hint_str_nr(Row, Count), row_hint_str(Row, Str, Count).
         attr(row_hint_label(Row), grid_row, Row) :- row(Row).
         
         % Convert column hints to string form
         col_hint_str(Col, @stringify(Length), 1) :- col(Col), col_hint(Col, 1, Length).
-        col_hint_str(Col, @concat(" ", LStr, " , ", @stringify(Length), " "), Index) :- col(Col), col_hint(Col, Index, Length), Index > 1, col_hint_str(Col, LStr, Index - 1).
+        col_hint_str(Col, @concat(" ", LStr, " ", @stringify(Length), " "), Index) :- col(Col), col_hint(Col, Index, Length), Index > 1, col_hint_str(Col, LStr, Index - 1).
         col_hint_str_nr(Col, Count) :- col(Col), Count = #count { Index : col_hint(Col, Index, Length) }.
         % Add column hint string to grid
         elem(col_hint_label(Col), label, image) :- col(Col).
-        attr(col_hint_label(Col), height, 100):-col(Col).
+        attr(col_hint_label(Col), height, 250):-col(Col).
+        attr(col_hint_label(Col), class, ("font-weight-bold";"h1")):-col(Col).
+        attr(col_hint_label(Col), class, "align-bottom"):-col(Col).
         attr(col_hint_label(Col), label, Str) :- col(Col), col_hint_str_nr(Col, Count), col_hint_str(Col, Str, Count).
         attr(col_hint_label(Col), grid_column, Col) :- col(Col).
 
