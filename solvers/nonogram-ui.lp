@@ -22,15 +22,17 @@ elem(window,window,root).
         row_hint_str_nr(Row, Count) :- row(Row), Count = #count { Index : row_hint(Row, Index, Length) }.
         % Add row hint string to grid
         elem(row_hint_label(Row), label, image) :- row(Row).
+        attr(row_hint_label(Row), width, 100):-row(Row).
         attr(row_hint_label(Row), label, Str) :- row(Row), row_hint_str_nr(Row, Count), row_hint_str(Row, Str, Count).
         attr(row_hint_label(Row), grid_row, Row) :- row(Row).
         
         % Convert column hints to string form
         col_hint_str(Col, @stringify(Length), 1) :- col(Col), col_hint(Col, 1, Length).
-        col_hint_str(Col, @concat("", LStr, ", ", @stringify(Length)), Index) :- col(Col), col_hint(Col, Index, Length), Index > 1, col_hint_str(Col, LStr, Index - 1).
+        col_hint_str(Col, @concat(" ", LStr, " , ", @stringify(Length), " "), Index) :- col(Col), col_hint(Col, Index, Length), Index > 1, col_hint_str(Col, LStr, Index - 1).
         col_hint_str_nr(Col, Count) :- col(Col), Count = #count { Index : col_hint(Col, Index, Length) }.
         % Add column hint string to grid
         elem(col_hint_label(Col), label, image) :- col(Col).
+        attr(col_hint_label(Col), height, 100):-col(Col).
         attr(col_hint_label(Col), label, Str) :- col(Col), col_hint_str_nr(Col, Count), col_hint_str(Col, Str, Count).
         attr(col_hint_label(Col), grid_column, Col) :- col(Col).
 
