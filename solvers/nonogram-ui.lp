@@ -40,18 +40,21 @@ elem(window,window,root).
         % Cell dropdown
         %%%%%%%%%%%%%%%%%%%%%%%%
         
-        elem(pb(X,Y),button,image):-pos(X,Y).
-        attr(pb(X,Y),width,50):-pos(X,Y).
-        attr(pb(X,Y),height,50):-pos(X,Y).
-        attr(pb(X,Y),grid_column,Y):-pos(X,Y).
-        attr(pb(X,Y),grid_row,X):-pos(X,Y).
-        attr(pb(X,Y),class,("border-dark";"bg-primary")):-pos(X,Y).
+        elem(pb(X,Y),container,image):-row(X), col(Y).
+        attr(pb(X,Y),width,50):-row(X), col(Y).
+        attr(pb(X,Y),height,50):-row(X), col(Y).
+        attr(pb(X,Y),grid_column,Y):-row(X), col(Y).
+        attr(pb(X,Y),grid_row,X):-row(X), col(Y).
+        attr(pb(X,Y),class,("border-dark";"bg-primary")):-fill(X,Y).
         attr(pb(X,Y),class,("opacity-100";"disabled";"fw-bold";"text-dark")):-pixel(X,Y,1).
         attr(pb(X,Y),class,("opacity-40";"disabled";"fw-bold";"text-dark")):-pixel(X,Y,0).
         attr(pb(X,Y),class,("text-primary")):-_clinguin_assume(pixel(X,Y,V), true).
         attr(pb(X,Y),class,("text-info")):-_all(pixel(X,Y,V)), not _clinguin_assume(pixel(X,Y,V), true).
         attr(pb(X,Y),selected,V):-_all(pixel(X,Y,V)).
         attr(pb(X,Y),selected,V):-pixel(X,Y,V), _clinguin_browsing.
+
+        attr(pb(X,Y), border_width, 1) :- row(X), col(Y).
+        attr(pb(X,Y), border_color, "black") :- row(X), col(Y).
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%
