@@ -12,68 +12,42 @@ col(1..n).
 pos(X, Y) :- row(X), col(Y).
 1 { pixel(X, Y, C) : color(C) } 1 :- pos(X, Y).
 
-% Constraint 1: In every row the number of black pixels must match 
-%    the sum of all hints' lengths
-row_count(Row, Count) :- row(Row), Count = #count { Y : pixel(Row, Y, 1) }.
-row_hint_count(Row, 0) :- row(Row), not row_hint(Row, _, _).
-row_hint_count(Row, 0) :- row(Row), row_hint(Row, 1, 0).
-row_hint_count(Row, Count) :- row(Row), row_hint(Row, _, L), L != 0, 
-     Count = #sum{ L', Index : row_hint(Row, Index, L') }.
-:- row(Row), row_count(Row, RCount), row_hint_count(Row, HCount), 
-     RCount != HCount.
+%%% Generalized line handling
+line_type(row; col).
+line(row, N) :- row(N).
+line(col, N) :- col(N).
 
-% Constraint 1': In every column the number of black pixels must match
-%    the sum of all hints' lengths
-col_count(Col, Count) :- col(Col), Count = #count { X : pixel(X, Col, 1) }.
-col_hint_count(Col, 0) :- col(Col), not col_hint(Col, _, _).
-col_hint_count(Col, 0) :- col(Col), col_hint(Col, 1, 0).
-col_hint_count(Col, Count) :- col(Col), col_hint(Col, _, L), L != 0, 
-     Count = #sum{ L', Index : col_hint(Col, Index, L') }.
-:- col(Col), col_count(Col, RCount), col_hint_count(Col, HCount), 
-     RCount != HCount.
+line_hint(row, R, I, L) :- row_hint(R, I, L).
+line_hint(col, C, I, L) :- col_hint(C, I, L).
 
-% Constraint 2: In every row with at least one hint, the first black pixel
-%    must be followed by exactly L-1 more black pixels
-first_black_pixel_row(Row, Col, 1) :- row(Row), row_hint(Row, 1, L), L != 0, 
-     Col = #min { Y : pixel(Row, Y, 1) }.
-:- row(Row), row_hint(Row, 1, L), L != 0, first_black_pixel_row(Row, Col, 1),
-     #count { Y : pixel(Row, Y, 1), Y > Col, Y - L < Col } != L - 1.
+pixel_in_line(row, N, Y, C) :- pixel(N, Y, C).
+pixel_in_line(col, N, X, C) :- pixel(X, N, C).
 
-% Constraint 2': In every column with at least one hint, the first black pixel
-%    must be followed by exactly L-1 more black pixels
-first_black_pixel_col(Col, Row, 1) :- col(Col), col_hint(Col, 1, L), L != 0, 
-     Row = #min { X : pixel(X, Col, 1) }.
-:- col(Col), col_hint(Col, 1, L), L != 0, first_black_pixel_col(Col, Row, 1),
-     #count { X : pixel(X, Col, 1), X > Row, X - L < Row } != L - 1.
+%%% Combined constraints for lines
+% Constraint 1: Total black pixels must match hint sum
+line_black_count(T, N, C) :- line(T, N), C = #count{ P : pixel_in_line(T, N, P, 1) }.
+line_hint_sum(T, N, S) :- line(T, N), S = #sum{ L,I : line_hint(T, N, I, L) }.  
+:- line_type(T), line(T,N), line_black_count(T,N,C), line_hint_sum(T,N,S), C != S.
 
-% Constraint 3: In every row, for every further hint the next first 
-%    black pixel must be followed by exactly L-1 more black pixels
-first_black_pixel_row(Row, Col, Index) :- row(Row), row_hint(Row, Index, L), L != 0, 
-     row_hint(Row, Index - 1, L'), first_black_pixel_row(Row, Col', Index - 1), Index > 1, 
-     Col = #min { Y : pixel(Row, Y, 1), Y - L' >= Col' }.
-:- row(Row), row_hint(Row, Index, L), Index > 1, L != 0, first_black_pixel_row(Row, Col, Index),
-     #count{ Y : pixel(Row, Y, 1), Y > Col, Y - L < Col } != L - 1.
+% Helper predicate to find the first black pixel for each block
+first_black(T, N, 1, P) :-
+    line_hint(T, N, 1, L), L > 0,
+    P = #min{ Pos : pixel_in_line(T, N, Pos, 1) }.
+first_black(T, N, I, P) :-
+    line_hint(T, N, I, L), L > 0, I > 1,
+    line_hint(T, N, I-1, Lp),
+    first_black(T, N, I-1, Pp),
+    line(T, N),
+    P = #min{ Pos : pixel_in_line(T, N, Pos, 1), Pos >= Pp + Lp + 1 }.
 
-% Constraint 3': In every column, for every further hint the next first 
-%    black pixel must be followed by exactly L-1 more black pixels
-first_black_pixel_col(Col, Row, Index) :- col(Col), col_hint(Col, Index, L), L != 0, 
-     col_hint(Col, Index - 1, L'), first_black_pixel_col(Col, Row', Index - 1), Index > 1, 
-     Row = #min { X : pixel(X, Col, 1), X - L' >= Row' }.
-:- col(Col), col_hint(Col, Index, L), Index > 1, L != 0, first_black_pixel_col(Col, Row, Index),
-     #count{ X : pixel(X, Col, 1), X > Row, X - L < Row} != L - 1.
+% Constraint 2: Blocks of black pixels must be correct length
+:- first_black(T, N, I, P), line_hint(T, N, I, L),
+   { pixel_in_line(T, N, PP, 1) : PP = P..P+L-1 } != L.
 
-% helper predicate because adding two numbers is too much for clingo
-end_block(Begin, Length, End) :- row(Begin), row(Length), row(End), End = Begin + Length.
-
-% Constraint 4: In every row, the first pixel after every block of 
-%    black pixels must be not black, or it is the right end of the image
-:- row(Row), row_hint(Row, Index, L), L != 0, first_black_pixel_row(Row, Col, Index), 
-    end_block(Col, L, End), pixel(Row, End, 1), pos(Row, End).
-
-% Constraint 4': In every column, the first pixel after every block of
-%    black pixels must be not black, or it is the bottom end of the image
-:- col(Col), col_hint(Col, Index, L), L != 0, first_black_pixel_col(Col, Row, Index), 
-     end_block(Row, L, End), pixel(End, Col, 1), pos(End, Col).
-
+% Constraint 3: There must be a space after every block
+:- first_black(T, N, I, P), line_hint(T, N, I, L),
+   P + L <= n,
+   pixel_in_line(T, N, P + L, 1).
+   
 % Output
 #show pixel/3.

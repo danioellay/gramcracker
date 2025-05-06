@@ -160,7 +160,7 @@ test citation:
  
 \begin_inset CommandInset citation
 LatexCommand cite
-key "BATENBURG20091672"
+key "NonogramRelaxationsPaper09"
 literal "false"
 
 \end_inset
