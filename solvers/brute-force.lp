@@ -59,3 +59,4 @@ first_black(T, N, I, P) :-
    
 % Output
 #show pixel/3.
+fill(R,C) :- row(R), col(C), pixel(R,C,1).
