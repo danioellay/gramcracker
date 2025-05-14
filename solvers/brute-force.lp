@@ -23,14 +23,14 @@ line_hint(col, C, I, L) :- col_hint(C, I, L).
 pos_in_line(row, X) :- row(X).
 pos_in_line(col, Y) :- col(Y).
 
-pixel_in_line(row, N, Y, C) :- pixel(N, Y, C).
-pixel_in_line(col, N, X, C) :- pixel(X, N, C).
+pixel(row, N, Y, C) :- pixel(N, Y, C).
+pixel(col, N, X, C) :- pixel(X, N, C).
 
 %%% Combined constraints for lines
 % Constraint 1: Total black pixels must match hint sum in every line
-line_black_count(T, N, C) :- line(T, N), C = #count{ P : pixel_in_line(T, N, P, 1) }.
-line_hint_sum(T, N, S) :- line(T, N), S = #sum{ L,I : line_hint(T, N, I, L) }.  
-:- line_type(T), line(T,N), line_black_count(T,N,C), line_hint_sum(T,N,S), C != S.
+black_count(T, N, C) :- line(T, N), C = #count{ P : pixel(T, N, P, 1) }.
+hint_sum(T, N, S) :- line(T, N), S = #sum{ L,I : line_hint(T, N, I, L) }.  
+:- line_type(T), line(T,N), black_count(T,N,C), hint_sum(T,N,S), C != S.
 
 % Helper predicate to find the first black pixel in every block in every line
 % Format: first_black(line type, number, block index, position)
@@ -38,7 +38,7 @@ line_hint_sum(T, N, S) :- line(T, N), S = #sum{ L,I : line_hint(T, N, I, L) }.
 first_black(T, N, 1, P) :-
     pos_in_line(T, P),
     line_hint(T, N, 1, L), L > 0,
-    P = #min{ Pos : pixel_in_line(T, N, Pos, 1) }.
+    P = #min{ Pos : pixel(T, N, Pos, 1) }.
 % inductive definition for 2nd, 3rd, ... blocks
 first_black(T, N, I, P) :-
     pos_in_line(T, P),
@@ -47,15 +47,15 @@ first_black(T, N, I, P) :-
     first_black(T, N, I-1, Pp),
     line(T, N), pos_in_line(T, Pp), pos_in_line(T, Lp),
     pos_in_line(T, Start),
-    P = #min{ Pos : pixel_in_line(T, N, Pos, 1), Pos >= 1 + Pp + Lp }.
+    P = #min{ Pos : pixel(T, N, Pos, 1), Pos >= 1 + Pp + Lp }.
 
 % Constraint 2: Blocks of black pixels in every line must be correct length
 :- first_black(T, N, I, P), line_hint(T, N, I, L),
-   { pixel_in_line(T, N, PP, 1) : PP = P..P+L-1 } != L.
+   { pixel(T, N, PP, 1) : PP = P..P+L-1 } != L.
 
 % Constraint 3: There must be a space after every block in every line
 :- first_black(T, N, I, P), line_hint(T, N, I, L),
-   pixel_in_line(T, N, P + L, 1).
+   pixel(T, N, P + L, 1).
    
 % Output
 #show pixel/3.
