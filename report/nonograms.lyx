@@ -93,6 +93,7 @@ figs-within-sections
 \papersides 1
 \paperpagestyle default
 \tablestyle default
+\listings_params "frame=lines,breaklines=true,breakatwhitespace=true,basicstyle={\ttfamily \small}"
 \tracking_changes false
 \output_changes false
 \change_bars false
@@ -160,7 +161,7 @@ test citation:
  
 \begin_inset CommandInset citation
 LatexCommand cite
-key "BATENBURG20091672"
+key "NonogramRelaxationsPaper09"
 literal "false"
 
 \end_inset
@@ -174,6 +175,225 @@ Solving Nonograms with ASP
 
 \begin_layout Standard
 ...
+\end_layout
+
+\begin_layout Subsection
+Nonogram encoding
+\end_layout
+
+\begin_layout Standard
+We encode nonograms by adding a predicate corresponding to every line and column hint.
+ Shown below is an example of a 5x5 nonogram encoding:
+\begin_inset CommandInset include
+LatexCommand lstinputlisting
+filename "../nonograms/example_01.lp"
+lstparams "language=Prolog,linerange={5-}"
+literal "false"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+TODO:
+ add image of this example nonogram
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+
+\emph on
+Brute Force
+\emph default
+ approach
+\end_layout
+
+\begin_layout Standard
+The first,
+ most direct and least optimized attempt at a nonogram solver using ASP will be referred to as the 
+\emph on
+brute force
+\emph default
+ solver in the following.
+ It works like this:
+ 
+\begin_inset Newline newline
+\end_inset
+
+First,
+ define a rectangular pixel grid and indicate that every pixel must have exactly one out of a given set of colors,
+ in our case just black (
+\begin_inset listings
+inline true
+status open
+
+\begin_layout Plain Layout
+
+0
+\end_layout
+
+\end_inset
+
+) and white (
+\begin_inset listings
+inline true
+status open
+
+\begin_layout Plain Layout
+
+1
+\end_layout
+
+\end_inset
+
+):
+\begin_inset CommandInset include
+LatexCommand lstinputlisting
+filename "../solvers/brute-force.lp"
+lstparams "language=Prolog,linerange={9-14}"
+literal "false"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Then impose the following three constraints independently for every line (i.e.
+ row or column) onto this black and white pixel grid:
+\end_layout
+
+\begin_layout Enumerate
+The total number of black pixels must match the summed length of all hints.
+\end_layout
+
+\begin_layout Enumerate
+The first black pixel must be followed by exactly 
+\begin_inset Formula $l_{1}-1$
+\end_inset
+
+ further black pixels,
+ where 
+\begin_inset Formula $l_{1}$
+\end_inset
+
+ is the length of the first hint.
+ The 
+\begin_inset Formula $\left(l_{1}+1\right)$
+\end_inset
+
+-th black pixel must be followed by exactly 
+\begin_inset Formula $l_{2}-1$
+\end_inset
+
+ further black pixels,
+ where 
+\begin_inset Formula $l_{2}$
+\end_inset
+
+ is the length of the second hint,
+ etc.
+\end_layout
+
+\begin_layout Enumerate
+The pixel immediately after the 
+\begin_inset Formula $l_{1}$
+\end_inset
+
+-th black pixel may not be black.
+ Similarly,
+ the pixel immediately after the 
+\begin_inset Formula $\left(l_{1}+l_{2}\right)$
+\end_inset
+
+-th black pixel may not be black,
+ etc.
+\end_layout
+
+\begin_layout Standard
+The first constraint can be implemented directly from the pixel grid:
+\begin_inset CommandInset include
+LatexCommand lstinputlisting
+filename "../solvers/brute-force.lp"
+lstparams "language=Prolog,linerange={31-33}"
+literal "false"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+For formulating the other two constraints,
+ a crucial piece of information is the position of the first black pixel,
+ the next first black pixel after the first block,
+ etc.
+ For each hint,
+ these positions are stored using a helper predicate 
+\begin_inset listings
+inline true
+status open
+
+\begin_layout Plain Layout
+
+first_black
+\backslash
+4
+\end_layout
+
+\end_inset
+
+,
+ which is of the format 
+\begin_inset listings
+inline true
+status open
+
+\begin_layout Plain Layout
+
+first_black(line type,
+ line number,
+ block index,
+ position)
+\end_layout
+
+\end_inset
+
+.
+ Then constraints two and three may be encoded like this:
+\begin_inset CommandInset include
+LatexCommand lstinputlisting
+filename "../solvers/brute-force.lp"
+lstparams "language=Prolog,linerange={53,54,57,58}"
+literal "false"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Since all of these constraints are identical for rows and columns,
+ we added the following helper predicates used above for generalized line handling:
+\begin_inset CommandInset include
+LatexCommand lstinputlisting
+filename "../solvers/brute-force.lp"
+lstparams "language=Prolog,linerange={16-27}"
+literal "false"
+
+\end_inset
+
+This has the advantage of only needing to formulate each constraint once,
+ instead of one variant for rows and one variant for columns.
 \end_layout
 
 \begin_layout Standard
