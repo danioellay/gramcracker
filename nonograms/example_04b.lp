@@ -2,7 +2,8 @@
 %%% Problem Instance encoding example
 %%% 10x10 Nonogram with unique solution (empty hints omitted)
 %%% Author: Fabian Kraus
-#const n = 10.  % Size of the Nonogram (n x n bw image)
+#const w = 10.  % Size of the Nonogram (w x h bw image)
+#const h = 10.
 
 % Hints for rows
 % Format: row_hint(Row, HintIndex, BlockLength)

@@ -2,7 +2,8 @@
 %%% Problem Instance encoding example
 %%% 5x5 Nonogram with multiple solutions
 %%% Author: Fabian Kraus
-#const n = 5.  % Size of the Nonogram (n x n bw image)
+#const w = 5.  % Size of the Nonogram (w x h bw image)
+#const h = 5.
 
 % Hints for rows
 % Format: row_hint(Row, HintIndex, BlockLength)

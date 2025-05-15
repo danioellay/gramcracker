@@ -7,8 +7,8 @@
 %%% PROBLEM ENCODING
 % Pixel Grid: every pixel has to have exactly one color
 color(0..1).
-row(1..n).
-col(1..n).
+row(1..h).
+col(1..w).
 pos(X, Y) :- row(X), col(Y).
 1 { pixel(X, Y, C) : color(C) } 1 :- pos(X, Y).
 
@@ -58,5 +58,5 @@ first_black(T, N, I, P) :-
    pixel(T, N, P + L, 1).
    
 % Output
-#show pixel/3.
 fill(R,C) :- row(R), col(C), pixel(R,C,1).
+#show fill/2.
