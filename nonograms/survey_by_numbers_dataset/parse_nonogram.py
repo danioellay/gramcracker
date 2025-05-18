@@ -16,7 +16,8 @@ def parse_nonogram_file_to_asp(filepath):
     row_hint_lines = lines[:size]
     col_hint_lines = lines[size:]
 
-    out_lines = [f"#const n = {size}.\n", "% Column Hints"]
+    out_lines = [f"#const h = {len(col_hint_lines)}.\n", "% Column Hints",
+                 f"\n#const w = {len(row_hint_lines)}.\n % Row Hints"]
 
     for col_index, line in enumerate(col_hint_lines, start=1):
         hints = list(map(int, line.strip().split()))
