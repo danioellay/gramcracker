@@ -8,9 +8,10 @@
 
 
 
-row(1..n).
-col(1..n).
-pos(1..n). % starting position of a block
+row(1..w).
+col(1..h).
+pos_r(1..w). % starting position of a block
+pos_c(1..h).
 
 
 % ---------------------------------------------
@@ -18,14 +19,14 @@ pos(1..n). % starting position of a block
 % ---------------------------------------------
 
 % Guess block start positions
-1 { start_r(R,I,S) : pos(S) } 1 :- row_hint(R, I, L), L > 0.
+1 { start_r(R,I,S) : pos_r(S) } 1 :- row_hint(R, I, L), L > 0.
 
 % Clues with a later index, must start after the last index + 1
 :- start_r(R,I1,S1), start_r(R,I2,S2), I1 < I2,
    row_hint(R,I1,L1), S2 < S1 + L1 + 1.
 
 % A cell is filled if it's within the span of some block that starts at column S with length L
-fill_r(R,C) :- start_r(R,I,S), row_hint(R,I,L), pos(C), C >= S, C < S + L.
+fill_r(R,C) :- start_r(R,I,S), row_hint(R,I,L), pos_r(C), C >= S, C < S + L.
 
 % Row length constraint
 :- start_r(R,I,S), row_hint(R,I,L), S + L - 1 > n.
@@ -34,12 +35,12 @@ fill_r(R,C) :- start_r(R,I,S), row_hint(R,I,L), pos(C), C >= S, C < S + L.
 % Column Fills (analogically)
 % ---------------------------------------------
 
-1 { start_c(C,I,S) : pos(S) } 1 :- col_hint(C,I, L), L > 0.
+1 { start_c(C,I,S) : pos_c(S) } 1 :- col_hint(C,I, L), L > 0.
 
 :- start_c(C,I1,S1), start_c(C,I2,S2), I1 < I2,
    col_hint(C,I1,L1), S2 < S1 + L1 + 1.
 
-fill_c(R,C) :- start_c(C,I,S), col_hint(C,I,L), pos(R), R >= S, R < S + L.
+fill_c(R,C) :- start_c(C,I,S), col_hint(C,I,L), pos_c(R), R >= S, R < S + L.
 
 :- start_c(C,I,S), col_hint(C,I,L), S + L - 1 > n.
 
