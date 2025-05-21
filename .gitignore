@@ -4,4 +4,4 @@ nonograms/random.lp
 /nonograms/survey_by_numbers_dataset/generated/
 *.pyc
 .venv
-gui/pycache
+gui/__pycache__
