@@ -2,3 +2,6 @@ report/nonograms.lyx~
 report/#nonograms.lyx#
 nonograms/random.lp
 /nonograms/survey_by_numbers_dataset/generated/
+*.pyc
+.venv
+gui/pycache
