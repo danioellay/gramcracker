@@ -1,4 +1,5 @@
 from .nonogram_gui import NonogramGUI
+import sys
 
-app = NonogramGUI()
+app = NonogramGUI(sys.argv)
 app.run()

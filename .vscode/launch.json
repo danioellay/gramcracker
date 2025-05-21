@@ -3,9 +3,12 @@
     "configurations": [
         {
             "name": "Launch",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
-            "module": "gui"
+            "module": "gui",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            }
         }
     ]
 }

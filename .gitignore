@@ -5,3 +5,4 @@ nonograms/random.lp
 *.pyc
 .venv
 gui/__pycache__
+gui/handlers/__pycache__
