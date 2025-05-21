@@ -2,7 +2,8 @@
 %%% Problem Instance encoding example
 %%% 20x20 Nonogram with unique solution
 %%% Author: Fabian Kraus
-#const n = 20.  % Size of the Nonogram (n x n bw image)
+#const w = 20.  % Size of the Nonogram (w x h bw image)
+#const h = 20.
 
 % Hints for rows
 % Format: row_hint(Row, HintIndex, BlockLength)
