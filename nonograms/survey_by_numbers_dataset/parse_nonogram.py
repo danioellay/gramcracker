@@ -6,30 +6,28 @@ import os
 
 def parse_nonogram_file_to_asp(filepath):
     with open(filepath, 'r') as f:
-        lines = [line.strip() for line in f if line.strip()]
+        lines = [line.strip('\n') for line in f]
 
-    total_lines = len(lines)
-    if total_lines % 2 != 0:
-        raise ValueError("Expected ")
+    try:
+        split_index = lines.index('')
+    except ValueError:
+        raise ValueError("Expected a blank line separating column and row clues.")
 
-    size = total_lines // 2
-    row_hint_lines = lines[:size]
-    col_hint_lines = lines[size:]
+    row_hint_lines = [line.strip() for line in lines[:split_index] if line.strip()]
+    col_hint_lines = [line.strip() for line in lines[split_index + 1:] if line.strip()]
 
-    out_lines = [f"#const h = {len(col_hint_lines)}.",
-                 f"#const w = {len(row_hint_lines)}.\n",
-                 "% Column Hints"]
+    out_lines = [f"#const h = {len(row_hint_lines)}.", f"#const w = {len(col_hint_lines)}.\n", "% Row Hints"]
 
-    for col_index, line in enumerate(col_hint_lines, start=1):
-        hints = list(map(int, line.strip().split()))
-        for hint_index, length in enumerate(hints, start=1):
-            out_lines.append(f"col_hint({col_index}, {hint_index}, {length}).")
-
-    out_lines.append("\n% Row Hints")
     for row_index, line in enumerate(row_hint_lines, start=1):
-        hints = list(map(int, line.strip().split()))
+        hints = list(map(int, line.split()))
         for hint_index, length in enumerate(hints, start=1):
             out_lines.append(f"row_hint({row_index}, {hint_index}, {length}).")
+
+    out_lines.append("\n% Column Hints")
+    for col_index, line in enumerate(col_hint_lines, start=1):
+        hints = list(map(int, line.split()))
+        for hint_index, length in enumerate(hints, start=1):
+            out_lines.append(f"col_hint({col_index}, {hint_index}, {length}).")
 
     output = "\n".join(out_lines)
 
