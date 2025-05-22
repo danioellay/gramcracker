@@ -9,11 +9,13 @@ class Nonogram:
     col_hints: list[list[int]]
     #colors: int = 1 #number of colors besides the background color (white)
 
+@dataclass
+class NonogramSoln:
+    fill: list[list[bool]]
 
 class NonogramHandler:
-    loaded_nonogram: Nonogram
-
     def load_file(self, filename: str) -> None:
+        self.loaded_nonogram_filename = filename
         with open(filename, 'r') as file:
             lines = file.readlines()
 
@@ -47,10 +49,17 @@ class NonogramHandler:
                     col_hints[col - 1].append(0)
                 col_hints[col - 1][hint_index - 1] = block_length
 
-    def save_file():
+        self.loaded_nonogram = Nonogram(width, height, row_hints, col_hints)
+        self.solutions = [NonogramSoln([[False]*height]*width)]
+        self.current_solution_idx = 0
+
+    def save_file(self):
         pass
         #TODO
 
-    def solve():
+    def get_nonogram(self):
+        return self.loaded_nonogram
+
+    def solve(self):
         pass
         #TODO
