@@ -1,11 +1,12 @@
-from gui.common import Nonogram, NonogramSoln
-from clingo import Control
+from gui.common import *
 
 class NonogramHandler:
     def load_file(self, filename: str) -> None:
         self.loaded_nonogram_filename = filename
         with open(filename, 'r') as file:
             lines = file.readlines()
+        
+        #TODO: check which file ending the filename has and switch between parsers
 
         width, height = 0, 0
         row_hints = [[] for _ in range(height)]
@@ -38,8 +39,14 @@ class NonogramHandler:
                 col_hints[col - 1][hint_index - 1] = block_length
 
         self.loaded_nonogram = Nonogram(width, height, row_hints, col_hints)
-        self.solutions = [NonogramSoln([[False]*height]*width)]
-        self.current_solution_idx = 0
+
+    def clear_hints(self):
+        self.loaded_nonogram.col_hints = [[0] for _ in range(self.loaded_nonogram.width)]
+        self.loaded_nonogram.row_hints = [[0] for _ in range(self.loaded_nonogram.height)]
+
+    def resize(self, width: int, height: int):
+        self.loaded_nonogram.width = width
+        self.loaded_nonogram.height = height
 
     def save_file(self):
         pass

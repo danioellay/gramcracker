@@ -3,75 +3,200 @@
 # run with: python3 -m gui [optional parameter: nonogram filename]
 
 import tkinter as tk
+from tkinter import filedialog
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from tkinter import Event
+
+from math import ceil
+
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 
+from .common import *
 from .handlers.nonogram_handler import NonogramHandler
+from .handlers.solution_handler import SolutionHandler
 
 WINDOW_WIDTH = 600
 WINDOW_HEIGHT = 600
 SQUARE_SIZE = 50 #default side length of a grid cell, pixels
 
+def get_image_dimensions(parent):
+    # Create a custom dialog window
+    dialog = tk.Toplevel(parent)
+    dialog.title("Enter Dimensions for new Nonogram")
+    dialog.geometry("350x220")
+
+    # Labels and Entry widgets for height and width
+    tk.Label(dialog, text="Width:").pack()
+    width_entry = tk.Entry(dialog)
+    width_entry.pack()
+
+    tk.Label(dialog, text="Height:").pack()
+    height_entry = tk.Entry(dialog)
+    height_entry.pack()
+
+    result = [None, None]  # To store the width and height
+
+    def on_ok():
+        try:
+            result[0] = int(width_entry.get())
+            result[1] = int(height_entry.get())
+            dialog.destroy()
+        except ValueError:
+            tk.messagebox.showerror("Invalid input", "Please enter valid integers for width and height.")
+
+    def on_cancel():
+        dialog.destroy()
+
+    # Buttons for OK and Cancel
+    ok_button = tk.Button(dialog, text="OK", command=on_ok)
+    ok_button.pack(side="left")
+
+    cancel_button = tk.Button(dialog, text="Cancel", command=on_cancel)
+    cancel_button.pack(side="right")
+
+    # Wait for the dialog to close
+    dialog.wait_window()
+
+    return tuple(result)
+
+
 class NonogramGUI(tk.Tk):
 
     def __init__(self, args) -> None:
         tk.Tk.__init__(self)
+        # Setup data handlers
+        self.nonogram_handler = NonogramHandler()
+        self.solution_handler = SolutionHandler()
+
+        # Setup window
         self.geometry(f"{WINDOW_WIDTH}x{WINDOW_HEIGHT}")
         self.minsize(WINDOW_WIDTH, WINDOW_HEIGHT)
         self.title("Nonogram GUI")
         self.protocol("WM_DELETE_WINDOW", self._on_del_window)
         self.protocol("tk::mac::Quit", self._on_del_window)
 
-        self.nonogram_handler = NonogramHandler()
+        # Setup window menubar
+        self.menubar = tk.Menu(self, type='menubar')
+        self.configure(menu=self.menubar)
+        self.file_menu = tk.Menu(self.menubar, tearoff=False)
+        self.menubar.add_cascade(menu=self.file_menu, label="File")
+        self.file_menu.add_command(label="Open", accelerator="Ctrl+O", command=self._on_file_open)
+        self.bind_all("<Control-o>", self._on_file_open)
+        self.bind_all("<Control-O>", self._on_file_open)
+        self.file_menu.add_command(label="New", accelerator="Ctrl+N", command=self._on_file_new)
+        self.bind_all("<Control-n>", self._on_file_new)
+        self.bind_all("<Control-N>", self._on_file_new)
+        self.file_export_menu = tk.Menu(self.menubar, tearoff=False)
+        self.file_menu.add_cascade(menu=self.file_export_menu, label="Export as ...")
+        self.file_export_menu.add_command(label="Image", command=self._on_file_export_image)
+        self.file_export_menu.add_command(label="ASP encoding", command=self._on_file_export_lp)
 
+        # Setup nonogram drawing canvas and add to window
         self.figure_frame = tk.Frame(self)
         self.figure_frame.pack(fill=tk.BOTH, expand=True)
         self.figure, self.axes = plt.subplots()
+        plt.subplots_adjust(left=0.05, right=0.9, top=1.0, bottom=0.05)
         self.axes.set_aspect('equal')
-        plt.subplots_adjust(left=0.05, right=0.9, top=1.0, bottom=0.0)
         self.canvas = FigureCanvasTkAgg(self.figure, master=self.figure_frame)
-        # self.canvas.draw()
         self.canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
-        # self.canvas.mpl_connect('button_press_event', self._on_button_press)
+
+        # Setup button event callbacks
+        self.canvas.mpl_connect('button_press_event', self._on_button_press)
         # self.canvas.mpl_connect('button_release_event', self._on_button_release)
         # self.canvas.mpl_connect('motion_notify_event', self._on_mouse_motion)
         # self.canvas.mpl_connect('scroll_event', self._on_scroll)
+
+        # Process launch arguments
         if len(args) > 1:
             self.nonogram_handler.load_file(args[1])
-            self.draw_nonogram()
+            self.solution_handler.give_nonogram(self.nonogram_handler.get_nonogram())
+            self.draw_nonogram(self.nonogram_handler.get_nonogram())
+            self.draw_solution(self.solution_handler.working_solution)
 
     def run(self) -> None:
+        # Finish setting up the GUI and enter mainloop
         self.update()
         self.update_idletasks()
         self.focus_force()
         return self.mainloop()
     
+    def _clear_all(self):
+        self.pixels = None
+        plt.cla()
+    
+    def _on_file_open(self, *_):
+        file_types = [('ASP encoding', '*.lp'), ('Raw format (UNIMPLEMENTED)', '*.txt')]
+        init_dir = "nonograms"
+        file_path = filedialog.askopenfilename(title="Select a file encoding a Nonogram", initialdir=init_dir, filetypes=file_types)
+        if not file_path:
+            return
+        self.nonogram_handler.load_file(file_path)
+        nonogram = self.nonogram_handler.get_nonogram()
+        self._clear_all()
+        self.draw_nonogram(nonogram)
+        self.solution_handler.give_nonogram(nonogram)
+
+    def _on_file_new(self, *_):
+        dimensions = get_image_dimensions(self)
+        if dimensions == (None, None):
+            return
+        
+        self.nonogram_handler.resize(dimensions[0], dimensions[1])
+        self.nonogram_handler.clear_hints()
+        nonogram = self.nonogram_handler.get_nonogram()
+        self.solution_handler.give_nonogram(nonogram)
+        self._clear_all()
+        self.draw_nonogram(nonogram)
+
+    def _on_file_export_image(self, *_):
+        file_types = [('SVG image', '*.svg'), ('PNG image', '*.png'), ('JPG image', '*.jpg')]
+        init_dir = ""
+        file_path = filedialog.asksaveasfilename(title="Export image", initialdir=init_dir, filetypes=file_types)
+        if not file_path:
+            return
+        self.figure.savefig(file_path, bbox_inches='tight')
+
+    def _on_file_export_lp(self, *_):
+        pass
+
+    def _on_button_press(self, event: Event):
+        if event.inaxes != self.axes:
+            return
+        if event.button == 1: #(left mouse button)
+            nonogram = self.nonogram_handler.get_nonogram()
+            y = ceil(nonogram.height - event.ydata - 1)
+            x = ceil(event.xdata - 1)
+            if y >= 0 and y <= nonogram.height and x >= 0 and x <= nonogram.width:
+                self._on_leftclick_cell(y, x)
+
+    def _on_leftclick_cell(self, row: int, col: int):
+        self.solution_handler.working_solution.fill[row][col] = not self.solution_handler.working_solution.fill[row][col]
+        self.pixels[row][col].set_visible(self.solution_handler.working_solution.fill[row][col])
+        self.canvas.draw_idle()
+
     def _on_del_window(self) -> None:
         self.quit()
 
-    def draw_nonogram(self):
-        # Get the current nonogram from the handler
-        nonogram = self.nonogram_handler.get_nonogram()  # Assuming this method exists
-
+    def draw_nonogram(self, nonogram: Nonogram):
         # Adjust the window size
         win_width = nonogram.width*SQUARE_SIZE
         win_height = nonogram.height*SQUARE_SIZE
         self.geometry(f"{win_width}x{win_height}")
-        # self.minsize(win_width, win_height)
+        self.minsize(win_width, win_height)
 
         # Draw the nonogram fully filled and save each pixel as a separate object, then hide them
-        # The pixels are indexed by [row][column], starting at index 1!
-        self.pixels: list[list[patches.Patch]] = [[None for _ in range(nonogram.width + 1)] for _ in range(nonogram.height + 1)]
+        # The pixels are indexed by [row][column], starting at index 0!
+        self.pixels: list[list[patches.Patch]] = [[None for _ in range(nonogram.width)] for _ in range(nonogram.height)]
         for x in range(nonogram.width):
-            col = x + 1
+            col = x
             for y in range(nonogram.height):
-                row = nonogram.height - y
+                row = nonogram.height - y - 1
                 # self.axes.text(x,y,f"{row}|{col}", fontsize=8)
-                pixel = patches.Rectangle((x, y), 1, 1, linewidth=0, facecolor='black', alpha=0.667)
+                pixel = patches.Rectangle((x, y), 1, 1, linewidth=0, facecolor='black', alpha=0.8)
                 self.axes.add_patch(pixel)
                 self.pixels[row][col] = pixel
-                # pixel.set_visible(False)
+                pixel.set_visible(False)
 
         # Draw row hints to the left of the grid
         for i, hints in enumerate(nonogram.row_hints):
@@ -96,8 +221,8 @@ class NonogramGUI(tk.Tk):
         plt.setp(self.axes.yaxis.get_majorticklabels(), va="bottom", ha="left")
         self.axes.grid(which='both', color='black', linestyle='-', linewidth=1)
         self.axes.spines['top'   ].set_visible(False)
-        self.axes.spines['right' ].set_visible(False)
-        self.axes.spines['bottom'].set_visible(False)
+        # self.axes.spines['right' ].set_visible(False)
+        # self.axes.spines['bottom'].set_visible(False)
         self.axes.spines['left'  ].set_visible(False)
 
         # Redraw the canvas
@@ -107,3 +232,8 @@ class NonogramGUI(tk.Tk):
         self.axes.set_xlim(-0.75*max([len(rh) for rh in nonogram.row_hints]), nonogram.width)
         self.axes.set_ylim(-0, nonogram.height + 0.9*max([len(ch) for ch in nonogram.col_hints]))
 
+    def draw_solution(self, solution: NonogramSoln):
+        for r, row in enumerate(solution.fill):
+            for c, filled in enumerate(row):
+                self.pixels[r][c].set_visible(filled)
+        self.canvas.draw_idle()

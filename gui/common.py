@@ -13,3 +13,6 @@ class Nonogram:
 @dataclass
 class NonogramSoln:
     fill: list[list[bool]]
+
+    def __init__(self, nonogram: Nonogram):
+        self.fill = [[False for _ in range(nonogram.width)] for _ in range(nonogram.height)]
