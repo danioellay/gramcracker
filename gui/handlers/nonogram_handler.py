@@ -78,9 +78,11 @@ class NonogramHandler:
         self.loaded_nonogram.width = width
         self.loaded_nonogram.height = height
 
-    def save_file(self):
+    def save_file(self, path: str = ""):
+        if path == "":
+            path = self.loaded_nonogram_filename
         nonogram = self.get_nonogram()
-        with open(self.loaded_nonogram_filename, 'w') as f:
+        with open(path, 'w') as f:
             f.write(f"%%% ASP Nonogram solver\n")
             f.write(f"%%% Problem Instance encoding\n")
             f.write(f"%%% {nonogram.width}x{nonogram.height} Nonogram\n")

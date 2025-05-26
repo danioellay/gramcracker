@@ -9,6 +9,19 @@ class SolutionHandler:
         self.given_nonogram = nonogram
         self.working_solution = NonogramSoln(nonogram)
 
+    def run_solver(self, encoding: str, solver: str):
+        ctl = Control()
+        ctl.load(encoding)
+        ctl.load("solvers/" + solver + ".lp")
+        ctl.ground([("base", [])])
+        model = ctl.solve(yield_=True)
+        
+        # Clear the solution and only fill from the model
+        self.working_solution = NonogramSoln(self.given_nonogram)
+        for symbol in model.model().symbols(atoms=True):
+            if symbol.name == 'fill':
+                self.working_solution.fill[symbol.arguments[0].number - 1][symbol.arguments[1].number - 1] = True
+
     def solves_row(self, row: int) -> bool:
         hints = self.given_nonogram.row_hints[row]
         line = self.working_solution.fill[row]

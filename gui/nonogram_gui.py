@@ -5,6 +5,9 @@
 import tkinter as tk
 from tkinter import filedialog
 from tkinter import Event
+import os
+from os import listdir
+from os.path import isfile, join
 
 from math import ceil
 
@@ -102,6 +105,14 @@ class NonogramGUI(tk.Tk):
         self.bind_all("<Control-I>", self._on_file_export_image)
         self.file_menu.add_command(label="Exit", command=self._on_del_window)
 
+        self.file_menu = tk.Menu(self.menubar, tearoff=False)
+        self.menubar.add_cascade(menu=self.file_menu, label="Run Solver")
+        solvers = [f for f in listdir("solvers/") if isfile(join("solvers/", f)) and f.endswith(".lp")]
+        for i, solver in enumerate(solvers):
+            # Create a lambda function that calls _on_solver with the correct solver
+            self.file_menu.add_command(label=solver.split(".")[0], accelerator=f"Ctrl+{i+1}", command=lambda s=solver, e=None: self._on_solver(s))
+            self.bind_all(f"<Control-Key-{i+1}>", lambda e, s=solver: self._on_solver(s))
+
         # Setup nonogram drawing canvas and add to window
         self.figure_frame = tk.Frame(self)
         self.figure_frame.pack(fill=tk.BOTH, expand=True)
@@ -122,7 +133,14 @@ class NonogramGUI(tk.Tk):
             self.nonogram_handler.load_file(args[1])
             self.solution_handler.give_nonogram(self.nonogram_handler.get_nonogram())
             self.draw_nonogram(self.nonogram_handler.get_nonogram())
+            # self.draw_solution(self.solution_handler.working_solution)
+
+        if len(args) > 2:
+            temp_path = "temp.lp"
+            self.nonogram_handler.save_file(temp_path)
+            self.solution_handler.run_solver(temp_path, args[2])
             self.draw_solution(self.solution_handler.working_solution)
+            os.remove(temp_path)
 
     def run(self) -> None:
         # Finish setting up the GUI and enter mainloop
@@ -134,6 +152,14 @@ class NonogramGUI(tk.Tk):
     def _clear_all(self):
         self.pixels = None
         plt.cla()
+
+    def _on_solver(self, name: str, *_):
+        temp_path = "temp.lp"
+        self.nonogram_handler.save_file(temp_path)
+        self.solution_handler.run_solver(temp_path, name.split(".")[0])
+        self.draw_solution(self.solution_handler.working_solution)
+        os.remove(temp_path)
+        
     
     def _on_file_open(self, *_):
         file_types = [('ASP encoding', '*.lp'), ('Raw format (UNIMPLEMENTED)', '*.txt')]
@@ -275,9 +301,12 @@ class NonogramGUI(tk.Tk):
         # Set the xy limits so that the entire nonogram plus hints are visible
         self.axes.set_xlim(-0.75*max([len(rh) for rh in nonogram.row_hints]), nonogram.width)
         self.axes.set_ylim(-0, nonogram.height + 0.9*max([len(ch) for ch in nonogram.col_hints]))
+        self.canvas.draw_idle()
 
     def draw_solution(self, solution: NonogramSoln):
         for r, row in enumerate(solution.fill):
+            self.row_hints[r].set_color('black' if self.solution_handler.solves_row(r) else 'red')
             for c, filled in enumerate(row):
+                self.col_hints[c].set_color('black' if self.solution_handler.solves_col(c) else 'red')
                 self.pixels[r][c].set_visible(filled)
         self.canvas.draw_idle()
