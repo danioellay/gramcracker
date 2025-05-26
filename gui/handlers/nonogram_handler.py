@@ -4,6 +4,8 @@
 from gui.common import *
 
 class NonogramHandler:
+    def __init__(self):
+        self.loaded_nonogram = Nonogram(4,4, [], [])
     def load_file(self, filename: str) -> None:
         self.loaded_nonogram_filename = filename
         with open(filename, 'r') as file:
