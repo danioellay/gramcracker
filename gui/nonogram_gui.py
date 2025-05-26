@@ -11,6 +11,7 @@ from os import listdir
 from os.path import isfile, join
 
 from math import ceil
+import random
 
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import matplotlib.pyplot as plt
@@ -25,13 +26,13 @@ WINDOW_WIDTH = 600
 WINDOW_HEIGHT = 600
 SQUARE_SIZE = 50 #default side length of a grid cell, pixels
 
-def get_image_dimensions(parent):
+def create_new_nonogram(parent):
     # Create a custom dialog window
     dialog = tk.Toplevel(parent)
-    dialog.title("Enter Dimensions for new Nonogram")
-    dialog.geometry("350x220")
-
+    dialog.geometry("500x600")
+    
     # Labels and Entry widgets for height and width
+    tk.Label(dialog, text="Enter Dimensions for new Nonogram").pack()
     tk.Label(dialog, text="Width:").pack()
     width_entry = tk.Entry(dialog)
     width_entry.pack()
@@ -40,15 +41,42 @@ def get_image_dimensions(parent):
     height_entry = tk.Entry(dialog)
     height_entry.pack()
 
-    result = [None, None]  # To store the width and height
+    # Variable to hold the selected option
+    selected_option = tk.StringVar(value="empty")
+
+    tk.Label(dialog, text="Nonogram contents").pack()
+    # List of options
+    options = [
+        ("Empty Nonogram", "empty"),
+        ("Random Nonogram", "random"),
+        ("From Image...", "image")
+    ]
+
+    # Create radio buttons
+    for text, value in options:
+        radio = tk.Radiobutton(dialog, text=text, variable=selected_option, value=value)
+        radio.pack(anchor=tk.W)
+        if value == "random":
+            tk.Label(dialog, text="Black/White ratio:").pack()
+            bw_entry = tk.Entry(dialog)
+            bw_entry.pack()
+            tk.Label(dialog, text="Pixel correlation:").pack()
+            corr_entry = tk.Entry(dialog)
+            corr_entry.pack()
+
+    result = [None, None]
+    p = [None, None]
 
     def on_ok():
         try:
             result[0] = int(width_entry.get())
             result[1] = int(height_entry.get())
+            if selected_option.get() == "random":
+                p[0] = float(bw_entry.get())
+                p[1] = float(corr_entry.get())
             dialog.destroy()
         except ValueError:
-            tk.messagebox.showerror("Invalid input", "Please enter valid integers for width and height.")
+            tk.messagebox.showerror("Invalid input", "Please enter valid numbers.")
 
     def on_cancel():
         dialog.destroy()
@@ -62,8 +90,33 @@ def get_image_dimensions(parent):
 
     # Wait for the dialog to close
     dialog.wait_window()
+    if result == [None, None]:
+        return (None, None), None
+    if selected_option.get() == "empty":
+        return tuple(result), None
+    if selected_option.get() == "random":
+        # generate pixel grid
+        grid = []
+        for _ in range(result[1]): 
+            row = [True if random.random() < p[0] else False for _ in range(result[0])] 
+            grid.append(row)
 
-    return tuple(result)
+        new_grid = []
+        for r, row in enumerate(grid):
+            new_grid.append(row)
+            for c, fill in enumerate(row):
+                neighbour_count = 0
+                if r > 0 and grid[r-1][c]:
+                    neighbour_count += 1
+                if r < result[1] - 1 and grid[r+1][c]:
+                    neighbour_count += 1
+                if c > 0 and grid[r][c-1]:
+                    neighbour_count += 1
+                if c < result[0] - 1 and grid[r][c+1]:
+                    neighbour_count += 1
+                new_grid[r][c] = fill or random.random() < neighbour_count*p[1]/4
+
+        return tuple(result), new_grid
 
 
 class NonogramGUI(tk.Tk):
@@ -107,7 +160,7 @@ class NonogramGUI(tk.Tk):
         self.file_menu.add_command(label="Exit", command=self._on_del_window)
 
         self.file_menu = tk.Menu(self.menubar, tearoff=False)
-        self.menubar.add_cascade(menu=self.file_menu, label="Run Solver")
+        self.menubar.add_cascade(menu=self.file_menu, label="Solver")
         solvers = [f for f in listdir("solvers/") if isfile(join("solvers/", f)) and f.endswith(".lp")]
         for i, solver in enumerate(solvers):
             # Create a lambda function that calls _on_solver with the correct solver
@@ -135,6 +188,8 @@ class NonogramGUI(tk.Tk):
             self.solution_handler.give_nonogram(self.nonogram_handler.get_nonogram())
             self.draw_nonogram(self.nonogram_handler.get_nonogram())
             # self.draw_solution(self.solution_handler.working_solution)
+        else:
+            self._on_file_new()
 
         if len(args) > 2:
             temp_path = "temp.lp"
@@ -160,7 +215,6 @@ class NonogramGUI(tk.Tk):
         self.solution_handler.run_solver(temp_path, name.split(".")[0])
         self.draw_solution(self.solution_handler.working_solution)
         os.remove(temp_path)
-        
     
     def _on_file_open(self, *_):
         file_types = [('ASP encoding', '*.lp'), ('Raw format (UNIMPLEMENTED)', '*.txt')]
@@ -175,13 +229,15 @@ class NonogramGUI(tk.Tk):
         self.solution_handler.give_nonogram(nonogram)
 
     def _on_file_new(self, *_):
-        dimensions = get_image_dimensions(self)
+        dimensions, grid = create_new_nonogram(self)
         if dimensions == (None, None):
             return
         
         self.nonogram_handler.loaded_nonogram_filename = None
         self.nonogram_handler.resize(dimensions[0], dimensions[1])
         self.nonogram_handler.clear_hints()
+        if grid:
+            self.nonogram_handler.hints_from_grid(grid)
         nonogram = self.nonogram_handler.get_nonogram()
         self.solution_handler.give_nonogram(nonogram)
         self._clear_all()
@@ -224,6 +280,9 @@ class NonogramGUI(tk.Tk):
     def _on_button_press(self, event: Event):
         if event.inaxes != self.axes:
             return
+        if not hasattr(self.solution_handler, "working_solution"):
+            return
+        
         if event.button == 1: #(left mouse button)
             nonogram = self.nonogram_handler.get_nonogram()
             y = ceil(nonogram.height - event.ydata - 1)
