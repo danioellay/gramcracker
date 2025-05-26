@@ -173,7 +173,7 @@ class NonogramGUI(tk.Tk):
         self.draw_nonogram(nonogram)
 
     def _on_file_export_image(self, *_):
-        file_types = [('SVG image', '*.svg'), ('PNG image', '*.png'), ('JPG image', '*.jpg')]
+        file_types = [('SVG image', '*.svg'), ('PDF Document', '*.pdf'), ('PNG image', '*.png'), ('JPG image', '*.jpg')]
         init_dir = ""
         file_path = filedialog.asksaveasfilename(title="Export image", initialdir=init_dir, filetypes=file_types)
         if not file_path:
@@ -219,7 +219,7 @@ class NonogramGUI(tk.Tk):
         win_width = nonogram.width*SQUARE_SIZE
         win_height = nonogram.height*SQUARE_SIZE
         self.geometry(f"{win_width}x{win_height}")
-        self.minsize(win_width, win_height)
+        # self.minsize(win_width, win_height)
 
         # Draw the nonogram fully filled and save each pixel as a separate object, then hide them
         # The pixels are indexed by [row][column], starting at index 0!
