@@ -40,6 +40,36 @@ class NonogramHandler:
 
         self.loaded_nonogram = Nonogram(width, height, row_hints, col_hints)
 
+    def hints_from_grid(self, grid: List[List[bool]]):
+        
+        def get_hints(line):
+            hints = []
+            current = 0
+            for cell in line:
+                if cell:
+                    current += 1
+                else:
+                    if current > 0:
+                        hints.append(current)
+                        current = 0
+            if current > 0:
+                hints.append(current)
+
+            return hints if hints else [0]
+        
+        # Compute row hints
+        self.loaded_nonogram.row_hints = []
+        for i in range(self.loaded_nonogram.height):
+            hints = get_hints(grid[i])
+            self.loaded_nonogram.row_hints.append(hints)
+            
+        # Compute column hints
+        self.loaded_nonogram.col_hints = []
+        for j in range(self.loaded_nonogram.width):
+            column = [grid[i][j] for i in range(self.loaded_nonogram.height)]
+            hints = get_hints(column)
+            self.loaded_nonogram.col_hints.append(hints)
+
     def clear_hints(self):
         self.loaded_nonogram.col_hints = [[0] for _ in range(self.loaded_nonogram.width)]
         self.loaded_nonogram.row_hints = [[0] for _ in range(self.loaded_nonogram.height)]

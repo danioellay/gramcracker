@@ -88,6 +88,9 @@ class NonogramGUI(tk.Tk):
         self.file_menu.add_command(label="New", accelerator="Ctrl+N", command=self._on_file_new)
         self.bind_all("<Control-n>", self._on_file_new)
         self.bind_all("<Control-N>", self._on_file_new)
+        self.file_menu.add_command(label="New from current solution", accelerator="Ctrl+Shift+N", command=self._on_file_new_from_current)
+        self.bind_all("<Control-Shift-n>", self._on_file_new_from_current)
+        self.bind_all("<Control-Shift-N>", self._on_file_new_from_current)
         self.file_menu.add_command(label="Save",  accelerator="Ctrl+S", command=self._on_file_save)
         self.bind_all("<Control-s>", self._on_file_save)
         self.bind_all("<Control-S>", self._on_file_save)
@@ -152,6 +155,18 @@ class NonogramGUI(tk.Tk):
         self.nonogram_handler.loaded_nonogram_filename = None
         self.nonogram_handler.resize(dimensions[0], dimensions[1])
         self.nonogram_handler.clear_hints()
+        nonogram = self.nonogram_handler.get_nonogram()
+        self.solution_handler.give_nonogram(nonogram)
+        self._clear_all()
+        self.draw_nonogram(nonogram)
+
+    def _on_file_new_from_current(self, *_):
+        self.nonogram_handler.loaded_nonogram_filename = None
+        self.nonogram_handler.clear_hints()
+        grid = self.solution_handler.working_solution.fill
+
+        self.nonogram_handler.hints_from_grid(grid)
+
         nonogram = self.nonogram_handler.get_nonogram()
         self.solution_handler.give_nonogram(nonogram)
         self._clear_all()
@@ -239,9 +254,9 @@ class NonogramGUI(tk.Tk):
 
         # Setup the grid and ticks and cell index numbers
         self.axes.set_xticks(range(0, nonogram.width+1 ),
-                             ["column: "] + list(map(str, range(1, nonogram.width + 1))))
+                             [""] + list(map(str, range(1, nonogram.width + 1))))
         self.axes.set_yticks(range(0, nonogram.height+1), 
-                             list(map(str, reversed(range(1, nonogram.height + 1)))) + ["row:"]) # enumerate rows from top to bottom
+                             list(map(str, reversed(range(1, nonogram.height + 1)))) + [""]) # enumerate rows from top to bottom
 
         # Further customize the plots appearance, like adding a grid and removing the frame
         self.axes.yaxis.set_label_position('right')
