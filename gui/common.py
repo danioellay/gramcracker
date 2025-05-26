@@ -1,3 +1,5 @@
+# ASP Nonogram viewer and solver GUI
+# Author: Fabian Kraus
 
 from dataclasses import dataclass
 from typing import List

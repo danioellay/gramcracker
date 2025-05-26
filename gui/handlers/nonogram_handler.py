@@ -1,3 +1,6 @@
+# ASP Nonogram viewer and solver GUI
+# Author: Fabian Kraus
+
 from gui.common import *
 
 class NonogramHandler:

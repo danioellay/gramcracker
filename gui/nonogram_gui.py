@@ -1,6 +1,7 @@
 # ASP Nonogram viewer and solver GUI
 # Author: Fabian Kraus
-# run with: python3 -m gui [optional parameter: nonogram filename]
+# run with: python3 -m gui [optional parameter: nonogram filename] [optional parameter: solver name]
+#    e.g. : python3 -m gui nonograms/example_05.lp symbolic-block-start
 
 import tkinter as tk
 from tkinter import filedialog
