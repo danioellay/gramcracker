@@ -4,13 +4,14 @@
 
 import tkinter as tk
 from tkinter import filedialog
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from tkinter import Event
 
 from math import ceil
 
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
+from matplotlib.text import Text
 
 from .common import *
 from .handlers.nonogram_handler import NonogramHandler
@@ -87,10 +88,16 @@ class NonogramGUI(tk.Tk):
         self.file_menu.add_command(label="New", accelerator="Ctrl+N", command=self._on_file_new)
         self.bind_all("<Control-n>", self._on_file_new)
         self.bind_all("<Control-N>", self._on_file_new)
-        self.file_export_menu = tk.Menu(self.menubar, tearoff=False)
-        self.file_menu.add_cascade(menu=self.file_export_menu, label="Export as ...")
-        self.file_export_menu.add_command(label="Image", command=self._on_file_export_image)
-        self.file_export_menu.add_command(label="ASP encoding", command=self._on_file_export_lp)
+        self.file_menu.add_command(label="Save",  accelerator="Ctrl+S", command=self._on_file_save)
+        self.bind_all("<Control-s>", self._on_file_save)
+        self.bind_all("<Control-S>", self._on_file_save)
+        self.file_menu.add_command(label="Save as ... ",  accelerator="Ctrl+Shift+S", command=self._on_file_save_as)
+        self.bind_all("<Control-Shift-s>", self._on_file_save_as)
+        self.bind_all("<Control-Shift-S>", self._on_file_save_as)
+        self.file_menu.add_command(label="Export Image", accelerator="Ctrl+I", command=self._on_file_export_image)
+        self.bind_all("<Control-i>", self._on_file_export_image)
+        self.bind_all("<Control-I>", self._on_file_export_image)
+        self.file_menu.add_command(label="Exit", command=self._on_del_window)
 
         # Setup nonogram drawing canvas and add to window
         self.figure_frame = tk.Frame(self)
@@ -142,6 +149,7 @@ class NonogramGUI(tk.Tk):
         if dimensions == (None, None):
             return
         
+        self.nonogram_handler.loaded_nonogram_filename = None
         self.nonogram_handler.resize(dimensions[0], dimensions[1])
         self.nonogram_handler.clear_hints()
         nonogram = self.nonogram_handler.get_nonogram()
@@ -157,8 +165,19 @@ class NonogramGUI(tk.Tk):
             return
         self.figure.savefig(file_path, bbox_inches='tight')
 
-    def _on_file_export_lp(self, *_):
-        pass
+    def _on_file_save(self, *_):
+        if not self.nonogram_handler.loaded_nonogram_filename:
+            return self._on_file_save_as()
+        self.nonogram_handler.save_file()
+
+    def _on_file_save_as(self, *_):
+        file_types = [('Logic Program', '*.lp')]
+        init_dir = ""
+        file_path = filedialog.asksaveasfilename(title="Export Nonogram Encoding", initialdir=init_dir, filetypes=file_types)
+        if not file_path:
+            return
+        self.nonogram_handler.loaded_nonogram_filename = file_path
+        self.nonogram_handler.save_file()
 
     def _on_button_press(self, event: Event):
         if event.inaxes != self.axes:
@@ -173,6 +192,8 @@ class NonogramGUI(tk.Tk):
     def _on_leftclick_cell(self, row: int, col: int):
         self.solution_handler.working_solution.fill[row][col] = not self.solution_handler.working_solution.fill[row][col]
         self.pixels[row][col].set_visible(self.solution_handler.working_solution.fill[row][col])
+        self.row_hints[row].set_color('black' if self.solution_handler.solves_row(row) else 'red')
+        self.col_hints[col].set_color('black' if self.solution_handler.solves_col(col) else 'red')
         self.canvas.draw_idle()
 
     def _on_del_window(self) -> None:
@@ -199,14 +220,22 @@ class NonogramGUI(tk.Tk):
                 pixel.set_visible(False)
 
         # Draw row hints to the left of the grid
+        self.row_hints: list[Text] = []
         for i, hints in enumerate(nonogram.row_hints):
             hint_text = ' '.join(map(str, hints))
-            self.axes.text(-0.5, nonogram.height - i - 0.5, hint_text, va='center', ha='right', fontsize=18)
+            hint = self.axes.text(-0.5, nonogram.height - i - 0.5, hint_text, va='center', ha='right', fontsize=18, color='red')
+            if not hints or len(hints) == 1 and hints[0] == 0:
+                hint.set_color('black')
+            self.row_hints.append(hint)
 
         # Draw column hints above the grid, stacked vertically
+        self.col_hints: list[Text] = []
         for j, hints in enumerate(nonogram.col_hints):
             hint_text = '\n'.join(map(str, hints))
-            self.axes.text(j + 0.5, nonogram.height + 0.5, hint_text, va='bottom', ha='center', fontsize=18) 
+            hint = self.axes.text(j + 0.5, nonogram.height + 0.5, hint_text, va='bottom', ha='center', fontsize=18, color='red')
+            if not hints or len(hints) == 1 and hints[0] == 0:
+                hint.set_color('black')
+            self.col_hints.append(hint)
 
         # Setup the grid and ticks and cell index numbers
         self.axes.set_xticks(range(0, nonogram.width+1 ),

@@ -49,10 +49,25 @@ class NonogramHandler:
         self.loaded_nonogram.height = height
 
     def save_file(self):
-        pass
-        #TODO
+        nonogram = self.get_nonogram()
+        with open(self.loaded_nonogram_filename, 'w') as f:
+            f.write(f"%%% ASP Nonogram solver\n")
+            f.write(f"%%% Problem Instance encoding\n")
+            f.write(f"%%% {nonogram.width}x{nonogram.height} Nonogram\n")
+            f.write(f"#const w = {nonogram.width}.  % Size of the Nonogram (w x h bw image)\n")
+            f.write(f"#const h = {nonogram.height}.\n\n")
+            f.write(f"% Hints for rows\n")
+            f.write(f"% Format: row_hint(Row, HintIndex, BlockLength)\n")
+            for row_num, hints in enumerate(nonogram.row_hints, start=1):
+                for idx, length in enumerate(hints, start=1):
+                    f.write(f"row_hint({row_num}, {idx}, {length}).\n")
+            f.write("\n% Hints for columns\n")
+            f.write("% Format: col_hint(Column, HintIndex, BlockLength)\n")
+            for col_num, hints in enumerate(nonogram.col_hints, start=1):
+                for idx, length in enumerate(hints, start=1):
+                    f.write(f"col_hint({col_num}, {idx}, {length}).\n")
 
-    def get_nonogram(self):
+    def get_nonogram(self) -> Nonogram:
         return self.loaded_nonogram
 
     def solve(self):
