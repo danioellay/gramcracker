@@ -39,7 +39,7 @@ figs-within-sections
 \bibtex_command default
 \index_command default
 \float_placement class
-\float_alignment class
+\float_alignment center
 \paperfontsize 11
 \spacing single
 \use_hyperref true
@@ -200,15 +200,31 @@ status open
 \begin_inset Graphics
 	filename example01_unsolved.pdf
 	lyxscale 50
-	width 35col%
+	width 30col%
 
+\end_inset
+
+
+\begin_inset Formula $\quad$
+\end_inset
+
+
+\begin_inset Graphics
+	filename example01_partiallysolved.pdf
+	lyxscale 50
+	width 30col%
+
+\end_inset
+
+
+\begin_inset Formula $\quad$
 \end_inset
 
 
 \begin_inset Graphics
 	filename example01.pdf
 	lyxscale 50
-	width 35col%
+	width 30col%
 
 \end_inset
 
@@ -217,8 +233,10 @@ status open
 
 \begin_layout Plain Layout
 The 5x5 nonogram encoded below:
- The left side is unsolved and shows only the hints at the top and the right hand side in red.
- The right side shows the solution,
+ The left nonogram is unsolved and shows only the hints at the top and the right hand side in red.
+ The nonogram in the center is partially solved,
+ the satisfied hints are shown in black.
+ The right side shows the full solution,
  which in this case is a unique one.
  The small numbers at the bottom and the left hand side indicate the row and column numbers.
 \end_layout
