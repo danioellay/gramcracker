@@ -1,10 +1,19 @@
+# use with python3 solvers/script.py nonograms/example_01.lp solvers/symbolic-block-start.lp
+
 from clingo import Control, Function
+import sys
 
 def main():
+    if len(sys.argv) != 3:
+        print("Usage: python run_solver.py <puzzle_file.lp> <solver_file.lp>")
+        return
+
+    puzzle_file = sys.argv[1]
+    solver_file = sys.argv[2]
 
     ctl = Control()
-    ctl.load("symbolic-block-start.lp")
-    ctl.load("../nonograms/example_01.lp")
+    ctl.load(puzzle_file)
+    ctl.load(solver_file)
     ctl.ground([("base", [])])
 
     fill_atoms = []
