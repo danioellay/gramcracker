@@ -1,0 +1,372 @@
+# ASP Nonogram viewer and solver GUI
+# Author: Fabian Kraus
+# run with: python3 -m gui [optional parameter: nonogram filename] [optional parameter: solver name]
+#    e.g. : python3 -m gui nonograms/example_05.lp symbolic-block-start
+
+import tkinter as tk
+from tkinter import filedialog
+from tkinter import Event
+import os
+from os import listdir
+from os.path import isfile, join
+
+from math import ceil
+import random
+
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import matplotlib.pyplot as plt
+import matplotlib.patches as patches
+from matplotlib.text import Text
+
+from .common import *
+from .handlers.nonogram_handler import NonogramHandler
+from .handlers.solution_handler import SolutionHandler
+
+WINDOW_WIDTH = 600
+WINDOW_HEIGHT = 600
+SQUARE_SIZE = 50 #default side length of a grid cell, pixels
+
+def create_new_nonogram(parent):
+    # Create a custom dialog window
+    dialog = tk.Toplevel(parent)
+    dialog.geometry("500x600")
+    
+    # Labels and Entry widgets for height and width
+    tk.Label(dialog, text="Enter Dimensions for new Nonogram").pack()
+    tk.Label(dialog, text="Width:").pack()
+    width_entry = tk.Entry(dialog)
+    width_entry.pack()
+
+    tk.Label(dialog, text="Height:").pack()
+    height_entry = tk.Entry(dialog)
+    height_entry.pack()
+
+    # Variable to hold the selected option
+    selected_option = tk.StringVar(value="empty")
+
+    tk.Label(dialog, text="Nonogram contents").pack()
+    # List of options
+    options = [
+        ("Empty Nonogram", "empty"),
+        ("Random Nonogram", "random"),
+        ("From Image...", "image")
+    ]
+
+    # Create radio buttons
+    for text, value in options:
+        radio = tk.Radiobutton(dialog, text=text, variable=selected_option, value=value)
+        radio.pack(anchor=tk.W)
+        if value == "random":
+            tk.Label(dialog, text="Black/White ratio:").pack()
+            bw_entry = tk.Entry(dialog)
+            bw_entry.pack()
+            tk.Label(dialog, text="Pixel correlation:").pack()
+            corr_entry = tk.Entry(dialog)
+            corr_entry.pack()
+
+    result = [None, None]
+    p = [None, None]
+
+    def on_ok():
+        try:
+            result[0] = int(width_entry.get())
+            result[1] = int(height_entry.get())
+            if selected_option.get() == "random":
+                p[0] = float(bw_entry.get())
+                p[1] = float(corr_entry.get())
+            dialog.destroy()
+        except ValueError:
+            tk.messagebox.showerror("Invalid input", "Please enter valid numbers.")
+
+    def on_cancel():
+        dialog.destroy()
+
+    # Buttons for OK and Cancel
+    ok_button = tk.Button(dialog, text="OK", command=on_ok)
+    ok_button.pack(side="left")
+
+    cancel_button = tk.Button(dialog, text="Cancel", command=on_cancel)
+    cancel_button.pack(side="right")
+
+    # Wait for the dialog to close
+    dialog.wait_window()
+    if result == [None, None]:
+        return (None, None), None
+    if selected_option.get() == "empty":
+        return tuple(result), None
+    if selected_option.get() == "random":
+        # generate pixel grid
+        grid = []
+        for _ in range(result[1]): 
+            row = [True if random.random() < p[0] else False for _ in range(result[0])] 
+            grid.append(row)
+
+        new_grid = []
+        for r, row in enumerate(grid):
+            new_grid.append(row)
+            for c, fill in enumerate(row):
+                neighbour_count = 0
+                if r > 0 and grid[r-1][c]:
+                    neighbour_count += 1
+                if r < result[1] - 1 and grid[r+1][c]:
+                    neighbour_count += 1
+                if c > 0 and grid[r][c-1]:
+                    neighbour_count += 1
+                if c < result[0] - 1 and grid[r][c+1]:
+                    neighbour_count += 1
+                new_grid[r][c] = fill or random.random() < neighbour_count*p[1]/4
+
+        return tuple(result), new_grid
+
+
+class NonogramGUI(tk.Tk):
+
+    def __init__(self, args) -> None:
+        tk.Tk.__init__(self)
+        # Setup data handlers
+        self.nonogram_handler = NonogramHandler()
+        self.solution_handler = SolutionHandler()
+
+        # Setup window
+        self.geometry(f"{WINDOW_WIDTH}x{WINDOW_HEIGHT}")
+        self.minsize(WINDOW_WIDTH, WINDOW_HEIGHT)
+        self.title("Nonogram GUI")
+        self.protocol("WM_DELETE_WINDOW", self._on_del_window)
+        self.protocol("tk::mac::Quit", self._on_del_window)
+
+        # Setup window menubar
+        self.menubar = tk.Menu(self, type='menubar')
+        self.configure(menu=self.menubar)
+        self.file_menu = tk.Menu(self.menubar, tearoff=False)
+        self.menubar.add_cascade(menu=self.file_menu, label="File")
+        self.file_menu.add_command(label="Open", accelerator="Ctrl+O", command=self._on_file_open)
+        self.bind_all("<Control-o>", self._on_file_open)
+        self.bind_all("<Control-O>", self._on_file_open)
+        self.file_menu.add_command(label="New", accelerator="Ctrl+N", command=self._on_file_new)
+        self.bind_all("<Control-n>", self._on_file_new)
+        self.bind_all("<Control-N>", self._on_file_new)
+        self.file_menu.add_command(label="New from current solution", accelerator="Ctrl+Shift+N", command=self._on_file_new_from_current)
+        self.bind_all("<Control-Shift-n>", self._on_file_new_from_current)
+        self.bind_all("<Control-Shift-N>", self._on_file_new_from_current)
+        self.file_menu.add_command(label="Save",  accelerator="Ctrl+S", command=self._on_file_save)
+        self.bind_all("<Control-s>", self._on_file_save)
+        self.bind_all("<Control-S>", self._on_file_save)
+        self.file_menu.add_command(label="Save as ... ",  accelerator="Ctrl+Shift+S", command=self._on_file_save_as)
+        self.bind_all("<Control-Shift-s>", self._on_file_save_as)
+        self.bind_all("<Control-Shift-S>", self._on_file_save_as)
+        self.file_menu.add_command(label="Export Image", accelerator="Ctrl+I", command=self._on_file_export_image)
+        self.bind_all("<Control-i>", self._on_file_export_image)
+        self.bind_all("<Control-I>", self._on_file_export_image)
+        self.file_menu.add_command(label="Exit", command=self._on_del_window)
+
+        self.file_menu = tk.Menu(self.menubar, tearoff=False)
+        self.menubar.add_cascade(menu=self.file_menu, label="Solver")
+        solvers = [f for f in listdir("solvers/") if isfile(join("solvers/", f)) and f.endswith(".lp")]
+        for i, solver in enumerate(solvers):
+            # Create a lambda function that calls _on_solver with the correct solver
+            self.file_menu.add_command(label=solver.split(".")[0], accelerator=f"Ctrl+{i+1}", command=lambda s=solver, e=None: self._on_solver(s))
+            self.bind_all(f"<Control-Key-{i+1}>", lambda e, s=solver: self._on_solver(s))
+
+        # Setup nonogram drawing canvas and add to window
+        self.figure_frame = tk.Frame(self)
+        self.figure_frame.pack(fill=tk.BOTH, expand=True)
+        self.figure, self.axes = plt.subplots()
+        plt.subplots_adjust(left=0.05, right=0.9, top=1.0, bottom=0.05)
+        self.axes.set_aspect('equal')
+        self.canvas = FigureCanvasTkAgg(self.figure, master=self.figure_frame)
+        self.canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+
+        # Setup button event callbacks
+        self.canvas.mpl_connect('button_press_event', self._on_button_press)
+        # self.canvas.mpl_connect('button_release_event', self._on_button_release)
+        # self.canvas.mpl_connect('motion_notify_event', self._on_mouse_motion)
+        # self.canvas.mpl_connect('scroll_event', self._on_scroll)
+
+        # Process launch arguments
+        if len(args) > 1:
+            self.nonogram_handler.load_file(args[1])
+            self.solution_handler.give_nonogram(self.nonogram_handler.get_nonogram())
+            self.draw_nonogram(self.nonogram_handler.get_nonogram())
+            # self.draw_solution(self.solution_handler.working_solution)
+        else:
+            self._on_file_new()
+
+        if len(args) > 2:
+            temp_path = "temp.lp"
+            self.nonogram_handler.save_file(temp_path)
+            self.solution_handler.run_solver(temp_path, args[2])
+            self.draw_solution(self.solution_handler.working_solution)
+            os.remove(temp_path)
+
+    def run(self) -> None:
+        # Finish setting up the GUI and enter mainloop
+        self.update()
+        self.update_idletasks()
+        self.focus_force()
+        return self.mainloop()
+    
+    def _clear_all(self):
+        self.pixels = None
+        plt.cla()
+
+    def _on_solver(self, name: str, *_):
+        temp_path = "temp.lp"
+        self.nonogram_handler.save_file(temp_path)
+        self.solution_handler.run_solver(temp_path, name.split(".")[0])
+        self.draw_solution(self.solution_handler.working_solution)
+        os.remove(temp_path)
+    
+    def _on_file_open(self, *_):
+        file_types = [('ASP encoding', '*.lp'), ('Raw format (UNIMPLEMENTED)', '*.txt')]
+        init_dir = "nonograms"
+        file_path = filedialog.askopenfilename(title="Select a file encoding a Nonogram", initialdir=init_dir, filetypes=file_types)
+        if not file_path:
+            return
+        self.nonogram_handler.load_file(file_path)
+        nonogram = self.nonogram_handler.get_nonogram()
+        self._clear_all()
+        self.draw_nonogram(nonogram)
+        self.solution_handler.give_nonogram(nonogram)
+
+    def _on_file_new(self, *_):
+        dimensions, grid = create_new_nonogram(self)
+        if dimensions == (None, None):
+            return
+        
+        self.nonogram_handler.loaded_nonogram_filename = None
+        self.nonogram_handler.resize(dimensions[0], dimensions[1])
+        self.nonogram_handler.clear_hints()
+        if grid:
+            self.nonogram_handler.hints_from_grid(grid)
+        nonogram = self.nonogram_handler.get_nonogram()
+        self.solution_handler.give_nonogram(nonogram)
+        self._clear_all()
+        self.draw_nonogram(nonogram)
+
+    def _on_file_new_from_current(self, *_):
+        self.nonogram_handler.loaded_nonogram_filename = None
+        self.nonogram_handler.clear_hints()
+        grid = self.solution_handler.working_solution.fill
+
+        self.nonogram_handler.hints_from_grid(grid)
+
+        nonogram = self.nonogram_handler.get_nonogram()
+        self.solution_handler.give_nonogram(nonogram)
+        self._clear_all()
+        self.draw_nonogram(nonogram)
+
+    def _on_file_export_image(self, *_):
+        file_types = [('SVG image', '*.svg'), ('PDF Document', '*.pdf'), ('PNG image', '*.png'), ('JPG image', '*.jpg')]
+        init_dir = ""
+        file_path = filedialog.asksaveasfilename(title="Export image", initialdir=init_dir, filetypes=file_types)
+        if not file_path:
+            return
+        self.figure.savefig(file_path, bbox_inches='tight')
+
+    def _on_file_save(self, *_):
+        if not self.nonogram_handler.loaded_nonogram_filename:
+            return self._on_file_save_as()
+        self.nonogram_handler.save_file()
+
+    def _on_file_save_as(self, *_):
+        file_types = [('Logic Program', '*.lp')]
+        init_dir = ""
+        file_path = filedialog.asksaveasfilename(title="Export Nonogram Encoding", initialdir=init_dir, filetypes=file_types)
+        if not file_path:
+            return
+        self.nonogram_handler.loaded_nonogram_filename = file_path
+        self.nonogram_handler.save_file()
+
+    def _on_button_press(self, event: Event):
+        if event.inaxes != self.axes:
+            return
+        if not hasattr(self.solution_handler, "working_solution"):
+            return
+        
+        if event.button == 1: #(left mouse button)
+            nonogram = self.nonogram_handler.get_nonogram()
+            y = ceil(nonogram.height - event.ydata - 1)
+            x = ceil(event.xdata - 1)
+            if y >= 0 and y <= nonogram.height and x >= 0 and x <= nonogram.width:
+                self._on_leftclick_cell(y, x)
+
+    def _on_leftclick_cell(self, row: int, col: int):
+        self.solution_handler.working_solution.fill[row][col] = not self.solution_handler.working_solution.fill[row][col]
+        self.pixels[row][col].set_visible(self.solution_handler.working_solution.fill[row][col])
+        self.row_hints[row].set_color('black' if self.solution_handler.solves_row(row) else 'red')
+        self.col_hints[col].set_color('black' if self.solution_handler.solves_col(col) else 'red')
+        self.canvas.draw_idle()
+
+    def _on_del_window(self) -> None:
+        self.quit()
+
+    def draw_nonogram(self, nonogram: Nonogram):
+        # Adjust the window size
+        win_width = nonogram.width*SQUARE_SIZE
+        win_height = nonogram.height*SQUARE_SIZE
+        self.geometry(f"{win_width}x{win_height}")
+        # self.minsize(win_width, win_height)
+
+        # Draw the nonogram fully filled and save each pixel as a separate object, then hide them
+        # The pixels are indexed by [row][column], starting at index 0!
+        self.pixels: list[list[patches.Patch]] = [[None for _ in range(nonogram.width)] for _ in range(nonogram.height)]
+        for x in range(nonogram.width):
+            col = x
+            for y in range(nonogram.height):
+                row = nonogram.height - y - 1
+                # self.axes.text(x,y,f"{row}|{col}", fontsize=8)
+                pixel = patches.Rectangle((x, y), 1, 1, linewidth=0, facecolor='black', alpha=0.8)
+                self.axes.add_patch(pixel)
+                self.pixels[row][col] = pixel
+                pixel.set_visible(False)
+
+        # Draw row hints to the left of the grid
+        self.row_hints: list[Text] = []
+        for i, hints in enumerate(nonogram.row_hints):
+            hint_text = ' '.join(map(str, hints))
+            hint = self.axes.text(-0.5, nonogram.height - i - 0.5, hint_text, va='center', ha='right', fontsize=18, color='red')
+            if not hints or len(hints) == 1 and hints[0] == 0:
+                hint.set_color('black')
+            self.row_hints.append(hint)
+
+        # Draw column hints above the grid, stacked vertically
+        self.col_hints: list[Text] = []
+        for j, hints in enumerate(nonogram.col_hints):
+            hint_text = '\n'.join(map(str, hints))
+            hint = self.axes.text(j + 0.5, nonogram.height + 0.5, hint_text, va='bottom', ha='center', fontsize=18, color='red')
+            if not hints or len(hints) == 1 and hints[0] == 0:
+                hint.set_color('black')
+            self.col_hints.append(hint)
+
+        # Setup the grid and ticks and cell index numbers
+        self.axes.set_xticks(range(0, nonogram.width+1 ),
+                             [""] + list(map(str, range(1, nonogram.width + 1))))
+        self.axes.set_yticks(range(0, nonogram.height+1), 
+                             list(map(str, reversed(range(1, nonogram.height + 1)))) + [""]) # enumerate rows from top to bottom
+
+        # Further customize the plots appearance, like adding a grid and removing the frame
+        self.axes.yaxis.set_label_position('right')
+        self.axes.yaxis.tick_right()
+        plt.setp(self.axes.xaxis.get_majorticklabels(), ha="right",  va="top" )
+        plt.setp(self.axes.yaxis.get_majorticklabels(), va="bottom", ha="left")
+        self.axes.grid(which='both', color='black', linestyle='-', linewidth=1)
+        self.axes.spines['top'   ].set_visible(False)
+        # self.axes.spines['right' ].set_visible(False)
+        # self.axes.spines['bottom'].set_visible(False)
+        self.axes.spines['left'  ].set_visible(False)
+
+        # Redraw the canvas
+        self.canvas.draw()
+
+        # Set the xy limits so that the entire nonogram plus hints are visible
+        self.axes.set_xlim(-0.75*max([len(rh) for rh in nonogram.row_hints]), nonogram.width)
+        self.axes.set_ylim(-0, nonogram.height + 0.9*max([len(ch) for ch in nonogram.col_hints]))
+        self.canvas.draw_idle()
+
+    def draw_solution(self, solution: NonogramSoln):
+        for r, row in enumerate(solution.fill):
+            self.row_hints[r].set_color('black' if self.solution_handler.solves_row(r) else 'red')
+            for c, filled in enumerate(row):
+                self.col_hints[c].set_color('black' if self.solution_handler.solves_col(c) else 'red')
+                self.pixels[r][c].set_visible(filled)
+        self.canvas.draw_idle()

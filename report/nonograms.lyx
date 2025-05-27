@@ -5,6 +5,9 @@
 \save_transient_properties true
 \origin unavailable
 \textclass article
+\begin_preamble
+\usepackage{svg}
+\end_preamble
 \use_default_options true
 \begin_modules
 theorems-ams
@@ -36,7 +39,7 @@ figs-within-sections
 \bibtex_command default
 \index_command default
 \float_placement class
-\float_alignment class
+\float_alignment center
 \paperfontsize 11
 \spacing single
 \use_hyperref true
@@ -167,6 +170,10 @@ literal "false"
 \end_inset
 
 
+\begin_inset Newpage newpage
+\end_inset
+
+
 \end_layout
 
 \begin_layout Section
@@ -182,6 +189,73 @@ Nonogram encoding
 \end_layout
 
 \begin_layout Standard
+\begin_inset Float figure
+placement H
+alignment center
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename example01_unsolved.pdf
+	lyxscale 50
+	width 30col%
+
+\end_inset
+
+
+\begin_inset Formula $\quad$
+\end_inset
+
+
+\begin_inset Graphics
+	filename example01_partiallysolved.pdf
+	lyxscale 50
+	width 30col%
+
+\end_inset
+
+
+\begin_inset Formula $\quad$
+\end_inset
+
+
+\begin_inset Graphics
+	filename example01.pdf
+	lyxscale 50
+	width 30col%
+
+\end_inset
+
+
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+The 5x5 nonogram encoded below:
+ The left nonogram is unsolved and shows only the hints at the top and the right hand side in red.
+ The nonogram in the center is partially solved,
+ the satisfied hints are shown in black.
+ The right side shows the full solution,
+ which in this case is a unique one.
+ The small numbers at the bottom and the left hand side indicate the row and column numbers.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
 We encode nonograms by adding a predicate corresponding to every line and column hint.
  Shown below is an example of a 5x5 nonogram encoding:
 \begin_inset CommandInset include
@@ -193,6 +267,11 @@ literal "false"
 \end_inset
 
 
+\end_layout
+
+\begin_layout Standard
+Empty columns and rows can either be omitted entirely from the list,
+ or may have a single hint of length zero to indicate that no pixel in this line is black.
 \end_layout
 
 \begin_layout Standard
