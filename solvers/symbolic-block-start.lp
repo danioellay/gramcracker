@@ -13,11 +13,6 @@ col(1..w).
 pos_r(1..w). % starting position of a block
 pos_c(1..h).
 
-
-% ---------------------------------------------
-% Row Fills
-% ---------------------------------------------
-
 % Guess block start positions
 1 { start_r(R,I,S) : pos_r(S) } 1 :- row_hint(R, I, L), L > 0.
 
@@ -31,10 +26,6 @@ fill_r(R,C) :- start_r(R,I,S), row_hint(R,I,L), pos_r(C), C >= S, C < S + L.
 % Row length constraint
 :- start_r(R,I,S), row_hint(R,I,L), S + L - 1 > w.
 
-% ---------------------------------------------
-% Column Fills (analogically)
-% ---------------------------------------------
-
 1 { start_c(C,I,S) : pos_c(S) } 1 :- col_hint(C,I, L), L > 0.
 
 :- start_c(C,I1,S1), start_c(C,I2,S2), I1 < I2,
@@ -43,10 +34,6 @@ fill_r(R,C) :- start_r(R,I,S), row_hint(R,I,L), pos_r(C), C >= S, C < S + L.
 fill_c(R,C) :- start_c(C,I,S), col_hint(C,I,L), pos_c(R), R >= S, R < S + L.
 
 :- start_c(C,I,S), col_hint(C,I,L), S + L - 1 > h.
-
-% ---------------------------------------------
-% Agreement Between Row and Column Fills
-% ---------------------------------------------
 
 % A pixel is filled only if it's filled in both the row set and the column set
 fill(R,C) :- fill_r(R,C), fill_c(R,C).

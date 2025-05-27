@@ -115,7 +115,7 @@ Solving Nonograms with ASP (working title)
 \end_layout
 
 \begin_layout Author
-Daniella Yordanova 
+Daniela Yordanova 
 \begin_inset ERT
 status open
 
@@ -473,6 +473,178 @@ literal "false"
 
 This has the advantage of only needing to formulate each constraint once,
  instead of one variant for rows and one variant for columns.
+\end_layout
+
+\begin_layout Subsection*
+2.3.
+ Symbolic Block Start Solver
+\end_layout
+
+\begin_layout Standard
+A first step into a more optimized approach was the implementation of the 
+\emph on
+symbolic block start
+\emph default
+ solver.
+ First,
+ the idea of encoding possible solution blocks only by their first pixel was further expanded on,
+ but instead of looking at individual cell states,
+ the starting position of each 
+\emph on
+block of cells
+\emph default
+ was of interest.
+ This approach was also utilized in v4hn/nonogram_asp and will be further referred as the 
+\emph on
+symbolic block start
+\emph default
+ technique.
+\end_layout
+
+\begin_layout Standard
+\align block
+\begin_inset Tabular
+<lyxtabular version="3" rows="4" columns="3">
+<features tabularvalignment="middle">
+<column alignment="center" valignment="top">
+<column alignment="center" valignment="top">
+<column alignment="center" valignment="top">
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+brute force
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+symbolic block start
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+cat#6
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+0.145s
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+0.0259s
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+swing#529
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+10.8s
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+3.3s
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+light#803
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+31.9s
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+4.41s
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Furthermore,
+ an attempt was made to optimize the search algorithm in pursuit of greater efficiency.
+ To that end,
+ the approach outlined in Solving Nonograms:
+ A Constraint Satisfaction Approach was adopted.
+ In the proposed method,
+ the solver operates on separate row and column problems,
+ later merging them in an agreement task.
+ While faster than a brute force approach,
+ the algorithm remains too naive to efficiently handle larger search spaces.
+ This was tested on the Sierp#12548 nonogram,
+ which has a size of 47x40 and takes about 25 minutes to solve.
 \end_layout
 
 \begin_layout Standard
