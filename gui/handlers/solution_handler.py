@@ -29,7 +29,7 @@ class SolutionHandler:
         self.working_solution = NonogramSoln(self.given_nonogram)
 
         # Initialize the clingo control specifying two models are required, and give the dimensional constants
-        ctl = Control(["0", 
+        ctl = Control(["2", 
                        "-c", f"w={self.given_nonogram.width}", 
                        "-c", f"h={self.given_nonogram.height}"])
 
