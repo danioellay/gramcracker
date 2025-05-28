@@ -62,28 +62,25 @@ s_min_c(C,I,SMin) :- col_hint(C,I,_), I > 1, col_hint(C,I-1,L_prev), s_min_c(C,I
 % Guess block start positions within the computed constraints
 1 { start_r(R,I,S) : S = SMin..SMax } 1 :- row_hint(R,I,L), L > 0, s_min_r(R,I,SMin), s_max_r(R,I,SMax).
 
-% Clues with a later index, must start after the last index + 1
-:- start_r(R,I1,S1), start_r(R,I2,S2), I1 < I2,
-   row_hint(R,I1,L1), S2 < S1 + L1 + 1.
+% Blocks with a later index, must start after the last index + 1
+:- start_r(R,I1,S1), start_r(R,I2,S2), I1 < I2, row_hint(R,I1,L1), S2 < S1 + L1 + 1.
 
 % A cell is filled if it's within the span of some block that starts at column S with length L
 fill_r(R,C) :- start_r(R,I,S), row_hint(R,I,L), pos_r(C), C >= S, C < S + L.
 
-% Row length constraint
-:- start_r(R,I,S), row_hint(R,I,L), S + L - 1 > w.
-
 % ---------------------------------------------
-% Column Fills with constrained start positions
+% Column Fills with constrained start positions 
+%               (analogous)
 % ---------------------------------------------
 
+% Guess block start positions within the computed constraints
 1 { start_c(C,I,S) : S = SMin..SMax } 1 :- col_hint(C,I, L), L > 0, s_min_c(C,I,SMin), s_max_c(C,I,SMax).
 
-:- start_c(C,I1,S1), start_c(C,I2,S2), I1 < I2,
-   col_hint(C,I1,L1), S2 < S1 + L1 + 1.
+% Blocks with a later index, must start after the last index + 1
+:- start_c(C,I1,S1), start_c(C,I2,S2), I1 < I2, col_hint(C,I1,L1), S2 < S1 + L1 + 1.
 
+% A cell is filled if it's within the span of some block that starts at column S with length L
 fill_c(R,C) :- start_c(C,I,S), col_hint(C,I,L), pos_c(R), R >= S, R < S + L.
-
-:- start_c(C,I,S), col_hint(C,I,L), S + L - 1 > h.
 
 % ---------------------------------------------
 % Agreement Between Row and Column Fills
