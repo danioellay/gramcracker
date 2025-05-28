@@ -23,12 +23,18 @@ class SolutionHandler:
         result = ctl.solve(yield_=True)
         model = result.model()
         end_time = time.time()
+        result.resume()
+        model2 = result.model()
+        unique_time = time.time()
         if not model:
             print(f"Solver {solver}' found no model after {end_time - start_time:.3}s:")
+        elif not model2:
+            print(f"Solver '{solver}' took {unique_time - start_time:.3}s to find a unique model:")
         else:
-            print(f"Solver '{solver}' took {end_time - start_time:.3}s to find a model:")
-        print(f"\tGrounding: {ground_time - start_time:.3}s")
-        print(f"\tSolving:   {end_time - ground_time:.3}s")
+            print(f"Solver '{solver}' took {unique_time - start_time:.3}s to find at least two models:")
+        print(f"\tGrounding:  {ground_time - start_time:.3}s")
+        print(f"\tSolving:    {end_time - ground_time:.3}s")
+        print(f"\tUniqueness: {unique_time - end_time:.3}s")
         
         # Clear the solution and only fill from the model
         self.working_solution = NonogramSoln(self.given_nonogram)
