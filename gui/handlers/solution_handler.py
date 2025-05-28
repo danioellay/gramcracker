@@ -84,5 +84,3 @@ class SolutionHandler:
 
         # Ensure all hints have been processed
         return hint_index == len(hints)
-
-
