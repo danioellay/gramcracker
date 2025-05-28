@@ -5,6 +5,17 @@ from gui.common import *
 from clingo import Control
 import time
 
+def format_time(t: float) -> str:
+    if t > 60.0*60.0:
+        return f"{t/(60.0*60.0):.2f}h"
+    if t > 60.0:
+        return f"{t/60.0:.2f}min"
+    if t > 1.0:
+        return f"{t:.2f}s"
+    if t > 0.001:
+        return f"{t*1.0e3:.2f}ms"
+    return f"{t*1.0e6:.2f}ns"
+
 class SolutionHandler:
     def __init__(self):
         pass
@@ -30,14 +41,14 @@ class SolutionHandler:
         model2 = result.model()
         unique_time = time.time()
         if not model:
-            print(f"Solver {solver}' found no model after {end_time - start_time:.3}s:")
+            print(f"Solver {solver}' found no model after {format_time(end_time - start_time)}:")
         elif not model2:
-            print(f"Solver '{solver}' took {unique_time - start_time:.3}s to find a unique model:")
+            print(f"Solver '{solver}' took {format_time(unique_time - start_time)} to find a unique model:")
         else:
-            print(f"Solver '{solver}' took {unique_time - start_time:.3}s to find at least two models:")
-        print(f"\tGrounding:  {ground_time - start_time:.3}s")
-        print(f"\tSolving:    {end_time - ground_time:.3}s")
-        print(f"\tUniqueness: {unique_time - end_time:.3}s")
+            print(f"Solver '{solver}' took {format_time(unique_time - start_time)} to find at least two models:")
+        print(f"\tGrounding:  {format_time(ground_time - start_time)}")
+        print(f"\tSolving:    {format_time(end_time - ground_time)}")
+        print(f"\tUniqueness: {format_time(unique_time - end_time)}")
         
         # Clear the solution and only fill from the model
         if model:

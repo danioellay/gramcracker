@@ -1,6 +1,6 @@
 %%% ASP Nonogram solver
 %%% Problem Instance encoding
-%%% 42x42 Nonogram, very difficult (~2.5h with block start solver)
+%%% 42x42 Nonogram, very difficult (~2.5h with block start solver, ~1.5h with sbs-improved)
 %%% Author: Fabian Kraus
 #const w = 42.  % Size of the Nonogram (w x h bw image)
 #const h = 42.
