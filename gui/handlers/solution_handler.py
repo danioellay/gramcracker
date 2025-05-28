@@ -14,7 +14,7 @@ def format_time(t: float) -> str:
         return f"{t:.2f}s"
     if t > 0.001:
         return f"{t*1.0e3:.2f}ms"
-    return f"{t*1.0e6:.2f}ns"
+    return f"{t*1.0e6:.2f}μs"
 
 class SolutionHandler:
     def __init__(self):
