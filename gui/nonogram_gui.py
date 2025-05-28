@@ -100,16 +100,11 @@ class NonogramGUI(tk.Tk):
         if len(args) > 1:
             self.nonogram_handler.load_file(args[1])
             self.solution_handler.give_nonogram(self.nonogram_handler.get_nonogram())
-            # self.draw_solution(self.solution_handler.working_solution)
 
         self.draw_nonogram(self.nonogram_handler.get_nonogram())
 
         if len(args) > 2:
-            temp_path = "temp.lp"
-            self.nonogram_handler.save_file(temp_path)
-            self.solution_handler.run_solver(temp_path, args[2])
-            self.draw_solution(self.solution_handler.working_solution)
-            os.remove(temp_path)
+            self._on_solver(args[2])
 
     def run(self) -> None:
         # Finish setting up the GUI and enter mainloop
@@ -123,11 +118,8 @@ class NonogramGUI(tk.Tk):
         plt.cla()
 
     def _on_solver(self, name: str, *_):
-        temp_path = "temp.lp"
-        self.nonogram_handler.save_file(temp_path)
-        self.solution_handler.run_solver(temp_path, name.split(".")[0])
+        self.solution_handler.run_solver(name.split(".")[0])
         self.draw_solution(self.solution_handler.working_solution)
-        os.remove(temp_path)
     
     def _on_file_open(self, *_):
         file_types = [('ASP encoding', '*.lp'), ('Raw format (UNIMPLEMENTED)', '*.txt')]
