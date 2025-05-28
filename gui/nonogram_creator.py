@@ -97,11 +97,11 @@ def create_new_nonogram(parent):
         dialog.destroy()
 
     # Buttons for OK and Cancel
-    ok_button = tk.Button(dialog, text="OK", command=on_ok)
-    ok_button.pack(side="left")
-
     cancel_button = tk.Button(dialog, text="Cancel", command=on_cancel)
-    cancel_button.pack(side="right")
+    cancel_button.pack(side="left")
+    ok_button = tk.Button(dialog, text="OK", command=on_ok)
+    ok_button.pack(side="right")
+
 
     # Wait for the dialog to close
     dialog.wait_window()

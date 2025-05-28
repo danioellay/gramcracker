@@ -14,7 +14,10 @@ class SolutionHandler:
         self.working_solution = NonogramSoln(nonogram)
 
     def run_solver(self, encoding: str, solver: str):
-        ctl = Control(["1"])
+        # Clear the solution and only fill from the model
+        self.working_solution = NonogramSoln(self.given_nonogram)
+
+        ctl = Control(["0"])
         ctl.load(encoding)
         ctl.load("solvers/" + solver + ".lp")
         start_time = time.time()
@@ -37,7 +40,6 @@ class SolutionHandler:
         print(f"\tUniqueness: {unique_time - end_time:.3}s")
         
         # Clear the solution and only fill from the model
-        self.working_solution = NonogramSoln(self.given_nonogram)
         if model:
             for symbol in model.symbols(atoms=True):
                 if symbol.name == 'fill':
