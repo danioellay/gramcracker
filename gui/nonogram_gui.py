@@ -4,7 +4,7 @@
 #    e.g. : python3 -m gui nonograms/example_05.lp symbolic-block-start
 
 import tkinter as tk
-from tkinter import filedialog, Event
+from tkinter import filedialog, Event, BooleanVar
 import os
 from os import listdir
 from os.path import isfile, join
@@ -73,12 +73,15 @@ class NonogramGUI(tk.Tk):
         self.bind_all("<Control-I>", self._on_file_export_image)
         self.file_menu.add_command(label="Exit", command=self._on_del_window)
 
-        self.file_menu = tk.Menu(self.menubar, tearoff=False)
-        self.menubar.add_cascade(menu=self.file_menu, label="Solver")
+        self.solver_menu = tk.Menu(self.menubar, tearoff=False)
+        self.menubar.add_cascade(menu=self.solver_menu, label="Solver")
+        self.check_uniqueness_var = BooleanVar(value=True)
+        self.solver_menu.add_checkbutton(label="Also check uniqueness", variable=self.check_uniqueness_var)
+
         solvers = [f for f in listdir("solvers/") if isfile(join("solvers/", f)) and f.endswith(".lp")]
         for i, solver in enumerate(solvers):
             # Create a lambda function that calls _on_solver with the correct solver
-            self.file_menu.add_command(label=solver.split(".")[0], accelerator=f"Ctrl+{i+1}", command=lambda s=solver, e=None: self._on_solver(s))
+            self.solver_menu.add_command(label=solver.split(".")[0], accelerator=f"Ctrl+{i+1}", command=lambda s=solver, e=None: self._on_solver(s))
             self.bind_all(f"<Control-Key-{i+1}>", lambda e, s=solver: self._on_solver(s))
 
         # Setup nonogram drawing canvas and add to window
@@ -118,7 +121,7 @@ class NonogramGUI(tk.Tk):
         plt.cla()
 
     def _on_solver(self, name: str, *_):
-        self.solution_handler.run_solver(name.split(".")[0])
+        self.solution_handler.run_solver(name.split(".")[0], self.check_uniqueness_var.get())
         self.draw_solution(self.solution_handler.working_solution)
     
     def _on_file_open(self, *_):
@@ -140,7 +143,6 @@ class NonogramGUI(tk.Tk):
         
         self.nonogram_handler.loaded_nonogram_filename = None
         self.nonogram_handler.resize(dimensions[0], dimensions[1])
-        self.nonogram_handler.clear_hints()
         if grid:
             self.nonogram_handler.hints_from_grid(grid)
         nonogram = self.nonogram_handler.get_nonogram()
