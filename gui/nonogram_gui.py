@@ -17,7 +17,7 @@ import matplotlib.patches as patches
 from matplotlib.text import Text
 
 from .common import *
-from .nonogram_creator import create_new_nonogram
+from .nonogram_creator import NonogramCreator
 from .handlers.nonogram_handler import NonogramHandler
 from .handlers.solution_handler import SolutionHandler
 
@@ -37,7 +37,7 @@ class NonogramGUI(tk.Tk):
         if len(args) == 1:
             self.withdraw()
             self._on_file_new()
-            if not hasattr(self.solution_handler, "given_nonogram"):
+            if not self.nonogram_handler.get_nonogram() or not hasattr(self.solution_handler, "given_nonogram"):
                 exit()
             self.deiconify()
 
@@ -117,7 +117,25 @@ class NonogramGUI(tk.Tk):
         return self.mainloop()
     
     def _clear_all(self):
-        self.pixels = None
+        if hasattr(self, "pixels"):
+            for r in self.pixels:
+                for c in r:
+                    c.remove()
+            self.pixels.clear()
+            self.pixels = None
+
+        if hasattr(self, "col_hints"):
+            for h in self.col_hints:
+                h.remove()
+            self.col_hints.clear()
+            self.col_hints = None
+
+        if hasattr(self, "row_hints"):
+            for h in self.row_hints:
+                h.remove()
+            self.row_hints.clear()
+            self.row_hints = None
+
         plt.cla()
 
     def _on_solver(self, name: str, *_):
@@ -137,17 +155,21 @@ class NonogramGUI(tk.Tk):
         self.solution_handler.give_nonogram(nonogram)
 
     def _on_file_new(self, *_):
-        dimensions, grid = create_new_nonogram(self)
-        if dimensions == (None, None):
+        creator = NonogramCreator(self)
+        width, height, grid = creator.get()
+        if not width or not height:
             return
         
+        self._clear_all()
         self.nonogram_handler.loaded_nonogram_filename = None
-        self.nonogram_handler.resize(dimensions[0], dimensions[1])
+        
         if grid:
             self.nonogram_handler.hints_from_grid(grid)
+        else:
+            self.nonogram_handler.resize(width, height)
+        
         nonogram = self.nonogram_handler.get_nonogram()
         self.solution_handler.give_nonogram(nonogram)
-        self._clear_all()
         if hasattr(self, "axes"):
             self.draw_nonogram(nonogram)
 

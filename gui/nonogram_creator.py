@@ -3,184 +3,300 @@
 
 import tkinter as tk
 from tkinter import StringVar, filedialog
+
 import matplotlib.pyplot as plt
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+
 import random
+
 import cv2
 import numpy as np
 
-def create_new_nonogram(parent):
-    # Create a custom dialog window
-    dialog = tk.Toplevel(parent)
-    dialog.title("Nonogram")
-    dialog.geometry("400x700")
+def spinbox_int(master, title, callback, min_value, max_value, initial_value, step=1):
+    tk.Label(master, text=title).pack(side=tk.LEFT, padx=5, pady=1)
+    var = StringVar(master, value=str(initial_value))
+    def pseudo_callback(*_):
+        try:
+            num = int(var.get())
+        except:
+            return
+        if num > max_value or num < min_value:
+            return
+        return callback(num)
+    var.trace_add("write", pseudo_callback)
+    max_strlen = max(len(str(max_value)), len(str(min_value)))
+
+    sb = tk.Spinbox(master,
+                    from_=min_value,
+                    to=max_value,
+                    increment=step,
+                    width = 2 * max_strlen + 2,
+                    textvariable=var)
+    sb.pack(side=tk.RIGHT, padx=5, pady=1)
     
-    # Labels and Entry widgets for height and width
-    frame = tk.Frame(dialog)
-    frame.pack(side=tk.TOP)
-    tk.Label(frame, text="Dimensions:", font=(None,11)).pack(side=tk.TOP)
-    frame = tk.Frame(dialog)
-    frame.pack(side=tk.TOP)
-    tk.Label(frame, text="Width:  ").pack(side=tk.LEFT)
-    width_entry = tk.Entry(frame, textvariable=StringVar(dialog, "24"), width=10)
-    width_entry.pack(side=tk.RIGHT)
+    return sb
 
-    frame = tk.Frame(dialog)
-    frame.pack(side=tk.TOP)
-    tk.Label(frame, text="Height: ").pack(side=tk.LEFT)
-    height_entry = tk.Entry(frame, textvariable=StringVar(dialog, "24"), width=10)
-    height_entry.pack(side=tk.RIGHT)
+def spinbox_float(master, title, callback, min_value, max_value, initial_value, step=0.1):
+    tk.Label(master, text=title).pack(side=tk.LEFT, padx=5, pady=1)
+    var = StringVar(master, value=str(initial_value))
+    def pseudo_callback(*_):
+        try:
+            num = float(var.get())
+        except:
+            return
+        if num > max_value or num < min_value:
+            return
+        return callback(num)
+    
+    var.trace_add("write", pseudo_callback)
+    max_strlen = max(len(str(max_value)), len(str(min_value)))
 
-    # Variable to hold the selected option
-    selected_option = tk.StringVar(value="empty")
+    sb = tk.Spinbox(master,
+                    from_=min_value,
+                    to=max_value,
+                    increment=step,
+                    width = 2 * max_strlen + 2,
+                    textvariable=var)
+    sb.pack(side=tk.RIGHT, padx=5, pady=1)
+    
+    return sb
 
-    frame = tk.Frame(dialog)
-    frame.pack(side=tk.TOP)
-    tk.Label(frame).pack()
-    tk.Label(frame, text="Nonogram contents:", font=(None,11)).pack()
-    # List of options
-    options = [
-        ("Empty Nonogram", "empty"),
-        ("Random Nonogram", "random"),
-        ("From Image", "image")
-    ]
 
-    image_filename = [None]
-    filename_label = [None]
+class NonogramCreator(tk.Toplevel):
+    width: int = 5
+    height: int = 5
+    bwratio: float = 0.5
+    pxcorr: float = 0.8
+    threshold: int = 127
+    im_file_path: str = ""
+    grid = np.full((height, width), 255, dtype=np.uint8)
+    success: bool = True
 
-    def select_image_file():
-        filetypes = [
-            ('All files', '*.*')
+    def reload(self):
+        opt_str = self.selected_option_var.get()
+        if opt_str == "empty":
+            # print("reload->empty")
+            self.grid = np.full((self.height, self.width), 255, dtype=np.uint8)
+        
+        elif opt_str == "random":
+            # print("reload->random")
+            # generate random boolean matrix
+            initial = np.zeros((self.height, self.width), dtype=np.uint8)
+            for row in range(self.height):
+                for col in range(self.width):
+                    initial[row][col] = 0 if random.random() < self.bwratio else 255
+
+            # correlate neighboring values in matrix
+            self.grid = np.zeros((self.height, self.width), dtype=np.uint8)
+            for row in range(self.height):
+                for col in range(self.width):
+                    neighbour_count = 0
+                    if row > 0 and initial[row-1][col]:
+                        neighbour_count += 1
+                    if row < self.height - 1 and initial[row+1][col]:
+                        neighbour_count += 1
+                    if col > 0 and initial[row][col-1]:
+                        neighbour_count += 1
+                    if col < self.width - 1 and initial[row][col+1]:
+                        neighbour_count += 1
+                    self.grid[row][col] = 0 if random.random() < neighbour_count*self.pxcorr/4 else 255
+
+        elif opt_str == "image":
+            # print("reload->image")
+
+            # Resize the image to a lower resolution
+            im_scaled = cv2.resize(self.im_original, (self.width, self.height))
+
+            # Apply a binary threshold to the image
+            _, self.grid = cv2.threshold(im_scaled, self.threshold, 255, cv2.THRESH_BINARY)
+
+        self.update()
+        plt.imshow(self.grid, 'gray', vmin=0, vmax=255)
+        self.canvas.draw()
+
+        # self.redraw_grid()
+
+    def invert(self):
+        for row in range(self.height):
+            for col in range(self.width):
+                x = self.grid[row][col]
+                self.grid[row][col] = 255 if x == 0 else 0
+        plt.imshow(self.grid, 'gray', vmin=0, vmax=255)
+        self.canvas.draw()
+
+    def __init__(self, parent):
+        # Create a custom dialog window
+        tk.Toplevel.__init__(self, parent)
+        self.title("Nonogram Generator")
+        self.geometry("1050x650")
+        self.minsize(1050, 650)
+
+        leftframe = tk.Frame(self)
+        leftframe.grid(row=0, column=0)
+        rightframe = tk.Frame(self)
+        rightframe.grid(row=0, column=1)
+        bottomframe = tk.Frame(self)
+        bottomframe.grid(row=2, column=0, columnspan=1)
+
+        # Labels and Entry widgets for height and width
+        frame = tk.Frame(leftframe)
+        frame.pack(side=tk.TOP)
+        tk.Label(frame, text="Dimensions: ", font=("", 12)).grid(row=0,column=0, columnspan=1, pady=1)
+
+        frame = tk.Frame(leftframe)
+        frame.pack(side=tk.TOP)
+        spinbox_int(frame, "Width:", self._on_set_width, 1, 1024, self.width)
+
+        frame = tk.Frame(leftframe)
+        frame.pack(side=tk.TOP)
+        spinbox_int(frame, "Height:", self._on_set_height, 1, 1024, self.height)
+        
+        # Variable to hold the selected option
+        self.selected_option_var = StringVar(value="empty")
+        self.selected_option_var.trace_add('write', self._on_option_select)
+
+        frame = tk.Frame(leftframe)
+        frame.pack(side=tk.TOP)
+        tk.Label(frame).pack()
+        tk.Label(frame, text="Nonogram contents:", font=("",12)).pack()
+
+        # List of options
+        options = [
+            ("Empty Nonogram", "empty"),
+            ("Random Nonogram", "random"),
+            ("From Image", "image")
         ]
+
+        # Create radio buttons
+        frame = tk.Frame(leftframe)
+        frame.pack(side=tk.TOP)
+        
+        for text, value in options:
+            radio = tk.Radiobutton(frame, text=text, font=("",11), variable=self.selected_option_var, value=value)
+            radio.pack(side=tk.TOP)
+            if value == "random":
+                frame2 = tk.Frame(frame)
+                frame2.pack(side=tk.TOP)
+                self.bwratio_sb = spinbox_float(frame2, "B/W ratio:", self._on_set_bwratio, 0.0, 1.0, self.bwratio)
+                frame2 = tk.Frame(frame)
+                frame2.pack(side=tk.TOP)
+                self.pxcorr_sb = spinbox_float(frame2, "Pixel corr.:", self._on_set_pxcorr, 0.0, 1.0, self.pxcorr)
+                self.bwratio_sb.configure(state=tk.DISABLED)
+                self.pxcorr_sb.configure(state=tk.DISABLED)
+            if value == "image":
+                frame2 = tk.Frame(frame)
+                frame2.pack(side=tk.TOP)
+                self.file_select_bt = tk.Button(frame2, text="Select image file", command=self._on_select_image_file)
+                self.file_select_bt.pack(side=tk.LEFT)
+                frame2 = tk.Frame(frame)
+                frame2.pack(side=tk.TOP)
+                self.threshold_sb = spinbox_int(frame2, "Threshold:", self._on_set_threshold, 0, 255, self.threshold, 10)
+                self.file_select_bt.configure(state=tk.DISABLED)
+                self.threshold_sb.configure(state=tk.DISABLED)
+        
+        tk.Label(leftframe).pack()
+
+        # Create a Tkinter label to display the image
+        self.figure, self.axes = plt.subplots()
+        self.axes.set_aspect('equal')
+        self.figure.tight_layout()
+        plt.imshow(self.grid, 'gray', vmin=0, vmax=255)
+        self.canvas = FigureCanvasTkAgg(self.figure, master=rightframe)
+        self.canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+
+        # Buttons for OK and Cancel
+        tk.Button(bottomframe, text="Cancel", command=self._on_cancel).grid(row=0, column=0)
+        tk.Button(bottomframe, text="Reload", command=self.reload).    grid(row=0, column=1)
+        tk.Button(bottomframe, text="Invert", command=self.invert).    grid(row=0, column=2)
+        tk.Button(bottomframe, text="OK",     command=self.destroy).   grid(row=0, column=3)
+
+    def _on_cancel(self, *_):
+        self.success = False
+        self.destroy()
+        
+    def _on_set_width(self, input):
+        if self.width == input:
+            return
+        self.width = input
+        # print(f"width = {self.width}.. resizing mat")
+        self.mat = np.zeros((self.height, self.width), dtype=np.uint8)
+        self.reload()
+
+    def _on_set_height(self, input):
+        if self.height == input:
+            return
+        self.height = input
+        # print(f"height = {self.height}.. resizing mat")
+        self.mat = np.zeros((self.height, self.width), dtype=np.uint8)
+        self.reload()
+
+    def _on_set_bwratio(self, input):
+        if self.bwratio == input:
+            return
+        self.bwratio = input
+        # print(f"bwdist = {self.bwratio}")
+        self.reload()
+        
+    def _on_set_pxcorr(self, input):
+        if self.pxcorr == input:
+            return
+        self.pxcorr = input
+        # print(f"pxcorr = {self.pxcorr}")
+        self.reload()
+
+    def _on_set_threshold(self, input):
+        if self.threshold == input:
+            return
+        self.threshold = input
+        # print(f"threshold = {self.threshold}")
+        self.reload()
+
+    def _on_option_select(self, *_):
+        opt_str = self.selected_option_var.get()
+        if opt_str == "empty":
+            self.file_select_bt.configure(state=tk.DISABLED)
+            self.threshold_sb.configure(state=tk.DISABLED)
+            self.bwratio_sb.configure(state=tk.DISABLED)
+            self.pxcorr_sb.configure(state=tk.DISABLED)
+        if opt_str == "random":
+            self.file_select_bt.configure(state=tk.DISABLED)
+            self.threshold_sb.configure(state=tk.DISABLED)
+            self.bwratio_sb.configure(state=tk.NORMAL)
+            self.pxcorr_sb.configure(state=tk.NORMAL)
+        if opt_str == "image":
+            self.file_select_bt.configure(state=tk.NORMAL)
+            self.threshold_sb.configure(state=tk.NORMAL)
+            self.bwratio_sb.configure(state=tk.DISABLED)
+            self.pxcorr_sb.configure(state=tk.DISABLED)
+        if opt_str != "image":
+            self.reload()
+
+    def _on_select_image_file(self, *_):
+        filetypes = [('All files', '*.*')]
 
         filename = filedialog.askopenfilename(
             title='Open a file',
-            initialdir='',
+            initialdir='images/',
             filetypes=filetypes)
         
-        image_filename[0] = filename
-        filename_label[0].configure(text=image_filename[0].split("/")[-1])
+        if not filename or self.im_file_path == filename:
+            return
+        self.im_file_path = filename
+        self.im_original = cv2.imread(self.im_file_path, cv2.IMREAD_GRAYSCALE)
 
+        self.file_select_bt.configure(font=("", 8))
+        if self.im_original is None:
+            print("Error: Could not read image at " + self.im_file_path)
+            self.file_select_bt.configure(text="Error loading image")
+        else:
+            w, h = len(self.im_original), len(self.im_original[0])
+            self.file_select_bt.configure(text=''.join(filename.split("/")[-1].split(".")[:-1]) + f"({w}x{h})")
+        self.reload()
 
-    # Create radio buttons
-    frame = tk.Frame(dialog)
-    frame.pack(side=tk.TOP)
-    for text, value in options:
-        radio = tk.Radiobutton(frame, text=text, variable=selected_option, value=value)
-        radio.pack(anchor=tk.W)
-        if value == "random":
-            tk.Label(frame, text="Black/White ratio:").pack()
-            bw_entry = tk.Entry(frame, textvariable=StringVar(dialog, "0.42"))
-            bw_entry.pack()
-            tk.Label(frame, text="Pixel correlation:").pack()
-            corr_entry = tk.Entry(frame, textvariable=StringVar(dialog, "1.0"))
-            corr_entry.pack()
-        if value == "image":
-            filename_label[0] = tk.Label(frame, text="")
-            filename_label[0].pack()
-            tk.Button(frame, text="Select image", command=select_image_file).pack()
-
-    dimensions = [None, None]
-    probabilities = [None, None]
-
-    def on_ok():
-        try:
-            dimensions[0] = int(width_entry.get())
-            dimensions[1] = int(height_entry.get())
-            if selected_option.get() == "random":
-                probabilities[0] = float(bw_entry.get())
-                probabilities[1] = float(corr_entry.get())
-            dialog.destroy()
-        except ValueError:
-            tk.messagebox.showerror("Invalid input", "Please enter valid numbers.")
-
-    def on_cancel():
-        dialog.destroy()
-
-    # Buttons for OK and Cancel
-    cancel_button = tk.Button(dialog, text="Cancel", command=on_cancel)
-    cancel_button.pack(side="left")
-    ok_button = tk.Button(dialog, text="OK", command=on_ok)
-    ok_button.pack(side="right")
-
-
-    # Wait for the dialog to close
-    dialog.wait_window()
-
-    # Process results
-    if dimensions == [None, None]:
-        return (None, None), None
-    
-    if selected_option.get() == "empty":
-        return tuple(dimensions), None
-    
-    if selected_option.get() == "random":
-        # generate pixel grid
-        grid = []
-        for _ in range(dimensions[1]): 
-            row = [True if random.random() < probabilities[0] else False for _ in range(dimensions[0])] 
-            grid.append(row)
-
-        new_grid = []
-        for r, row in enumerate(grid):
-            new_grid.append(row)
-            for c, fill in enumerate(row):
-                neighbour_count = 0
-                if r > 0 and grid[r-1][c]:
-                    neighbour_count += 1
-                if r < dimensions[1] - 1 and grid[r+1][c]:
-                    neighbour_count += 1
-                if c > 0 and grid[r][c-1]:
-                    neighbour_count += 1
-                if c < dimensions[0] - 1 and grid[r][c+1]:
-                    neighbour_count += 1
-                new_grid[r][c] = random.random() < neighbour_count*probabilities[1]/4
-
-        return tuple(dimensions), new_grid
-
-    if selected_option.get() == "image":
-        # Load the image
-        image = cv2.imread(image_filename[0], cv2.IMREAD_GRAYSCALE)
-        
-        # Get image dimensions
-        height, width = image.shape
-        brightness_threshold = 120
-
-        # Calculate grid cell dimensions
-        grid_width, grid_height = tuple(dimensions)
-        cell_height = height // grid_height
-        cell_width = width // grid_width
-
-        # Create an empty grid
-        grid = np.zeros((grid_height, grid_width), dtype=np.uint8)
-
-        # Calculate average brightness for each grid cell
-        for i in range(grid_height):
-            for j in range(grid_width):
-                # Define the cell boundaries
-                y1 = i * cell_height
-                y2 = (i + 1) * cell_height
-                x1 = j * cell_width
-                x2 = (j + 1) * cell_width
-
-                # Extract the cell from the image
-                cell = image[y1:y2, x1:x2]
-
-                # Calculate the average brightness
-                average_brightness = np.mean(cell)
-
-                # Apply the brightness threshold
-                grid[i, j] = 255 if average_brightness > brightness_threshold else 0
-                
-        # Scale the grid to original image size for display
-        # scaled_grid = cv2.resize(grid, (width, height), interpolation=cv2.INTER_NEAREST)
-
-        # Display the original and rasterized images using Matplotlib
-        plt.figure(figsize=(10, 5))
-        plt.subplot(1, 2, 1)
-        plt.title('Original Image')
-        plt.imshow(image, cmap='gray')
-        plt.subplot(1, 2, 2)
-        plt.title('Rasterized Image')
-        plt.imshow(grid, cmap='gray')
-        plt.show()
-        return tuple(dimensions), (grid != 255).tolist()
+    def get(self):
+        # Wait for the dialog to close
+        self.wait_window()
+        if self.success:
+            return self.width, self.height, (self.grid != 255).tolist()
+        else:
+            return None, None, None

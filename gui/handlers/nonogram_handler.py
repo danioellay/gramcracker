@@ -50,8 +50,8 @@ class NonogramHandler:
 
     def hints_from_grid(self, grid: List[List[bool]]):
         """Take a rectangular grid of booleans and convert it to a nonogram, then use it as loaded nonogram"""
-        width = len(grid)
-        height = len(grid[0])
+        height = len(grid)
+        width = len(grid[0])
         
         def get_hints(line):
             hints = []
