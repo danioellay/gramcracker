@@ -4,14 +4,12 @@
 #    e.g. : python3 -m gui nonograms/example_05.lp symbolic-block-start
 
 import tkinter as tk
-from tkinter import filedialog
-from tkinter import Event
+from tkinter import filedialog, Event, BooleanVar
 import os
 from os import listdir
 from os.path import isfile, join
 
 from math import ceil
-import random
 
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import matplotlib.pyplot as plt
@@ -19,104 +17,13 @@ import matplotlib.patches as patches
 from matplotlib.text import Text
 
 from .common import *
+from .nonogram_creator import NonogramCreator
 from .handlers.nonogram_handler import NonogramHandler
 from .handlers.solution_handler import SolutionHandler
 
 WINDOW_WIDTH = 600
 WINDOW_HEIGHT = 600
 SQUARE_SIZE = 50 #default side length of a grid cell, pixels
-
-def create_new_nonogram(parent):
-    # Create a custom dialog window
-    dialog = tk.Toplevel(parent)
-    dialog.geometry("500x600")
-    
-    # Labels and Entry widgets for height and width
-    tk.Label(dialog, text="Enter Dimensions for new Nonogram").pack()
-    tk.Label(dialog, text="Width:").pack()
-    width_entry = tk.Entry(dialog)
-    width_entry.pack()
-
-    tk.Label(dialog, text="Height:").pack()
-    height_entry = tk.Entry(dialog)
-    height_entry.pack()
-
-    # Variable to hold the selected option
-    selected_option = tk.StringVar(value="empty")
-
-    tk.Label(dialog, text="Nonogram contents").pack()
-    # List of options
-    options = [
-        ("Empty Nonogram", "empty"),
-        ("Random Nonogram", "random"),
-        ("From Image...", "image")
-    ]
-
-    # Create radio buttons
-    for text, value in options:
-        radio = tk.Radiobutton(dialog, text=text, variable=selected_option, value=value)
-        radio.pack(anchor=tk.W)
-        if value == "random":
-            tk.Label(dialog, text="Black/White ratio:").pack()
-            bw_entry = tk.Entry(dialog)
-            bw_entry.pack()
-            tk.Label(dialog, text="Pixel correlation:").pack()
-            corr_entry = tk.Entry(dialog)
-            corr_entry.pack()
-
-    result = [None, None]
-    p = [None, None]
-
-    def on_ok():
-        try:
-            result[0] = int(width_entry.get())
-            result[1] = int(height_entry.get())
-            if selected_option.get() == "random":
-                p[0] = float(bw_entry.get())
-                p[1] = float(corr_entry.get())
-            dialog.destroy()
-        except ValueError:
-            tk.messagebox.showerror("Invalid input", "Please enter valid numbers.")
-
-    def on_cancel():
-        dialog.destroy()
-
-    # Buttons for OK and Cancel
-    ok_button = tk.Button(dialog, text="OK", command=on_ok)
-    ok_button.pack(side="left")
-
-    cancel_button = tk.Button(dialog, text="Cancel", command=on_cancel)
-    cancel_button.pack(side="right")
-
-    # Wait for the dialog to close
-    dialog.wait_window()
-    if result == [None, None]:
-        return (None, None), None
-    if selected_option.get() == "empty":
-        return tuple(result), None
-    if selected_option.get() == "random":
-        # generate pixel grid
-        grid = []
-        for _ in range(result[1]): 
-            row = [True if random.random() < p[0] else False for _ in range(result[0])] 
-            grid.append(row)
-
-        new_grid = []
-        for r, row in enumerate(grid):
-            new_grid.append(row)
-            for c, fill in enumerate(row):
-                neighbour_count = 0
-                if r > 0 and grid[r-1][c]:
-                    neighbour_count += 1
-                if r < result[1] - 1 and grid[r+1][c]:
-                    neighbour_count += 1
-                if c > 0 and grid[r][c-1]:
-                    neighbour_count += 1
-                if c < result[0] - 1 and grid[r][c+1]:
-                    neighbour_count += 1
-                new_grid[r][c] = fill or random.random() < neighbour_count*p[1]/4
-
-        return tuple(result), new_grid
 
 
 class NonogramGUI(tk.Tk):
@@ -126,6 +33,13 @@ class NonogramGUI(tk.Tk):
         # Setup data handlers
         self.nonogram_handler = NonogramHandler()
         self.solution_handler = SolutionHandler()
+
+        if len(args) == 1:
+            self.withdraw()
+            self._on_file_new()
+            if not self.nonogram_handler.get_nonogram() or not hasattr(self.solution_handler, "given_nonogram"):
+                exit()
+            self.deiconify()
 
         # Setup window
         self.geometry(f"{WINDOW_WIDTH}x{WINDOW_HEIGHT}")
@@ -159,12 +73,15 @@ class NonogramGUI(tk.Tk):
         self.bind_all("<Control-I>", self._on_file_export_image)
         self.file_menu.add_command(label="Exit", command=self._on_del_window)
 
-        self.file_menu = tk.Menu(self.menubar, tearoff=False)
-        self.menubar.add_cascade(menu=self.file_menu, label="Solver")
+        self.solver_menu = tk.Menu(self.menubar, tearoff=False)
+        self.menubar.add_cascade(menu=self.solver_menu, label="Solver")
+        self.check_uniqueness_var = BooleanVar(value=True)
+        self.solver_menu.add_checkbutton(label="Also check uniqueness", variable=self.check_uniqueness_var)
+
         solvers = [f for f in listdir("solvers/") if isfile(join("solvers/", f)) and f.endswith(".lp")]
         for i, solver in enumerate(solvers):
             # Create a lambda function that calls _on_solver with the correct solver
-            self.file_menu.add_command(label=solver.split(".")[0], accelerator=f"Ctrl+{i+1}", command=lambda s=solver, e=None: self._on_solver(s))
+            self.solver_menu.add_command(label=solver.split(".")[0], accelerator=f"Ctrl+{i+1}", command=lambda s=solver, e=None: self._on_solver(s))
             self.bind_all(f"<Control-Key-{i+1}>", lambda e, s=solver: self._on_solver(s))
 
         # Setup nonogram drawing canvas and add to window
@@ -186,17 +103,11 @@ class NonogramGUI(tk.Tk):
         if len(args) > 1:
             self.nonogram_handler.load_file(args[1])
             self.solution_handler.give_nonogram(self.nonogram_handler.get_nonogram())
-            self.draw_nonogram(self.nonogram_handler.get_nonogram())
-            # self.draw_solution(self.solution_handler.working_solution)
-        else:
-            self._on_file_new()
+
+        self.draw_nonogram(self.nonogram_handler.get_nonogram())
 
         if len(args) > 2:
-            temp_path = "temp.lp"
-            self.nonogram_handler.save_file(temp_path)
-            self.solution_handler.run_solver(temp_path, args[2])
-            self.draw_solution(self.solution_handler.working_solution)
-            os.remove(temp_path)
+            self._on_solver(args[2])
 
     def run(self) -> None:
         # Finish setting up the GUI and enter mainloop
@@ -206,15 +117,30 @@ class NonogramGUI(tk.Tk):
         return self.mainloop()
     
     def _clear_all(self):
-        self.pixels = None
+        if hasattr(self, "pixels"):
+            for r in self.pixels:
+                for c in r:
+                    c.remove()
+            self.pixels.clear()
+            self.pixels = None
+
+        if hasattr(self, "col_hints"):
+            for h in self.col_hints:
+                h.remove()
+            self.col_hints.clear()
+            self.col_hints = None
+
+        if hasattr(self, "row_hints"):
+            for h in self.row_hints:
+                h.remove()
+            self.row_hints.clear()
+            self.row_hints = None
+
         plt.cla()
 
     def _on_solver(self, name: str, *_):
-        temp_path = "temp.lp"
-        self.nonogram_handler.save_file(temp_path)
-        self.solution_handler.run_solver(temp_path, name.split(".")[0])
+        self.solution_handler.run_solver(name.split(".")[0], self.check_uniqueness_var.get())
         self.draw_solution(self.solution_handler.working_solution)
-        os.remove(temp_path)
     
     def _on_file_open(self, *_):
         file_types = [('ASP encoding', '*.lp'), ('Raw format (UNIMPLEMENTED)', '*.txt')]
@@ -229,19 +155,23 @@ class NonogramGUI(tk.Tk):
         self.solution_handler.give_nonogram(nonogram)
 
     def _on_file_new(self, *_):
-        dimensions, grid = create_new_nonogram(self)
-        if dimensions == (None, None):
+        creator = NonogramCreator(self)
+        width, height, grid = creator.get()
+        if not width or not height:
             return
         
+        self._clear_all()
         self.nonogram_handler.loaded_nonogram_filename = None
-        self.nonogram_handler.resize(dimensions[0], dimensions[1])
-        self.nonogram_handler.clear_hints()
+        
         if grid:
             self.nonogram_handler.hints_from_grid(grid)
+        else:
+            self.nonogram_handler.resize(width, height)
+        
         nonogram = self.nonogram_handler.get_nonogram()
         self.solution_handler.give_nonogram(nonogram)
-        self._clear_all()
-        self.draw_nonogram(nonogram)
+        if hasattr(self, "axes"):
+            self.draw_nonogram(nonogram)
 
     def _on_file_new_from_current(self, *_):
         self.nonogram_handler.loaded_nonogram_filename = None
@@ -287,7 +217,7 @@ class NonogramGUI(tk.Tk):
             nonogram = self.nonogram_handler.get_nonogram()
             y = ceil(nonogram.height - event.ydata - 1)
             x = ceil(event.xdata - 1)
-            if y >= 0 and y <= nonogram.height and x >= 0 and x <= nonogram.width:
+            if y >= 0 and y < nonogram.height and x >= 0 and x < nonogram.width:
                 self._on_leftclick_cell(y, x)
 
     def _on_leftclick_cell(self, row: int, col: int):

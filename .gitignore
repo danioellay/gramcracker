@@ -6,4 +6,5 @@ nonograms/random.lp
 .venv
 gui/__pycache__
 gui/handlers/__pycache__
-temp.lp
+images/*
+!images/qrcode.png

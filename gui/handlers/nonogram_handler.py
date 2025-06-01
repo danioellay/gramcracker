@@ -5,10 +5,12 @@ from gui.common import *
 
 class NonogramHandler:
     def __init__(self):
-        self.loaded_nonogram = Nonogram(4,4, [], [])
-    def load_file(self, filename: str) -> None:
-        self.loaded_nonogram_filename = filename
-        with open(filename, 'r') as file:
+        self.loaded_nonogram: Nonogram | None = None
+        self.loaded_nonogram_filename: str | None = None
+
+    def load_file(self, path: str) -> None:
+        """Open the logic program file at the specified path and load the encoded nonogram"""
+        with open(path, 'r') as file:
             lines = file.readlines()
         
         #TODO: check which file ending the filename has and switch between parsers
@@ -44,8 +46,12 @@ class NonogramHandler:
                 col_hints[col - 1][hint_index - 1] = block_length
 
         self.loaded_nonogram = Nonogram(width, height, row_hints, col_hints)
+        self.loaded_nonogram_filename = path
 
     def hints_from_grid(self, grid: List[List[bool]]):
+        """Take a rectangular grid of booleans and convert it to a nonogram, then use it as loaded nonogram"""
+        height = len(grid)
+        width = len(grid[0])
         
         def get_hints(line):
             hints = []
@@ -63,30 +69,52 @@ class NonogramHandler:
             return hints if hints else [0]
         
         # Compute row hints
-        self.loaded_nonogram.row_hints = []
-        for i in range(self.loaded_nonogram.height):
+        row_hints = []
+        for i in range(height):
             hints = get_hints(grid[i])
-            self.loaded_nonogram.row_hints.append(hints)
+            row_hints.append(hints)
             
         # Compute column hints
-        self.loaded_nonogram.col_hints = []
-        for j in range(self.loaded_nonogram.width):
-            column = [grid[i][j] for i in range(self.loaded_nonogram.height)]
+        col_hints = []
+        for j in range(width):
+            column = [grid[i][j] for i in range(height)]
             hints = get_hints(column)
-            self.loaded_nonogram.col_hints.append(hints)
+            col_hints.append(hints)
+
+        # Create the nonogram and save it
+        self.loaded_nonogram = Nonogram(width, height, row_hints, col_hints)
+        self.loaded_nonogram_filename = None
 
     def clear_hints(self):
+        """Remove all row and column hints from the loaded nonogram"""
+        if not self.loaded_nonogram:
+            print("Error: No nonogram loaded to clear hints in")
+            return
+        
         self.loaded_nonogram.col_hints = [[0] for _ in range(self.loaded_nonogram.width)]
         self.loaded_nonogram.row_hints = [[0] for _ in range(self.loaded_nonogram.height)]
+        self.loaded_nonogram_filename = None
 
     def resize(self, width: int, height: int):
-        self.loaded_nonogram.width = width
-        self.loaded_nonogram.height = height
+        """Adjust the dimensions of the loaded nonogram and remove all hints (calls clear_hints)"""        
+        self.loaded_nonogram_filename = None
+        self.loaded_nonogram = Nonogram(width, height, [], [])
+        self.clear_hints()
 
     def save_file(self, path: str = ""):
+        """Write a logic program encoding the loaded nonogram to the path specified, or to the original path it was loaded from"""
         if path == "":
-            path = self.loaded_nonogram_filename
+            if self.loaded_nonogram_filename:
+                path = self.loaded_nonogram_filename
+            else:
+                print("Error: No path to save the file to")
+                return
+        
         nonogram = self.get_nonogram()
+        if not nonogram:
+            print("Error: No nonogram to save")
+            return
+        
         with open(path, 'w') as f:
             f.write(f"%%% ASP Nonogram solver\n")
             f.write(f"%%% Problem Instance encoding\n")
@@ -104,9 +132,6 @@ class NonogramHandler:
                 for idx, length in enumerate(hints, start=1):
                     f.write(f"col_hint({col_num}, {idx}, {length}).\n")
 
-    def get_nonogram(self) -> Nonogram:
+    def get_nonogram(self) -> Nonogram | None:
+        """Get a reference to the currently loaded nonogram"""
         return self.loaded_nonogram
-
-    def solve(self):
-        pass
-        #TODO
