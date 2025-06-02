@@ -5,9 +5,6 @@
 \save_transient_properties true
 \origin unavailable
 \textclass article
-\begin_preamble
-\usepackage{svg}
-\end_preamble
 \use_default_options true
 \begin_modules
 theorems-ams
@@ -38,7 +35,7 @@ figs-within-sections
 \output_sync 0
 \bibtex_command default
 \index_command default
-\float_placement class
+\float_placement H
 \float_alignment center
 \paperfontsize 11
 \spacing single
@@ -86,15 +83,15 @@ figs-within-sections
 \bottommargin 2cm
 \secnumdepth 3
 \tocdepth 3
-\paragraph_separation skip
-\defskip halfline
+\paragraph_separation indent
+\paragraph_indentation 7bp
 \is_math_indent 0
 \math_numbering_side default
 \quotes_style english
 \dynamic_quotes 0
 \papercolumns 1
 \papersides 1
-\paperpagestyle default
+\paperpagestyle fancy
 \tablestyle default
 \listings_params "frame=lines,breaklines=true,breakatwhitespace=true,basicstyle={\ttfamily \small}"
 \tracking_changes false
@@ -151,25 +148,564 @@ LatexCommand tableofcontents
 
 \end_layout
 
+\begin_layout Standard
+Notation:
+\begin_inset FormulaMacro
+\newcommand{\bigo}[1]{\mathcal{O}\left(#1\right)}
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+\begin_inset FormulaMacro
+\newcommand{\nat}{\mathbb{N}}
+\end_inset
+
+
+\begin_inset FormulaMacro
+\newcommand{\natz}{\mathbb{N}_{0}}
+\end_inset
+
+
+\begin_inset FormulaMacro
+\newcommand{\bool}{\mathbb{B}}
+\end_inset
+
+The set of natural numbers (without zero) is 
+\begin_inset Formula $\nat\coloneqq\left\{ 1,2,3,\ldots\right\} $
+\end_inset
+
+.
+ The set of natural numbers including zero is denoted by 
+\begin_inset Formula $\natz=\left\{ 0\right\} \cup\nat$
+\end_inset
+
+.
+ The Boolean (or binary) set is denoted by 
+\begin_inset Formula $\bool=\left\{ 0,1\right\} $
+\end_inset
+
+.
+ 
+\end_layout
+
+\begin_layout Itemize
+For any two set 
+\begin_inset Formula $A$
+\end_inset
+
+,
+ 
+\begin_inset Formula $B$
+\end_inset
+
+ the set of all maps from 
+\begin_inset Formula $B$
+\end_inset
+
+ to 
+\begin_inset Formula $A$
+\end_inset
+
+ is denoted by 
+\begin_inset Formula $A^{B}\coloneqq\left\{ f\colon B\to A\right\} $
+\end_inset
+
+.
+ The power set of a set 
+\begin_inset Formula $X$
+\end_inset
+
+ is denoted by 
+\begin_inset Formula $2^{X}\coloneqq\left\{ Y\mid Y\subseteq X\right\} $
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Itemize
+\begin_inset FormulaMacro
+\newcommand{\range}[1]{\left[#1\right]}
+\end_inset
+
+The set containing all natural numbers in a range between 
+\begin_inset Formula $1$
+\end_inset
+
+ and 
+\begin_inset Formula $n\in\nat$
+\end_inset
+
+ inclusive is also denoted by 
+\begin_inset Formula $n\coloneqq\left\{ 1,2,\ldots n\right\} $
+\end_inset
+
+ when it is clear from the context.
+ The number of elements in a set 
+\begin_inset Formula $X$
+\end_inset
+
+ is denoted by 
+\begin_inset Formula $\left|X\right|$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Itemize
+The set of all tuples/words of length 
+\begin_inset Formula $n\in\nat$
+\end_inset
+
+ over some set 
+\begin_inset Formula $X$
+\end_inset
+
+ is denoted by 
+\begin_inset Formula $X^{n}$
+\end_inset
+
+.
+ The length of a word 
+\begin_inset Formula $w$
+\end_inset
+
+ is denoted by 
+\begin_inset Formula $\left|w\right|$
+\end_inset
+
+ and the 
+\begin_inset Formula $i$
+\end_inset
+
+-th symbol of a word is accessed by a superscript 
+\begin_inset Formula $w^{i}$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Itemize
+\begin_inset FormulaMacro
+\newcommand{\words}[1]{#1^{\ast}}
+\end_inset
+
+
+\begin_inset FormulaMacro
+\newcommand{\emptyword}{\varepsilon}
+\end_inset
+
+The set of all words of any length over some set 
+\begin_inset Formula $X$
+\end_inset
+
+ is denoted by 
+\begin_inset Formula $\words X=\bigcup_{n=0}^{\infty}X^{n}=\left\{ \emptyword\right\} \cup X\cup X^{2}\cup\ldots$
+\end_inset
+
+,
+ where 
+\begin_inset Formula $\emptyword$
+\end_inset
+
+ represents the empty word;
+ for example,
+ 
+\begin_inset Formula $\words{\bool}=\left\{ \emptyword,0,1,00,01,10,11,\ldots\right\} $
+\end_inset
+
+ are all words that can be written in binary.
+ 
+\end_layout
+
+\begin_layout Itemize
+\begin_inset FormulaMacro
+\newcommand{\dsum}[1]{\overline{#1}}
+\end_inset
+
+The digit sum of a word 
+\begin_inset Formula $w\in\words{\nat}$
+\end_inset
+
+ is denoted by 
+\begin_inset Formula $\dsum w\coloneqq\sum_{i=1}^{\left|w\right|}w^{i}$
+\end_inset
+
+,
+ for example 
+\begin_inset Formula $\dsum{123}=1+2+3=6$
+\end_inset
+
+.
+ 
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+Note that we do not restrict ourselves to decimal numbers,
+ we will use a dot to separate symbols when it is not clear from the context:
+ For example 
+\begin_inset Formula $\dsum{12.3}=12+3=15$
+\end_inset
+
+.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+\begin_inset FormulaMacro
+\newcommand{\rev}[1]{#1^{-1}}
+\end_inset
+
+The reversed version of a word 
+\begin_inset Formula $w\in\words X$
+\end_inset
+
+ is denoted by 
+\begin_inset Formula $\rev w\coloneqq w^{\left|w\right|}w^{\left|w\right|-1}\ldots w^{2}w^{1}$
+\end_inset
+
+,
+ for example 
+\begin_inset Formula $\rev{123}=321$
+\end_inset
+
+.
+ 
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+and 
+\begin_inset Formula $\rev{12.3}=3.12$
+\end_inset
+
+.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+\begin_inset FormulaMacro
+\newcommand{\floor}[1]{\left\lfloor #1\right\rfloor }
+\end_inset
+
+
+\begin_inset FormulaMacro
+\newcommand{\ceil}[1]{\left\lceil #1\right\rceil }
+\end_inset
+
+
+\begin_inset Formula $\floor x$
+\end_inset
+
+ and 
+\begin_inset Formula $\ceil x$
+\end_inset
+
+ are the floor and ceiling functions,
+ rounding to the nearest integer below or above,
+ respectively.
+ 
+\begin_inset Formula $\log\left(x\right)$
+\end_inset
+
+ denotes the base-2 logarithm.
+ 
+\end_layout
+
 \begin_layout Section
 Introduction to Nonograms
 \end_layout
 
 \begin_layout Standard
 ...
-\end_layout
-
-\begin_layout Standard
-test citation:
  
 \begin_inset CommandInset citation
 LatexCommand cite
-key "NonogramRelaxationsPaper09"
+key "DifficultyOfNonograms12,SolvingNonogramsWithNNs24"
 literal "false"
 
 \end_inset
 
 
+\end_layout
+
+\begin_layout Paragraph
+Formal definition:
+\end_layout
+
+\begin_layout Standard
+A (monochromatic,
+ two dimensional,
+ rectangular) nonogram is a tuple 
+\begin_inset Formula $\left(n,m,R,C\right)$
+\end_inset
+
+,
+ where
+\end_layout
+
+\begin_layout Itemize
+\begin_inset FormulaMacro
+\newcommand{\rows}{n}
+\end_inset
+
+
+\begin_inset Formula $\rows\in\nat$
+\end_inset
+
+ is the number of rows,
+\end_layout
+
+\begin_layout Itemize
+\begin_inset FormulaMacro
+\newcommand{\cols}{m}
+\end_inset
+
+
+\begin_inset Formula $\cols\in\nat$
+\end_inset
+
+ is the number of columns,
+\end_layout
+
+\begin_layout Itemize
+\begin_inset FormulaMacro
+\newcommand{\rowhn}{r}
+\end_inset
+
+
+\begin_inset FormulaMacro
+\newcommand{\row}{i}
+\end_inset
+
+
+\begin_inset FormulaMacro
+\newcommand{\rowh}{R}
+\end_inset
+
+
+\begin_inset Formula $\rowh\colon\rows\to\words{\nat}$
+\end_inset
+
+ is a map to the row hints for each row,
+ 
+\begin_inset Formula $\row\mapsto\rowh_{\row}=\rowh_{\row}^{1}\ldots\rowh_{\row}^{\rowhn_{\row}}$
+\end_inset
+
+ where we define the number of hints for each row as 
+\begin_inset Formula $\rowhn_{\row}=\left|\rowh_{\row}\right|$
+\end_inset
+
+,
+\end_layout
+
+\begin_layout Itemize
+\begin_inset FormulaMacro
+\newcommand{\colhn}{c}
+\end_inset
+
+
+\begin_inset FormulaMacro
+\newcommand{\col}{j}
+\end_inset
+
+
+\begin_inset FormulaMacro
+\newcommand{\colh}{C}
+\end_inset
+
+
+\begin_inset Formula $\colh\colon\cols\to\words{\nat}$
+\end_inset
+
+ is a map to the column hints for each column,
+ 
+\begin_inset Formula $\col\mapsto\colh_{\col}=\colh_{\col}^{1}\ldots\colh_{\col}^{\colhn_{\col}}$
+\end_inset
+
+where we define the number of hints for each column as 
+\begin_inset Formula $\colhn_{\col}=\left|\colh_{\col}\right|$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+Note that in this definition,
+ a line (row or column) may have no hints associated with it,
+ indicating that this line is empty:
+ This corresponds to the cases 
+\begin_inset Formula $\rowhn_{\row}=0$
+\end_inset
+
+ or 
+\begin_inset Formula $\colhn_{\col}=0$
+\end_inset
+
+ and 
+\begin_inset Formula $\rowh_{\row}=\emptyword$
+\end_inset
+
+ or 
+\begin_inset Formula $\colh_{\col}=\emptyword$
+\end_inset
+
+,
+ respectively.
+ In practice this may also be indicated by a single hint of length zero,
+ but to simplify the notation of this text we will not allow the hints 
+\begin_inset Formula $\rowh_{\row}=0$
+\end_inset
+
+ or 
+\begin_inset Formula $\colh_{\col}=0$
+\end_inset
+
+,
+ as well as any longer words containing zero.
+ That being said,
+ all 
+\emph on
+graphical 
+\emph default
+representations of nonograms will still use a single zero-hint to indicate empty lines for increased visual clarity.
+ The nonogram solvers we present can handle both cases equally well.
+\end_layout
+
+\begin_layout Standard
+We also want to define the set of all nonograms as
+\begin_inset FormulaMacro
+\newcommand{\nonoset}{\mathcal{N}}
+\end_inset
+
+ 
+\begin_inset Formula $\nonoset$
+\end_inset
+
+.
+\begin_inset Newpage newpage
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+Theoretical investigation into Nonograms
+\end_layout
+
+\begin_layout Standard
+...
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+goals
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+In this section we show that:
+\end_layout
+
+\begin_layout Itemize
+The number of possible nonogram-style line hints for a line of length 
+\begin_inset Formula $n$
+\end_inset
+
+ is given by the Fibonacci number 
+\begin_inset Formula $F_{n+2}$
+\end_inset
+
+,
+\end_layout
+
+\begin_layout Itemize
+Out of those 
+\begin_inset Formula $F_{n+2}$
+\end_inset
+
+ hints,
+ approximately 
+\begin_inset Formula $\nicefrac{1}{\varphi^{2}}\approx38\%$
+\end_inset
+
+ (with 
+\begin_inset Formula $\varphi$
+\end_inset
+
+ being the golden ratio) only describe one possible line configuration since exactly 
+\begin_inset Formula $F_{n+1}-1$
+\end_inset
+
+ hints describe at least two distinct lines,
+\end_layout
+
+\begin_layout Itemize
+The vast majority of line configurations can not be described by any hint without ambiguity,
+\end_layout
+
+\begin_layout Itemize
+...
+\end_layout
+
+\begin_layout Subsection
+Possible Nonograms
+\begin_inset CommandInset label
+LatexCommand label
+name "subsec:Info-theo-Unconstrained-Nonograms"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsubsection
+Possible line hints
+\end_layout
+
+\begin_layout Subsubsection
+Possible Nonograms
+\end_layout
+
+\begin_layout Subsection
+Sum-constrained Nonograms
+\end_layout
+
+\begin_layout Subsubsection
+Distinct hints
+\end_layout
+
+\begin_layout Subsubsection
+Distinct Nonograms
+\end_layout
+
+\begin_layout Subsection
+Composite Nonograms
+\end_layout
+
+\begin_layout Standard
+...
+\end_layout
+
+\begin_layout Section
+Difficulty Classification of Nonograms
+\end_layout
+
+\begin_layout Standard
 \begin_inset Newpage newpage
 \end_inset
 
