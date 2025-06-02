@@ -5,9 +5,6 @@
 \save_transient_properties true
 \origin unavailable
 \textclass article
-\begin_preamble
-\usepackage{svg}
-\end_preamble
 \use_default_options true
 \begin_modules
 theorems-ams
@@ -86,15 +83,15 @@ figs-within-sections
 \bottommargin 2cm
 \secnumdepth 3
 \tocdepth 3
-\paragraph_separation skip
-\defskip halfline
+\paragraph_separation indent
+\paragraph_indentation 7bp
 \is_math_indent 0
 \math_numbering_side default
 \quotes_style english
 \dynamic_quotes 0
 \papercolumns 1
 \papersides 1
-\paperpagestyle default
+\paperpagestyle headings
 \tablestyle default
 \listings_params "frame=lines,breaklines=true,breakatwhitespace=true,basicstyle={\ttfamily \small}"
 \tracking_changes false
@@ -161,8 +158,586 @@ LatexCommand tableofcontents
 
 \end_layout
 
+\begin_layout Standard
+Notation:
+\begin_inset FormulaMacro
+\newcommand{\bigo}[1]{\mathcal{O}\left(#1\right)}
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+\begin_inset FormulaMacro
+\newcommand{\nat}{\mathbb{N}}
+\end_inset
+
+
+\begin_inset FormulaMacro
+\newcommand{\natz}{\mathbb{N}_{0}}
+\end_inset
+
+
+\begin_inset FormulaMacro
+\newcommand{\bool}{\mathbb{B}}
+\end_inset
+
+The set of natural numbers (without zero) is 
+\begin_inset Formula $\nat\coloneqq\left\{ 1,2,3,\ldots\right\} $
+\end_inset
+
+.
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+The set of natural numbers including zero is denoted by 
+\begin_inset Formula $\natz=\left\{ 0\right\} \cup\nat$
+\end_inset
+
+.
+\end_layout
+
+\end_inset
+
+ The Boolean (or binary) set is denoted by 
+\begin_inset Formula $\bool=\left\{ 0,1\right\} $
+\end_inset
+
+.
+ 
+\end_layout
+
+\begin_layout Itemize
+\begin_inset FormulaMacro
+\newcommand{\range}[1]{\left[#1\right]}
+\end_inset
+
+The set containing all natural numbers in a range between 
+\begin_inset Formula $1$
+\end_inset
+
+ and 
+\begin_inset Formula $n\in\nat$
+\end_inset
+
+ inclusive is also denoted by 
+\begin_inset Formula $n\coloneqq\left\{ 1,2,\ldots n\right\} $
+\end_inset
+
+ when it is clear from the context.
+ The number of elements in a set 
+\begin_inset Formula $X$
+\end_inset
+
+ is denoted by 
+\begin_inset Formula $\left|X\right|$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Itemize
+For any two sets 
+\begin_inset Formula $A$
+\end_inset
+
+,
+ 
+\begin_inset Formula $B$
+\end_inset
+
+ the set of all maps from 
+\begin_inset Formula $B$
+\end_inset
+
+ to 
+\begin_inset Formula $A$
+\end_inset
+
+ is denoted by 
+\begin_inset Formula $A^{B}\coloneqq\left\{ f\colon B\to A\right\} $
+\end_inset
+
+.
+ The power set of a set 
+\begin_inset Formula $X$
+\end_inset
+
+ is denoted by 
+\begin_inset Formula $2^{X}\coloneqq\left\{ Y\mid Y\subseteq X\right\} $
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Itemize
+The set of all words of length 
+\begin_inset Formula $n\in\nat$
+\end_inset
+
+ over some alphabet 
+\begin_inset Formula $X$
+\end_inset
+
+ is denoted by 
+\begin_inset Formula $X^{n}$
+\end_inset
+
+.
+ The length of a word 
+\begin_inset Formula $w$
+\end_inset
+
+ is denoted by 
+\begin_inset Formula $\left|w\right|$
+\end_inset
+
+.
+ The concatenation of two words 
+\begin_inset Formula $a,b$
+\end_inset
+
+ is written as 
+\begin_inset Formula $a.b$
+\end_inset
+
+,
+ the 
+\begin_inset Formula $n$
+\end_inset
+
+-fold concatenation of a word 
+\begin_inset Formula $w$
+\end_inset
+
+ with itself is denoted by 
+\begin_inset Formula $w^{n}$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Itemize
+\begin_inset FormulaMacro
+\newcommand{\words}[1]{#1^{\ast}}
+\end_inset
+
+
+\begin_inset FormulaMacro
+\newcommand{\emptyword}{\varepsilon}
+\end_inset
+
+The set of all words of arbitrary length over some alphabet 
+\begin_inset Formula $X$
+\end_inset
+
+ is denoted by 
+\begin_inset Formula $\words X=\bigcup_{n=0}^{\infty}X^{n}=\left\{ \emptyword\right\} \cup X\cup X^{2}\cup\ldots$
+\end_inset
+
+,
+ where 
+\begin_inset Formula $\emptyword$
+\end_inset
+
+ represents the empty word;
+ for example,
+ 
+\begin_inset Formula $\words{\bool}=\left\{ \emptyword,0,1,00,01,10,11,\ldots\right\} $
+\end_inset
+
+ are all words that can be written in binary.
+\end_layout
+
+\begin_layout Itemize
+\begin_inset FormulaMacro
+\newcommand{\dsum}[1]{\overline{#1}}
+\end_inset
+
+The digit sum of a word 
+\begin_inset Formula $w\in\words{\nat}$
+\end_inset
+
+ is denoted by 
+\begin_inset Formula $\dsum w\coloneqq\sum_{i=1}^{\left|w\right|}w^{i}$
+\end_inset
+
+,
+ for example 
+\begin_inset Formula $\dsum{123}=1+2+3=6$
+\end_inset
+
+.
+ 
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+Note that we do not restrict ourselves to decimal numbers,
+ we will use a dot to separate symbols when it is not clear from the context:
+ For example 
+\begin_inset Formula $\dsum{12.3}=12+3=15$
+\end_inset
+
+.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+\begin_inset FormulaMacro
+\newcommand{\rev}[1]{R\left(#1\right)}
+\end_inset
+
+The reflection of a word 
+\begin_inset Formula $w\in\words X$
+\end_inset
+
+ is denoted by 
+\begin_inset Formula $\rev w\coloneqq w_{\left|w\right|}w_{\left|w\right|-1}\ldots w_{2}w_{1}$
+\end_inset
+
+,
+ for example 
+\begin_inset Formula $\rev{123}=321$
+\end_inset
+
+.
+ 
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+and 
+\begin_inset Formula $\rev{12.3}=3.12$
+\end_inset
+
+.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+\begin_inset FormulaMacro
+\newcommand{\floor}[1]{\left\lfloor #1\right\rfloor }
+\end_inset
+
+
+\begin_inset FormulaMacro
+\newcommand{\ceil}[1]{\left\lceil #1\right\rceil }
+\end_inset
+
+
+\begin_inset FormulaMacro
+\newcommand{\round}[1]{\left\lfloor #1\right\rceil }
+\end_inset
+
+
+\begin_inset Formula $\floor x$
+\end_inset
+
+ and 
+\begin_inset Formula $\ceil x$
+\end_inset
+
+ are the floor and ceiling functions,
+ rounding real numbers 
+\begin_inset Formula $x$
+\end_inset
+
+ to the nearest integer below or above,
+ respectively.
+ 
+\begin_inset Formula $\round x$
+\end_inset
+
+ indicates the integer closest to 
+\begin_inset Formula $x$
+\end_inset
+
+.
+ 
+\begin_inset Formula $\log x$
+\end_inset
+
+ denotes the base 2 logarithm and 
+\begin_inset Formula $\ln x$
+\end_inset
+
+ the natural logarithm.
+\end_layout
+
 \begin_layout Section
 Introduction
+\end_layout
+
+\begin_layout Standard
+...
+ 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "DifficultyOfNonograms12,SolvingNonogramsWithNNs24"
+literal "false"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Paragraph
+Definition:
+\end_layout
+
+\begin_layout Standard
+\begin_inset FormulaMacro
+\newcommand{\rows}{n}
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset FormulaMacro
+\newcommand{\cols}{m}
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset FormulaMacro
+\newcommand{\rowhn}{r}
+\end_inset
+
+
+\begin_inset FormulaMacro
+\newcommand{\row}{i}
+\end_inset
+
+
+\begin_inset FormulaMacro
+\newcommand{\rowh}{R}
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset FormulaMacro
+\newcommand{\colhn}{c}
+\end_inset
+
+
+\begin_inset FormulaMacro
+\newcommand{\col}{j}
+\end_inset
+
+
+\begin_inset FormulaMacro
+\newcommand{\colh}{C}
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+A 
+\emph on
+(monochromatic,
+ two dimensional) nonogram
+\emph default
+ of size 
+\begin_inset Formula $\rows\times\cols$
+\end_inset
+
+ is a tuple 
+\begin_inset Formula $\left(\rows,\cols,\rowh,\colh\right)$
+\end_inset
+
+,
+ where
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $\rows\in\nat$
+\end_inset
+
+ is the number of rows,
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $\cols\in\nat$
+\end_inset
+
+ is the number of columns,
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $\rowh\colon\rows\to\words{\nat}$
+\end_inset
+
+ is a map to the row hints for each row,
+ 
+\begin_inset Formula $\row\mapsto\rowh_{\row}=\rowh_{\row}^{1}\ldots\rowh_{\row}^{\rowhn_{\row}}$
+\end_inset
+
+,
+\begin_inset Newline newline
+\end_inset
+
+where we define the number of hints for each row as 
+\begin_inset Formula $\rowhn_{\row}=\left|\rowh_{\row}\right|$
+\end_inset
+
+,
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $\colh\colon\cols\to\words{\nat}$
+\end_inset
+
+ is a map to the column hints for each column,
+ 
+\begin_inset Formula $\col\mapsto\colh_{\col}=\colh_{\col}^{1}\ldots\colh_{\col}^{\colhn_{\col}}$
+\end_inset
+
+,
+\begin_inset Newline newline
+\end_inset
+
+where we define the number of hints for each column as 
+\begin_inset Formula $\colhn_{\col}=\left|\colh_{\col}\right|$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+A nonogram with 
+\begin_inset Formula $\rows=\cols$
+\end_inset
+
+ is called a 
+\emph on
+square nonogram
+\emph default
+.
+ We will also denote the set of all nonograms as
+\begin_inset FormulaMacro
+\newcommand{\nonoset}{\mathcal{N}}
+\end_inset
+
+ 
+\begin_inset Formula $\nonoset$
+\end_inset
+
+,
+ and the subset of all nonograms of some fixed size as 
+\begin_inset Formula $\nonoset\left(\rows,\cols\right)$
+\end_inset
+
+:
+\begin_inset Formula 
+\begin{align*}
+\nonoset & =\left\{ \left(\rows,\cols,\rowh,\colh\right)\mid\left(\rows,\cols,\rowh,\colh\right)\text{ is a nonogram}\right\} \\
+\nonoset\left(\rows,\cols\right) & =\left\{ \left(\rows^{\prime},\cols^{\prime},\rowh,\colh\right)\in\nonoset\mid\rows^{\prime}=\rows\text{ and }\cols^{\prime}=\cols\right\} 
+\end{align*}
+
+\end_inset
+
+
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+In this text,
+ we will often assume that both 
+\begin_inset Formula $\rows>1$
+\end_inset
+
+ and 
+\begin_inset Formula $\cols>1$
+\end_inset
+
+.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Paragraph
+Empty hints
+\end_layout
+
+\begin_layout Standard
+Note that in this definition,
+ a line (row or column) may have no hints associated with it,
+ indicating that this line is empty:
+ This corresponds to the cases 
+\begin_inset Formula $\rowhn_{\row}=0$
+\end_inset
+
+ or 
+\begin_inset Formula $\colhn_{\col}=0$
+\end_inset
+
+ and 
+\begin_inset Formula $\rowh_{\row}=\emptyword$
+\end_inset
+
+ or 
+\begin_inset Formula $\colh_{\col}=\emptyword$
+\end_inset
+
+,
+ respectively.
+ In practice this may also be indicated by a single hint of length zero,
+ but to simplify the notation of this text we will not allow the hints 
+\begin_inset Formula $\rowh_{\row}=0$
+\end_inset
+
+ or 
+\begin_inset Formula $\colh_{\col}=0$
+\end_inset
+
+,
+ as well as any longer hints containing blocks of length zero.
+ That being said,
+ all 
+\emph on
+graphical 
+\emph default
+representations of nonograms will still use a single zero-length hint to indicate empty lines for increased visual clarity.
+ The nonogram solvers we present handle both cases equally.
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+TODO:
+ verify that they can,
+ can nonograms start/end with empty lines?
+\end_layout
+
+\end_inset
+
+
+\begin_inset Newpage newpage
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+Nonogram Combinatorics
 \end_layout
 
 \begin_layout Standard
@@ -171,12 +746,3094 @@ Introduction
 status open
 
 \begin_layout Plain Layout
-TODO
+goals
 \end_layout
 
 \end_inset
 
 
+\end_layout
+
+\begin_layout Standard
+Consider the two Nonograms shown in 
+\begin_inset CommandInset ref
+LatexCommand formatted
+reference "fig:Two-illegal-nonograms"
+
+\end_inset
+
+.
+ The nonogram on the left has a hint '6' for column four,
+ but the column is only five units long.
+ The nonogram on the right has a hint '2 3' in the first row,
+ but since there must be a gap of length at least one unit between the '2' and the '3' block,
+ no possible line of length five can contain both blocks and the gap.
+ Thus one can immediately tell that the nonograms have no solution;
+ they contain hints which we will call 
+\emph on
+impossible
+\emph default
+:
+ These are hints that do not fit into the line they describe,
+ irrespective of the rest of the nonogram.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+placement document
+alignment document
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename unsolvable1.pdf
+	width 30col%
+
+\end_inset
+
+
+\begin_inset Formula $\quad$
+\end_inset
+
+
+\begin_inset Graphics
+	filename unsolvable2.pdf
+	width 30col%
+
+\end_inset
+
+
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+\begin_inset CommandInset label
+LatexCommand label
+name "fig:Two-illegal-nonograms"
+
+\end_inset
+
+Two impossible nonograms containing impossible hints.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+We will now investigate which hints are possible for a line of some fixed length,
+ and crucially count how many such possible lines exist.
+ This will then allow us to calculate how many 
+\emph on
+possible nonograms
+\emph default
+ there are:
+ These are the nonograms containing only possible hints as well as satisfy one additional constraint.
+ 
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+TODO tease rest of section
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Paragraph
+Section Summary
+\end_layout
+
+\begin_layout Standard
+In this section we show that:
+\end_layout
+
+\begin_layout Itemize
+The number of possible hints for a line (row/column) of length 
+\begin_inset Formula $n$
+\end_inset
+
+ is given by the Fibonacci number 
+\begin_inset Formula $F_{n+2}$
+\end_inset
+
+,
+\end_layout
+
+\begin_layout Itemize
+Out of those 
+\begin_inset Formula $F_{n+2}$
+\end_inset
+
+ possible hints,
+ approximately 
+\begin_inset Formula $\nicefrac{1}{\varphi^{2}}\approx38\%$
+\end_inset
+
+ (where 
+\begin_inset Formula $\varphi$
+\end_inset
+
+ is the golden ratio) only describe one possible line configuration since exactly 
+\begin_inset Formula $F_{n+1}-1$
+\end_inset
+
+ hints are ambiguous (i.e.
+ they describe two or more distinct lines at once),
+\end_layout
+
+\begin_layout Itemize
+The vast majority of line configurations can not be unambiguously described by a hint,
+\end_layout
+
+\begin_layout Itemize
+The largest ambiguity that a hint for a line of length 
+\begin_inset Formula $n$
+\end_inset
+
+ can have is given by the largest coefficient of the Fibonacci polynomial 
+\begin_inset Formula $F_{n+2}\left(x\right)$
+\end_inset
+
+,
+\end_layout
+
+\begin_layout Itemize
+The most difficult nonograms have a black to white ratio of roughly one in three,
+\end_layout
+
+\begin_layout Itemize
+...
+\end_layout
+
+\begin_layout Standard
+\begin_inset Newpage newpage
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+Possible line hints
+\end_layout
+
+\begin_layout Standard
+\begin_inset FormulaMacro
+\newcommand{\lenc}{e}
+\end_inset
+
+Consider a single line (i.e.
+ one row or a column) of a nonogram.
+ We define the 
+\emph on
+line encoding function
+\emph default
+
+\begin_inset Foot
+status open
+
+\begin_layout Plain Layout
+The line hint encoding 
+\begin_inset Formula $\lenc$
+\end_inset
+
+ is necessarily a function and not a relation since no line may produce two distinct hints.
+\end_layout
+
+\end_inset
+
+ 
+\begin_inset Formula $\lenc_{n}:\mathbb{B}^{n}\to h_{n}$
+\end_inset
+
+ that maps a line 
+\begin_inset Formula $\ell\in\mathbb{B}^{n}$
+\end_inset
+
+ of 
+\begin_inset Formula $n$
+\end_inset
+
+ black (1) and white (0) pixels to the corresponding hint 
+\begin_inset Formula $\lenc_{n}\left(\ell\right)\in\words{\nat}$
+\end_inset
+
+ according to the following rule:
+\begin_inset Formula 
+\[
+\lenc_{n}\left(\ell\right)=\begin{cases}
+\emptyword & \text{if }\,\ell=0^{\ast}\\
+x & \text{else if }\,\ell=0^{\ast}.1^{x}\\
+x.\lenc_{n}\left(\ell^{\prime}\right) & \text{else if }\,\ell=0^{\ast}.1^{x}.0.\ell^{\prime}
+\end{cases}
+\]
+
+\end_inset
+
+Here,
+ 
+\begin_inset Formula $x\in\nat$
+\end_inset
+
+ is any positive integer indicating the length of the first block of black pixels in 
+\begin_inset Formula $\ell$
+\end_inset
+
+,
+ if it exists;
+ and 
+\begin_inset Formula $\ell^{\prime}\in\words{\bool}$
+\end_inset
+
+ is the part of 
+\begin_inset Formula $\ell$
+\end_inset
+
+ following the first block,
+ if that also exists.
+\end_layout
+
+\begin_layout Paragraph
+Possible hints
+\end_layout
+
+\begin_layout Standard
+\begin_inset FormulaMacro
+\newcommand{\posshints}[1]{h_{#1}}
+\end_inset
+
+Consider a single line of length 
+\begin_inset Formula $n$
+\end_inset
+
+.
+ Let 
+\begin_inset Formula $\posshints n\subset\words{\nat}$
+\end_inset
+
+ be the set of all hints that are possible for a line of this length,
+ i.e.
+ the set of all hints with at least one feasible line solution;
+ we may also write this as 
+\begin_inset Formula $\posshints n=\left\{ a\in\words{\nat}\mid\exists\ell\in\bool^{n}\colon\lenc_{n}\left(\ell\right)=a\right\} \equiv\lenc_{n}\left(\bool^{n}\right)$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+What are the conditions for an arbitrary hint 
+\begin_inset Formula $a\in\words{\nat}$
+\end_inset
+
+ to be a possible hint?
+ Clearly,
+ the only condition on 
+\begin_inset Formula $a$
+\end_inset
+
+ is that all associated blocks must fit into the line,
+ alongside with the gaps of length at least one between two adjacent blocks.
+ Thus we have 
+\begin_inset Formula 
+\begin{equation}
+\posshints n=\left\{ a\in\words{\nat}\mid\overline{a}+\left|a\right|-1\leq n\right\} \label{eq:set-distinct-hints-unrestricted}
+\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+We wish to calculate the number of distinct possible nonogram hints as a function of line length 
+\begin_inset Formula $n$
+\end_inset
+
+.
+ It can also be stated as the number of finite integer sequences 
+\begin_inset Formula $a=\left(a_{1},a_{2},\ldots a_{k}\right)$
+\end_inset
+
+ which sum to at most 
+\begin_inset Formula $n-\left(k-1\right)$
+\end_inset
+
+:
+\begin_inset Formula 
+\begin{align}
+\left|\posshints n\right| & =\left|\left\{ a\in\mathbb{N}^{k}\mid k\in\mathbb{N},\,\sum_{i=1}^{k}a_{i}+\left(k-1\right)\leq n\right\} \right|+1\label{eq:num-distinct-hints-unrestricted}
+\end{align}
+
+\end_inset
+
+Here,
+ the 
+\begin_inset Formula $a_{i}$
+\end_inset
+
+ represents the length of the 
+\begin_inset Formula $i$
+\end_inset
+
+-th block in the line,
+ 
+\begin_inset Formula $k$
+\end_inset
+
+ is the total number of blocks,
+ and 
+\begin_inset Formula $k-1$
+\end_inset
+
+ can be identified as the minimum total length of the gaps between neighboring blocks.
+\end_layout
+
+\begin_layout Standard
+The additional '
+\begin_inset Formula $+1$
+\end_inset
+
+' term in 
+\begin_inset CommandInset ref
+LatexCommand eqref
+reference "eq:num-distinct-hints-unrestricted"
+
+\end_inset
+
+ represents the special case of 
+\begin_inset Formula $k=0$
+\end_inset
+
+ corresponding to an empty line indicated by no hint;
+ here the set of sequences 
+\begin_inset Formula $a$
+\end_inset
+
+ in 
+\begin_inset CommandInset ref
+LatexCommand eqref
+reference "eq:num-distinct-hints-unrestricted"
+
+\end_inset
+
+ contains only one sequence - the empty sequence 
+\begin_inset Formula $\emptyword$
+\end_inset
+
+,
+ which trivially satisfies the constraint 
+\begin_inset Formula $-1\leq n$
+\end_inset
+
+ for all 
+\begin_inset Formula $n\in\mathbb{N}$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+On the other hand,
+ it is clear that the number of blocks 
+\begin_inset Formula $k$
+\end_inset
+
+ must also have a maximum,
+ representing the highest number of blocks that can fit into a line of length 
+\begin_inset Formula $n$
+\end_inset
+
+.
+ This maximum can always be achieved if all blocks have their minimal length,
+ i.e.
+ 
+\begin_inset Formula $a=1^{k}$
+\end_inset
+
+.
+ Plugging this extreme case into 
+\begin_inset CommandInset ref
+LatexCommand eqref
+reference "eq:num-distinct-hints-unrestricted"
+
+\end_inset
+
+,
+ we can obtain a bound on 
+\begin_inset Formula $k$
+\end_inset
+
+:
+\begin_inset Formula 
+\begin{align}
+\sum_{i=1}^{k}1+\left(k-1\right)=2k-1\leq n & \Leftrightarrow k\leq\floor{\frac{n+1}{2}}\eqqcolon k_{\text{max}}\label{eq:k-max-unrestricted}
+\end{align}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+For any fixed integer 
+\begin_inset Formula $k$
+\end_inset
+
+ within these bounds,
+ the number of distinct integer sequences 
+\begin_inset Formula $a$
+\end_inset
+
+ of length 
+\begin_inset Formula $k$
+\end_inset
+
+ that sum to any number between 1 and 
+\begin_inset Formula $n-\left(k-1\right)$
+\end_inset
+
+ is equal to the number of decompositions of all integers 
+\begin_inset Formula $m$
+\end_inset
+
+ within the range 
+\begin_inset Formula $1\leq m\leq n-\left(k-1\right)$
+\end_inset
+
+ into exactly 
+\begin_inset Formula $k$
+\end_inset
+
+ integers.
+ Here,
+ 
+\begin_inset Formula $m$
+\end_inset
+
+ represents the total number of black pixels in the row,
+ which we are dividing into 
+\begin_inset Formula $k$
+\end_inset
+
+ blocks of arbitrary lengths.
+ For any fixed 
+\begin_inset Formula $m$
+\end_inset
+
+,
+ the number of these decompositions is given by the binomial coefficient 
+\begin_inset Formula $\binom{m-1}{k-1}$
+\end_inset
+
+.
+ Summing over all possible 
+\begin_inset Formula $m$
+\end_inset
+
+,
+ we conclude that for any fixed number of blocks 
+\begin_inset Formula $k$
+\end_inset
+
+,
+ there are exactly
+\begin_inset Formula 
+\begin{align}
+\left|\posshints{n,k}\right|=\sum_{m=1}^{n-\left(k-1\right)}\binom{m-1}{k-1}= & \binom{n-\left(k-1\right)}{k}\label{eq:combinations-fixed-k-unrestricted}
+\end{align}
+
+\end_inset
+
+distinct combinations of 
+\begin_inset Formula $k$
+\end_inset
+
+ block lengths which can fit in a line of length 
+\begin_inset Formula $n$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+Finally,
+ inserting 
+\begin_inset CommandInset ref
+LatexCommand eqref
+reference "eq:k-max-unrestricted"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+ and 
+\begin_inset CommandInset ref
+LatexCommand eqref
+reference "eq:combinations-fixed-k-unrestricted"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+ into 
+\begin_inset CommandInset ref
+LatexCommand eqref
+reference "eq:num-distinct-hints-unrestricted"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+,
+ we can compute the total number 
+\begin_inset Formula $\left|\posshints n\right|$
+\end_inset
+
+ of distinct nonogram hints which are possible to give for a line of length 
+\begin_inset Formula $n$
+\end_inset
+
+:
+\begin_inset Formula 
+\begin{align}
+\left|\posshints n\right| & =\sum_{k}\left|h_{n,k}\right|=\sum_{k=1}^{k_{\text{max}}}\binom{n-\left(k-1\right)}{k}+1=F_{n+2}\label{eq:num-distinct-hints-per-line-unrestricted}
+\end{align}
+
+\end_inset
+
+Here,
+ 
+\begin_inset Formula $F_{n+2}$
+\end_inset
+
+ denotes the 
+\begin_inset Formula $\left(n+2\right)$
+\end_inset
+
+-nd 
+\emph on
+Fibonacci number
+\emph default
+,
+ defined recursively by the relation 
+\begin_inset Formula $F_{n+2}=F_{n+1}+F_{n}$
+\end_inset
+
+ as well as the starting values 
+\begin_inset Formula $F_{1}=F_{2}=1$
+\end_inset
+
+.
+ The appearance of the Fibonacci sequence is perhaps surprising;
+ the validity of eq.
+ 
+\begin_inset CommandInset ref
+LatexCommand eqref
+reference "eq:num-distinct-hints-per-line-unrestricted"
+
+\end_inset
+
+ can be shown to follow directly from the properties of the binomial coefficients ,
+ but it may also be derived inductively by asking which hints are not possible for a line of length 
+\begin_inset Formula $n$
+\end_inset
+
+,
+ but do fit into a line of length 
+\begin_inset Formula $n+1$
+\end_inset
+
+.
+ This second version of the proof interesting to discuss here since it also gives us an explicit algorithm to construct every possible hint for some given line length 
+\begin_inset Formula $n$
+\end_inset
+
+ (the second variant of the proof may also be found in 
+\begin_inset CommandInset citation
+LatexCommand cite
+after "Section 2"
+key "DeterminingPaintbyNumbersPuzzles"
+literal "false"
+
+\end_inset
+
+):
+\end_layout
+
+\begin_layout Itemize
+For 
+\begin_inset Formula $n=1$
+\end_inset
+
+,
+ we have two possible hints,
+ 
+\begin_inset Formula $\posshints 1=\left\{ \emptyword,1\right\} $
+\end_inset
+
+,
+ and thus 
+\begin_inset Formula $\left|\posshints 1\right|=2$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+For 
+\begin_inset Formula $n=2$
+\end_inset
+
+,
+ we have 
+\begin_inset Formula $\posshints 2=\posshints 1\cup\left\{ 2\right\} $
+\end_inset
+
+ and thus 
+\begin_inset Formula $\left|\posshints 2\right|=\left|\posshints 1\right|+1=3$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+For 
+\begin_inset Formula $n=3$
+\end_inset
+
+,
+ we have 
+\begin_inset Formula $\posshints 3=\posshints 2\cup\left\{ 1.1,3\right\} $
+\end_inset
+
+ and thus 
+\begin_inset Formula $\left|\posshints 3\right|=\left|\posshints 2\right|+2=5$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+Now,
+ for any fixed 
+\begin_inset Formula $n>3$
+\end_inset
+
+,
+ let us assume that the following relation holds:
+\begin_inset Formula 
+\begin{equation}
+\left|\posshints n\right|=\left|\posshints{n-1}\right|+\left|\posshints{n-2}\right|\label{eq:fibonacci-proof-induction-assumption}
+\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+Then we can write the next set of possible hints 
+\begin_inset Formula $\posshints{n+1}$
+\end_inset
+
+ as a union of three mutually disjoint sets:
+\begin_inset Formula 
+\[
+\posshints{n+1}=\underbrace{\left\{ a\in\words{\nat}\mid\overline{a}+\left|a\right|=n+1\right\} }_{=A_{n+1}}\cup\underbrace{\left\{ b\in\words{\nat}\mid\overline{b}+\left|b\right|=n\right\} }_{=B_{n+1}}\cup\underbrace{\left\{ c\in\words{\nat}\mid\overline{c}+\left|c\right|<n\right\} }_{=C_{n+1}}
+\]
+
+\end_inset
+
+The set 
+\begin_inset Formula $A_{n+1}$
+\end_inset
+
+ contains all hints that fit exactly into a line of length 
+\begin_inset Formula $n+1$
+\end_inset
+
+,
+ but not into a line of length 
+\begin_inset Formula $n$
+\end_inset
+
+ or shorter.
+ Thus we have 
+\begin_inset Formula $\left|B_{n+1}\cup C_{n+1}\right|=\left|\posshints n\right|$
+\end_inset
+
+ and get:
+ 
+\begin_inset Formula 
+\[
+\left|\posshints{n+1}\right|=\left|A_{n+1}\right|+\left|\posshints n\right|
+\]
+
+\end_inset
+
+Looking at definition 
+\begin_inset CommandInset ref
+LatexCommand eqref
+reference "eq:set-distinct-hints-unrestricted"
+
+\end_inset
+
+,
+ we can also identify 
+\begin_inset Formula $C_{n+1}=h_{n-1}$
+\end_inset
+
+.
+\begin_inset Newline newline
+\end_inset
+
+Now,
+ the set 
+\begin_inset Formula $A_{n+1}$
+\end_inset
+
+ can be constructed explicitly from the sets 
+\begin_inset Formula $A_{n}$
+\end_inset
+
+ and 
+\begin_inset Formula $B_{n}$
+\end_inset
+
+:
+ Firstly,
+ every hint 
+\begin_inset Formula $a$
+\end_inset
+
+ in 
+\begin_inset Formula $A_{n}$
+\end_inset
+
+,
+ fits exactly into a line of length 
+\begin_inset Formula $n$
+\end_inset
+
+,
+ and thus we can add a copy of 
+\begin_inset Formula $a$
+\end_inset
+
+ to 
+\begin_inset Formula $A_{n+1}$
+\end_inset
+
+ where the last block is extended by one unit.
+ Secondly,
+ every hint 
+\begin_inset Formula $b$
+\end_inset
+
+ in 
+\begin_inset Formula $B_{n}$
+\end_inset
+
+ fits exactly into a line of length 
+\begin_inset Formula $n-1$
+\end_inset
+
+,
+ and thus we can add a hint to 
+\begin_inset Formula $A_{n+1}$
+\end_inset
+
+ that is equal to 
+\begin_inset Formula $b$
+\end_inset
+
+ but contains one additional hint of length one at the end.
+ Since the sets 
+\begin_inset Formula $A_{n},B_{n},C_{n}$
+\end_inset
+
+ are disjoint,
+ this will already create every new hint that was not possible in a line of length 
+\begin_inset Formula $n$
+\end_inset
+
+.
+ This algorithm for constructing the new hints from the previously possible ones is also illustrated in 
+\begin_inset CommandInset ref
+LatexCommand formatted
+reference "fig:algorithm-hints-list"
+
+\end_inset
+
+ for the first couple of steps.
+\begin_inset Newline newline
+\end_inset
+
+Thus we have 
+\begin_inset Formula $\left|A_{n+1}\right|=\left|A_{n}\right|+\left|B_{n}\right|$
+\end_inset
+
+,
+ and since 
+\begin_inset Formula $\left|\posshints n\right|=\left|A_{n}\right|+\left|B_{n}\right|+\left|C_{n}\right|=\left|A_{n}\right|+\left|B_{n}\right|+\left|\posshints{n-2}\right|$
+\end_inset
+
+,
+ we must have 
+\begin_inset Formula $\left|A_{n+1}\right|=\left|\posshints n\right|-\left|\posshints{n-2}\right|$
+\end_inset
+
+.
+\begin_inset Newline newline
+\end_inset
+
+Putting everything together and using assumption 
+\begin_inset CommandInset ref
+LatexCommand eqref
+reference "eq:fibonacci-proof-induction-assumption"
+
+\end_inset
+
+,
+ we finally get:
+\begin_inset Formula 
+\[
+\left|\posshints{n+1}\right|=\left|A_{n+1}\right|+\left|\posshints n\right|=\left|\posshints n\right|-\left|\posshints{n-2}\right|+\left|\posshints{n-1}\right|+\left|\posshints{n-2}\right|=\left|\posshints n\right|+\left|\posshints{n-1}\right|
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+placement document
+alignment document
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\begin_inset Formula 
+\begin{align*}
+\boxed{\begin{array}{c}
+1\end{array}}_{A_{1}} & \boxed{\begin{array}{c}
+\emptyset\end{array}}_{B_{1}} & \to\boxed{\begin{array}{c}
+2\end{array}}_{A_{2}} & \boxed{\begin{array}{c}
+1\end{array}}_{B_{2}} & \to\boxed{\begin{array}{c}
+3\\
+1.1
+\end{array}}_{A_{3}} & \boxed{\begin{array}{c}
+2\end{array}}_{B_{3}} & \to\boxed{\begin{array}{c}
+4\\
+1.2\\
+2.1
+\end{array}}_{A_{4}} & \boxed{\begin{array}{c}
+3\\
+1.1
+\end{array}}_{B_{4}} & \to\boxed{\begin{array}{c}
+5\\
+1.3\\
+2.2\\
+3.1\\
+1.1.1
+\end{array}}_{A_{5}} & \boxed{\begin{array}{c}
+4\\
+1.2\\
+2.1
+\end{array}}_{B_{5}} & \ldots\\
+ &  &  & \enspace\downarrow &  & \enspace\downarrow &  & \enspace\downarrow &  & \quad\downarrow\\
+ & \boxed{\begin{array}{c}
+\emptyword\end{array}}_{C_{1}} &  & \boxed{\begin{array}{c}
+\emptyword\end{array}}_{C_{2}} &  & \boxed{\begin{array}{c}
+1\\
+\emptyword
+\end{array}}_{C_{3}} &  & \boxed{\begin{array}{c}
+2\\
+1\\
+\emptyword
+\end{array}}_{C_{4}} &  & \boxed{\begin{array}{c}
+3\\
+1.1\\
+2\\
+1\\
+\emptyword
+\end{array}}_{C_{5}}\\
+n & =1 & n & =2 & n & =3 & n & =4 & n & =5\\
+\left|h_{1}\right| & =2 & \left|h_{2}\right| & =3 & \left|h_{3}\right| & =5 & \left|h_{4}\right| & =8 & \left|h_{5}\right| & =13
+\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+\begin_inset CommandInset label
+LatexCommand label
+name "fig:algorithm-hints-list"
+
+\end_inset
+
+The algorithm that creates the possible hints 
+\begin_inset Formula $\posshints n$
+\end_inset
+
+ from the previously possible hints 
+\begin_inset Formula $\posshints{n-1}$
+\end_inset
+
+.
+ The three different classes 
+\begin_inset Formula $A,B,C$
+\end_inset
+
+ are shown as boxes for each hint,
+ and the hints in 
+\begin_inset Formula $A_{n}$
+\end_inset
+
+ are created from the hints in 
+\begin_inset Formula $A_{n-1}\cup B_{n-1}$
+\end_inset
+
+ as described in the text above.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Paragraph
+Hint Ambiguity
+\end_layout
+
+\begin_layout Standard
+\begin_inset FormulaMacro
+\newcommand{\unambhints}[1]{u_{#1}}
+\end_inset
+
+There are some hints which unambiguously determine the entire line they describe,
+ for example in a line of length 
+\begin_inset Formula $n=4$
+\end_inset
+
+,
+ the hint 
+\begin_inset Formula $2.1$
+\end_inset
+
+ can only mean that the first two and the last cell are filled,
+ and the third cell is not.
+ We would like to determine the number of such unambiguous hints that encode just a single,
+ unique line;
+ we will denote the subset of such hints by 
+\begin_inset Formula $\unambhints n\subset\posshints n$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+It is easy to see that the hints in 
+\begin_inset Formula $\unambhints n$
+\end_inset
+
+ are exactly the hints corresponding to either 
+\begin_inset Formula $\left|a\right|=0$
+\end_inset
+
+ or 
+\begin_inset Formula $\dsum a+\left|a\right|-1=n$
+\end_inset
+
+ in eq.
+ 
+\begin_inset CommandInset ref
+LatexCommand eqref
+reference "eq:set-distinct-hints-unrestricted"
+
+\end_inset
+
+:
+ An unambiguous hint is either the empty hint indicating an empty line,
+ or a description of a completely filled line where all gaps are of unit length.
+ Comparing with the disjoint sets from the above algorithm,
+ we conclude that the number of hints in the second case is given by 
+\begin_inset Formula $\left|A_{n}\right|=\left|\posshints{n-2}\right|$
+\end_inset
+
+.
+ Thus the number of unambiguous hints is equal to the 
+\begin_inset Formula $n$
+\end_inset
+
+-th Fibonacci number plus one:
+\begin_inset Formula 
+\begin{equation}
+\left|\unambhints n\right|=\sum_{k=1}^{k_{\text{max}}}\binom{n-k}{k-1}+1=F_{n}+1\label{eq:num-unique-hints-per-lines-unrestricted}
+\end{equation}
+
+\end_inset
+
+From this it also follows that the number of ambiguous hints is given by 
+\begin_inset Formula $\left|\posshints n\right|-\left|\unambhints n\right|=F_{n+1}-1$
+\end_inset
+
+.
+ 
+\end_layout
+
+\begin_layout Standard
+Additionally,
+ the above implies that the ratio of unambiguous hints to to the total number of hints must converge at a finite value:
+ Using that for large 
+\begin_inset Formula $n$
+\end_inset
+
+ the Fibonacci numbers can be approximated by the exponential function 
+\begin_inset Formula $F_{n}=\round{\frac{1}{\sqrt{5}}\varphi^{n}}\approx\frac{1}{\sqrt{5}}\varphi^{n}$
+\end_inset
+
+,
+ where 
+\begin_inset Formula $\varphi\approx1.618$
+\end_inset
+
+ is the golden ratio defined as the (positive) solution to 
+\begin_inset Formula $x+1=x^{2}$
+\end_inset
+
+,
+ we have:
+\begin_inset Formula 
+\[
+\frac{\text{Number of unambiguous hints}}{\text{Number of all possible hints}}=\frac{\left|\unambhints n\right|}{\left|\posshints n\right|}=\frac{F_{n}+1}{F_{n+2}}\,\,\underset{\text{\ensuremath{n\to\infty}}}{\longrightarrow}\,\,\frac{1}{\varphi^{2}}\approx0.381
+\]
+
+\end_inset
+
+Thus about 
+\begin_inset Formula $38\%$
+\end_inset
+
+ of all possible hints already unambiguously determine the line they describe and require no guessing at all to recover the original line configuration.
+ However,
+ the remaining 
+\begin_inset Formula $62\%$
+\end_inset
+
+ of ambiguous line hints represent the vast majority of possible line configurations,
+ as they correspond to a proportion of lines in 
+\begin_inset Formula $\bool^{n}$
+\end_inset
+
+ that very quickly converges at 
+\begin_inset Formula $100\%$
+\end_inset
+
+:
+\begin_inset Formula 
+\[
+\frac{\left|\mathbb{B}^{n}\right|-\left|\unambhints n\right|}{\left|\mathbb{B}^{n}\right|}=\frac{2^{n}-1-F_{n}}{2^{n}}\,\,\underset{\text{\ensuremath{n\to\infty}}}{\longrightarrow}\,\,1
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+We want to calculate how many different lines a specific hint describes.
+ Let 
+\begin_inset Formula $e_{n}^{-1}\colon\posshints n\to2^{\bool^{n}}$
+\end_inset
+
+ be the multi-valued line hint decoding function that assigns each hint 
+\begin_inset Formula $a\in\posshints n$
+\end_inset
+
+ to its preimage 
+\begin_inset Formula $e_{n}^{-1}\left(a\right)\subset\bool^{n}$
+\end_inset
+
+.
+ It is apparent that the size of the preimage of a hint 
+\begin_inset Formula $a$
+\end_inset
+
+ should only depend difference between the line length 
+\begin_inset Formula $n$
+\end_inset
+
+ and the number of blocks 
+\begin_inset Formula $\left|a\right|$
+\end_inset
+
+,
+ as well as the number of filled pixels 
+\begin_inset Formula $\bar{a}$
+\end_inset
+
+:
+ We have to distribute the free spaces 
+\begin_inset Formula $n-\dsum a$
+\end_inset
+
+ into either the 
+\begin_inset Formula $\left|a\right|-1$
+\end_inset
+
+ gaps between blocks or the spaces before the first block and the last block.
+ Thus we have:
+ 
+\begin_inset Formula 
+\begin{equation}
+\left|e_{n}^{-1}\left(a\right)\right|=\binom{n-\dsum a-1}{\left|a\right|}\label{eq:hint-multiplicity}
+\end{equation}
+
+\end_inset
+
+This expression also correctly simplifies to 
+\begin_inset Formula $\left|e_{n}^{-1}\left(a\right)\right|=1$
+\end_inset
+
+ for those hints 
+\begin_inset Formula $a$
+\end_inset
+
+ which satisfy 
+\begin_inset Formula $\dsum a+\left|a\right|-1=n$
+\end_inset
+
+,
+ as well as for the empty hints 
+\begin_inset Formula $a=\varepsilon$
+\end_inset
+
+ if we define 
+\begin_inset Formula $\binom{x}{0}=0$
+\end_inset
+
+;
+ for all other 
+\begin_inset Formula $a\in\posshints n$
+\end_inset
+
+ we have 
+\begin_inset Formula $\left|e_{n}^{-1}\left(a\right)\right|>1$
+\end_inset
+
+.
+ The 
+\emph on
+hint ambiguities
+\emph default
+ 
+\begin_inset Formula $\left|e_{n}^{-1}\left(a\right)\right|$
+\end_inset
+
+ also satisfy the following sum rule,
+ which expresses the fact that every line must be encoded by a hint:
+\begin_inset Formula 
+\[
+\sum_{a\in\posshints n}\left|e_{n}^{-1}\left(a\right)\right|=2^{n}
+\]
+
+\end_inset
+
+ These ambiguities are shown in 
+\begin_inset CommandInset ref
+LatexCommand formatted
+reference "fig:hints-list-small-n"
+
+\end_inset
+
+ for all hints that fit into some small line lengths 
+\begin_inset Formula $n\leq8$
+\end_inset
+
+.
+ The hints were generated using the algorithm outlined in 
+\begin_inset CommandInset ref
+LatexCommand formatted
+reference "fig:algorithm-hints-list"
+
+\end_inset
+
+,
+ and we have also indicated our results 
+\begin_inset CommandInset ref
+LatexCommand eqref
+reference "eq:num-distinct-hints-per-line-unrestricted"
+
+\end_inset
+
+ and 
+\begin_inset CommandInset ref
+LatexCommand eqref
+reference "eq:num-unique-hints-per-lines-unrestricted"
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+placement document
+alignment document
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename hints_list_small_n.pdf
+	width 100col%
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+\begin_inset CommandInset label
+LatexCommand label
+name "fig:hints-list-small-n"
+
+\end_inset
+
+An illustration of all possible hints for small line lengths 
+\begin_inset Formula $n\leq8$
+\end_inset
+
+.
+ The hints that unambiguously determine the line content are at the bottom and have a blue background,
+ while the remaining,
+ ambiguous hints are on top with an orange backdrop.
+ Hints that do not force any pixels to be black (see the next section) are marked by a subscript '
+\begin_inset Formula $f$
+\end_inset
+
+',
+ and the number of matching line configurations (the ambiguity 
+\begin_inset Formula $\left|e_{n}^{-1}\left(a\right)\right|$
+\end_inset
+
+) is also shown to the right of each hint.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+We can go even further and ask:
+ For any given line length 
+\begin_inset Formula $n$
+\end_inset
+
+,
+ what is the most ambiguous hint you can give for it?
+ And what is its ambiguity?
+\end_layout
+
+\begin_layout Standard
+Looking at our result in eq.
+ 
+\begin_inset CommandInset ref
+LatexCommand eqref
+reference "eq:hint-multiplicity"
+
+\end_inset
+
+,
+ we see that a hints' ambiguity is given by a binomial coefficient 
+\begin_inset Formula $\binom{x}{y}$
+\end_inset
+
+,
+ and these assume their maximum around the point 
+\begin_inset Formula $x\approx\frac{1}{2}y$
+\end_inset
+
+;
+ plugging this in,
+ we get 
+\begin_inset Formula $n-\dsum a-1\approx\frac{1}{2}\left|a\right|$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+Now,
+ it is clear that any hint 
+\begin_inset Formula $a$
+\end_inset
+
+ that maximizes 
+\begin_inset CommandInset ref
+LatexCommand eqref
+reference "eq:hint-multiplicity"
+
+\end_inset
+
+ must have the form 
+\begin_inset Formula $a=1^{x}$
+\end_inset
+
+ with 
+\begin_inset Formula $x\in\nat$
+\end_inset
+
+:
+ If any digit in 
+\begin_inset Formula $a$
+\end_inset
+
+ were greater than one,
+ the number of possible solutions could only be increased further by reducing that digit to one as well.
+ In this case,
+ we have 
+\begin_inset Formula $\left|a\right|=\dsum a=x$
+\end_inset
+
+,
+ and get the solution 
+\begin_inset Formula $x\approx\frac{n+1}{3}$
+\end_inset
+
+.
+ Inserting this back into 
+\begin_inset CommandInset ref
+LatexCommand eqref
+reference "eq:hint-multiplicity"
+
+\end_inset
+
+,
+ we obtain:
+\begin_inset Formula 
+\[
+\max_{a\in\posshints n}\left|e_{n}^{-1}\left(a\right)\right|\approx\binom{\frac{2}{3}\left(n+1\right)}{\frac{1}{3}\left(n+1\right)}=\bigo{2^{n/3}}
+\]
+
+\end_inset
+
+Here,
+ the factorials defining the binomial coefficients are extended to fractional arguments in terms of gamma functions as usual.
+ To determine the asymptotic growth in the last step,
+ we use Stirling's formula.
+ This seems to suggest that the most difficult nonograms will contain about one third black pixels,
+ and two thirds white pixels.
+\end_layout
+
+\begin_layout Standard
+We also found an exact identity relating the maximal ambiguity of nonogram hints to the coefficients of the Fibonacci polynomials 
+\begin_inset Formula $F_{n}\left(x\right)$
+\end_inset
+
+ defined through the relation 
+\begin_inset Formula $F_{n}\left(x\right)=xF_{n-1}\left(x\right)+F_{n-2}\left(x\right)$
+\end_inset
+
+ with 
+\begin_inset Formula $F_{0}\left(x\right)=0$
+\end_inset
+
+ and 
+\begin_inset Formula $F_{1}\left(x\right)=1$
+\end_inset
+
+:
+ We have
+\begin_inset Formula 
+\[
+\max_{a\in\posshints n}\left|e_{n}^{-1}\left(a\right)\right|=\max\text{coeff}_{x}\left[F_{n+2}\left(x\right)\right]
+\]
+
+\end_inset
+
+which can be verified directly by rewriting the set of ambiguities as 
+\begin_inset Formula 
+\[
+\left\{ \binom{n-\dsum a-1}{\left|a\right|}\right\} _{a\in\posshints n}=\left\{ \binom{n}{0},\binom{n-1}{1},\binom{n-2}{2},\ldots\binom{1}{n-1},\binom{0}{n}\right\} \cup\ldots
+\]
+
+\end_inset
+
+ where the omitted elements at the end will always be numerically smaller than at least one element in the first group and thus can be ignored when taking the maximum.
+ The OEIS
+\begin_inset CommandInset citation
+LatexCommand cite
+key "OEIS_maxcoefffibb"
+literal "false"
+
+\end_inset
+
+ was of great help for realizing this fact.
+ 
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+However,
+ in the case that it does,
+ we can get a 
+\begin_inset Formula $\cancel{\text{better}}$
+\end_inset
+
+ worse approximation of the maximum ambiguity for large 
+\begin_inset Formula $n$
+\end_inset
+
+:
+\begin_inset Formula 
+\[
+\max_{a\in\posshints n}\left|e_{n}^{-1}\left(a\right)\right|\overset{?}{\approx}\frac{\sqrt[4]{5}}{\sqrt{2\pi\left(n+2\right)}}\varphi^{n+3}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Newpage newpage
+\end_inset
+
+
+\end_layout
+
+\begin_layout Paragraph
+Forceless hints
+\end_layout
+
+\begin_layout Standard
+Even hints that are ambiguous may still allow us to extract some partial information about the line configuration:
+ This is possible if a certain cell in the line is black in every matching configuration,
+ see for example the nonogram in 
+\begin_inset CommandInset ref
+LatexCommand formatted
+reference "fig:forceless-hints-nonogram"
+
+\end_inset
+
+:
+ Here,
+ two rows can already be solved completely just by filling all the nonograms forced pixels,
+ and the rest of the nonogram follows quickly from there.
+\begin_inset Float figure
+placement document
+alignment document
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename forcehint0.pdf
+	width 30col%
+
+\end_inset
+
+
+\begin_inset Formula $\quad$
+\end_inset
+
+
+\begin_inset Graphics
+	filename forcehint.pdf
+	width 30col%
+
+\end_inset
+
+
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+\begin_inset CommandInset label
+LatexCommand label
+name "fig:forceless-hints-nonogram"
+
+\end_inset
+
+A nonogram containing ambiguous hints (row two and column five) which force some pixels to be black,
+ as is shown on the right side.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The number of hints that do 
+\emph on
+not
+\emph default
+ force any pixels has been studied in 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "DeterminingPaintbyNumbersPuzzles,AsymptoticsUselessHintSequences"
+literal "false"
+
+\end_inset
+
+ where such hints are called 
+\emph on
+forceless
+\emph default
+ or 
+\emph on
+useless
+\emph default
+ hints,
+ respectively;
+ we denote the set of such hints for a line of length 
+\begin_inset Formula $n$
+\end_inset
+
+ by 
+\begin_inset FormulaMacro
+\newcommand{\forceless}[1]{f_{#1}}
+\end_inset
+
+
+\begin_inset Formula $\forceless n\subset\posshints n$
+\end_inset
+
+.
+ For small 
+\begin_inset Formula $n$
+\end_inset
+
+,
+ we have indicated the forceless hints in 
+\begin_inset CommandInset ref
+LatexCommand formatted
+reference "fig:hints-list-small-n"
+
+\end_inset
+
+:
+ From this it is apparent that the most ambiguous hints also tend to be forceless.
+\end_layout
+
+\begin_layout Standard
+In 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "DeterminingPaintbyNumbersPuzzles"
+literal "false"
+
+\end_inset
+
+ the author showed that a non-empty hint 
+\begin_inset Formula $a\in\posshints n\backslash\left\{ \emptyword\right\} $
+\end_inset
+
+ is forceless if it satisfies the inequality
+\begin_inset Formula 
+\[
+\dsum a+\max a+\left|a\right|-1\leq n
+\]
+
+\end_inset
+
+and continued to prove that the number of forceless hints 
+\begin_inset Formula $\left|\forceless n\right|$
+\end_inset
+
+ is bounded both from below and above,
+\begin_inset Formula 
+\[
+c_{1}\frac{\varphi^{n}}{n}\leq\left|\forceless n\right|\leq c_{2}\frac{\varphi^{n}}{n}\ln n
+\]
+
+\end_inset
+
+where 
+\begin_inset Formula $c_{1,2}$
+\end_inset
+
+ are some positive real constants.
+ It follows that for large 
+\begin_inset Formula $n$
+\end_inset
+
+,
+ the probability that a random line configuration encodes to a forceless hint approaches 1 (see also 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "NonogramCombinatorialQuestions"
+literal "false"
+
+\end_inset
+
+).
+ 
+\end_layout
+
+\begin_layout Standard
+In 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "AsymptoticsUselessHintSequences"
+literal "false"
+
+\end_inset
+
+ the authors were able to improve this upper bound for 
+\begin_inset Formula $\left|\forceless n\right|$
+\end_inset
+
+:
+ They showed that
+\begin_inset Formula 
+\[
+k_{1}\frac{\varphi^{n}}{n}\leq\left|\forceless n\right|\leq k_{2}\frac{\varphi^{n}}{n}
+\]
+
+\end_inset
+
+for some positive constants 
+\begin_inset Formula $k_{1,2}$
+\end_inset
+
+,
+ which implies that the asymptotic probability for a randomly chosen hint of length 
+\begin_inset Formula $n$
+\end_inset
+
+ to be forceless is in 
+\begin_inset Formula $\Theta\left(n^{-1}\right)$
+\end_inset
+
+.
+ 
+\begin_inset Note Note
+status open
+
+\begin_layout Paragraph
+Information lost in hints
+\end_layout
+
+\begin_layout Plain Layout
+As we have just demonstrated,
+ this encoding is not injective (many different lines can be described by the same hint),
+ but it is surjective since by our construction 
+\begin_inset Formula $\posshints n$
+\end_inset
+
+ only contains those hints describing a line of length 
+\begin_inset Formula $n$
+\end_inset
+
+.
+ Thus some information is necessarily lost when encoding a line into its hints.
+\end_layout
+
+\begin_layout Plain Layout
+We can approximate the amount of lost information associated with the line hint encoding 
+\begin_inset Formula $\ell\mapsto e\left(\ell\right)$
+\end_inset
+
+,
+ when measured in bits,
+ to see that it grows linearly in 
+\begin_inset Formula $n$
+\end_inset
+
+:
+\begin_inset Formula 
+\begin{align*}
+\Delta H_{\text{line}}\left(n\right) & =\log\left|\mathbb{B}^{n}\right|-\log\left|\posshints n\right|\approx\log2^{n}-\log\frac{\varphi^{2}}{\sqrt{5}}\varphi^{n}=\text{const.}+n\log\varphi
+\end{align*}
+
+\end_inset
+
+From this we can predict that the average number of guesses necessary to reconstruct a specific line from its hints grows exponentially with the line length 
+\begin_inset Formula $n$
+\end_inset
+
+,
+ specifically that it will have asymptotic growth 
+\begin_inset Formula $\bigo{2^{n}/\varphi^{n}}$
+\end_inset
+
+.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Paragraph
+Hint Symmetry
+\end_layout
+
+\begin_layout Standard
+For later reference,
+ we want to conclude this section by examining nonogram-style line hints in terms of their symmetry properties.
+ It is apparent from 
+\begin_inset CommandInset ref
+LatexCommand formatted
+reference "fig:hints-list-small-n"
+
+\end_inset
+
+ that all hints are either palindromes,
+ or they are the reflection of another hint.
+ For example,
+ the hint 
+\begin_inset Formula $a=1.2.3$
+\end_inset
+
+ is the reflection of 
+\begin_inset Formula $b=3.2.1$
+\end_inset
+
+,
+ which we will denote as 
+\begin_inset Formula $a=\rev b$
+\end_inset
+
+,
+ while the hint 
+\begin_inset Formula $a=1.2.1$
+\end_inset
+
+ is its own reverse,
+ i.e.
+ 
+\begin_inset Formula $a=\rev a$
+\end_inset
+
+.
+ Therefore,
+ the set of possible hints 
+\begin_inset Formula $\posshints n$
+\end_inset
+
+ is closed under reflection and thus their symmetry group is (isomorphic to) the cyclic group 
+\begin_inset Formula $C_{2}$
+\end_inset
+
+ consisting only of the involution 
+\begin_inset Formula $\rev{\circ}$
+\end_inset
+
+ as well as the identity map 
+\begin_inset FormulaMacro
+\newcommand{\id}{\mathbb{I}}
+\end_inset
+
+
+\begin_inset Formula $\id$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+This insight allows us to calculate exactly how many hints in 
+\begin_inset Formula $\posshints n$
+\end_inset
+
+ are not the reflection of some other hint but are truly unique:
+ We can apply the 
+\emph on
+orbit-counting theorem
+\emph default
+ to get
+\begin_inset FormulaMacro
+\newcommand{\fix}[2]{\text{fix}_{#1}\left(#2\right)}
+\end_inset
+
+
+\begin_inset Formula 
+\begin{equation}
+\left|\posshints n\slash C_{2}\right|=\frac{1}{\left|C_{2}\right|}\sum_{\sigma\in C_{2}}\left|\fix{\sigma}{\posshints n}\right|=\frac{1}{2}\left(\left|\posshints n\right|+\left|\fix R{\posshints{\rows}}\right|\right)\label{eq:poss-hints-orbits}
+\end{equation}
+
+\end_inset
+
+where 
+\begin_inset Formula $\posshints n\slash C_{2}$
+\end_inset
+
+ is the set of all orbits in 
+\begin_inset Formula $\posshints n$
+\end_inset
+
+ under the group action of 
+\begin_inset Formula $C_{2}$
+\end_inset
+
+,
+ and 
+\begin_inset Formula $\fix R{\posshints{\rows}}=\left\{ a\in\posshints n:\rev a=a\right\} $
+\end_inset
+
+ are the fixed points of the reflection operator.
+\end_layout
+
+\begin_layout Standard
+To determine the number of fixpoints,
+ we first realize that it must be given by a recursive relation of the type 
+\begin_inset Formula $\left|\fix R{\posshints{\rows}}\right|=\left|\fix R{\posshints{\rows-1}}\right|+S_{n}^{\prime}$
+\end_inset
+
+,
+ since 
+\begin_inset Formula $\fix R{\posshints{\rows-1}}\subset\fix R{\posshints{\rows}}$
+\end_inset
+
+.
+ The additional term 
+\begin_inset Formula $S_{n}^{\prime}$
+\end_inset
+
+ can then be calculated by distinguishing four distinct cases:
+\end_layout
+
+\begin_layout Enumerate
+...
+\end_layout
+
+\begin_layout Enumerate
+...
+\end_layout
+
+\begin_layout Enumerate
+...
+\end_layout
+
+\begin_layout Enumerate
+...
+\end_layout
+
+\begin_layout Standard
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+If 
+\begin_inset Formula $n=2k$
+\end_inset
+
+,
+ we have 
+\begin_inset Formula $\posshints n^{R}=\left\{ a\in\posshints n:a=b.\rev b\right\} $
+\end_inset
+
+ where 
+\begin_inset Formula $b\in\words{\nat}$
+\end_inset
+
+ are any words subject to the constraint 
+\begin_inset Formula $\dsum b+\left|b\right|-1\leq k$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+In all four cases we find the following approximate condition for a hint 
+\begin_inset Formula $a$
+\end_inset
+
+ to be in 
+\begin_inset Formula $\posshints n^{R}$
+\end_inset
+
+:
+\begin_inset Formula 
+\[
+\sum_{i=1}^{k}2a_{i}+2k-2\lesssim2m
+\]
+
+\end_inset
+
+where 
+\begin_inset Formula $k=\left|a\right|$
+\end_inset
+
+ and 
+\begin_inset Formula $m\approx n/2$
+\end_inset
+
+,
+ up to rounding;
+ the approximation is better for even 
+\begin_inset Formula $n$
+\end_inset
+
+ than for odd 
+\begin_inset Formula $n$
+\end_inset
+
+.
+ By comparison with eq.
+ 
+\begin_inset CommandInset ref
+LatexCommand eqref
+reference "eq:num-distinct-hints-unrestricted"
+
+\end_inset
+
+ and result 
+\begin_inset CommandInset ref
+LatexCommand eqref
+reference "eq:num-distinct-hints-per-line-unrestricted"
+
+\end_inset
+
+,
+ we thus can estimate the number of palindromic hints as:
+\begin_inset Formula 
+\[
+\left|\fix R{\posshints{\rows}}\right|\approx F_{m+2}\approx F_{n/2+2}\approx\frac{\varphi^{2}}{\sqrt{5}}\sqrt{\varphi}^{n}
+\]
+
+\end_inset
+
+We note that this approximation is not good for very small 
+\begin_inset Formula $n$
+\end_inset
+
+,
+ here an explicit calculation is required.
+ Inserting this into 
+\begin_inset CommandInset ref
+LatexCommand eqref
+reference "eq:poss-hints-orbits"
+
+\end_inset
+
+,
+ we can conclude that for large 
+\begin_inset Formula $n$
+\end_inset
+
+ most hints are not palindromes,
+ and therefore only a bit more than half of all hints are unique,
+ i.e.
+ on an independent orbit:
+\begin_inset Formula 
+\[
+\left|\posshints n\slash C_{2}\right|\approx\frac{\left|\posshints n\right|}{2}\left(1+\frac{1}{\sqrt{\varphi}^{n}}\right)\,\,\underset{\text{\ensuremath{n\to\infty}}}{\longrightarrow}\,\,\frac{\left|\posshints n\right|}{2}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Newpage newpage
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+Possible Nonograms
+\end_layout
+
+\begin_layout Standard
+Having defined the notion of possible line hints we now seek to apply our findings to whole nonograms.
+ The most direct approach would be to define a class of 
+\emph on
+possible nonograms
+\emph default
+ as the nonograms containing only possible hints.
+ But is every such nonogram truly deserving of the label 'possible'?
+ 
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+placement document
+alignment document
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename unsolvable4.pdf
+	width 30col%
+
+\end_inset
+
+
+\begin_inset Formula $\quad$
+\end_inset
+
+
+\begin_inset Graphics
+	filename unsolvable3.pdf
+	width 30col%
+
+\end_inset
+
+
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+\begin_inset CommandInset label
+LatexCommand label
+name "fig:impossible-nonograms-sum"
+
+\end_inset
+
+Two impossible nonograms where the row and column hint sums do not match.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+The answer is clearly no,
+ as the two examples in 
+\begin_inset CommandInset ref
+LatexCommand formatted
+reference "fig:impossible-nonograms-sum"
+
+\end_inset
+
+ illustrate:
+ A necessary (but not sufficient) condition for any given nonogram to be solvable is that the total number of black pixels hinted at in the row hints must match that same sum when taken over all column hints.
+ Thus the nonograms in 
+\begin_inset CommandInset ref
+LatexCommand formatted
+reference "fig:impossible-nonograms-sum"
+
+\end_inset
+
+ clearly can not have a solution,
+ even though they only contain hints we described as possible,
+ and it would be a misnomer to refer to these nonograms as 
+\emph on
+possible
+\emph default
+.
+\end_layout
+
+\begin_layout Standard
+Therefore,
+ in order for a given nonogram 
+\begin_inset Formula $\left(\rows,\cols,\rowh,\colh\right)\in\nonoset$
+\end_inset
+
+ to be called a 
+\emph on
+possible nonogram
+\emph default
+,
+ we require three conditions to be met:
+\end_layout
+
+\begin_layout Enumerate
+Every row hint is possible:
+ 
+\begin_inset Formula $\forall\row\in\rows\colon\rowh_{\row}\in\posshints{\cols}$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Enumerate
+Every column hint is possible:
+ 
+\begin_inset Formula $\forall\col\in\cols\colon\colh_{\col}\in\posshints{\rows}$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Enumerate
+The hint sums along both axes match:
+ 
+\begin_inset Formula $\sum_{\row=1}^{\rows}\dsum{\rowh_{\row}}=\sum_{\col=1}^{\cols}\dsum{\colh_{\col}}$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Let us denote the subset of all nonograms satisfying these constraints by 
+\begin_inset Formula $\nonoset_{\Sigma}\subset\nonoset$
+\end_inset
+
+.
+ Further,
+ let us denote the subset of all nonograms satisfying the first two constraints,
+ but not necessarily the third,
+ by 
+\begin_inset Formula $\nonoset_{0}\supset\nonoset_{\Sigma}$
+\end_inset
+
+:
+ We will refer to nonograms in 
+\begin_inset Formula $\nonoset_{0}$
+\end_inset
+
+ as 
+\emph on
+semi-possible nonograms
+\emph default
+.
+ It will be instructive to consider this broader class of nonograms first before adding constraint number three.
+\end_layout
+
+\begin_layout Paragraph
+Semi-possible nonograms
+\end_layout
+
+\begin_layout Standard
+How many semi-possible nonograms of some fixed size 
+\begin_inset Formula $\rows\times\cols$
+\end_inset
+
+ are there?
+ Applying our result regarding the number of possible hints from eq.
+ 
+\begin_inset Formula $\eqref{eq:num-distinct-hints-per-line-unrestricted}$
+\end_inset
+
+,
+ we see that the total number 
+\begin_inset Formula $\left|\nonoset_{\sigma}\right|$
+\end_inset
+
+ of such nonograms with some fixed size 
+\begin_inset Formula $\rows\times\cols$
+\end_inset
+
+ is given by the following product of Fibonacci numbers:
+\begin_inset Formula 
+\[
+\left|\nonoset_{0}\left(\rows,\cols\right)\right|=\left|\posshints{\rows}\right|^{\cols}\cdot\left|\posshints{\cols}\right|^{\rows}=\underbrace{F_{\cols+2}^{\rows}}_{\text{rows}}\cdot\underbrace{F_{\rows+2}^{\cols}}_{\text{columns}}
+\]
+
+\end_inset
+
+Using the usual approximation for 
+\begin_inset Formula $F_{n}$
+\end_inset
+
+,
+ we can conclude that the number of hint-distinct nonograms 
+\begin_inset Formula $\left|\nonoset_{0}\left(n,m\right)\right|\approx\nicefrac{1}{\sqrt{5^{n+m}}}\cdot\varphi^{2\left(n+m+n\cdot m\right)}$
+\end_inset
+
+ grows exponentially with size.
+ Notably,
+ this expression grows a 
+\emph on
+lot
+\emph default
+ faster than the number of distinct rectangular monochromatic raster images 
+\begin_inset Formula $G\left(n,m\right)=\mathbb{B}^{n}\times\mathbb{B}^{m}$
+\end_inset
+
+,
+ which grows according to 
+\begin_inset Formula $\left|G\left(n,m\right)\right|=2^{n\cdot m}$
+\end_inset
+
+:
+\begin_inset Formula 
+\begin{equation}
+\left|\nonoset_{0}\left(n,m\right)\right|\gg\left|G\left(n,m\right)\right|\label{eq:num-of-nonograms-vs-grids}
+\end{equation}
+
+\end_inset
+
+For example,
+ the number of unique 
+\begin_inset Formula $10\times10$
+\end_inset
+
+ monochromatic grids is 
+\begin_inset Formula $\left|G\left(10,10\right)\right|=2^{100}\approx1.2\cdot10^{30}$
+\end_inset
+
+,
+ but there are already about 
+\begin_inset Formula $\left|\nonoset_{0}\left(10,10\right)\right|=\left(F_{12}^{10}\right)^{2}\approx1.5\cdot10^{43}$
+\end_inset
+
+ semi-possible nonograms of that size!
+\end_layout
+
+\begin_layout Standard
+What does this imply regarding the solvability of nonograms?
+ First of all,
+ it gives us an upper bound on the number of solvable nonograms:
+ Even if every semi-possible solvable nonogram had a unique solution,
+ there could only be 
+\begin_inset Formula $\left|G\left(n,m\right)\right|$
+\end_inset
+
+ solvable nonograms.
+ Let 
+\begin_inset Formula $\nonoset_{\text{S}}\subset\nonoset_{\Sigma}$
+\end_inset
+
+ be the set of all solvable nonograms for some given size 
+\begin_inset Formula $\rows\times\cols$
+\end_inset
+
+,
+ then we have:
+\begin_inset Formula 
+\begin{equation}
+\left|\nonoset_{\text{S}}\left(n,m\right)\right|\leq2^{n\cdot m}\label{eq:num-solvable-nonograms-upper-bound}
+\end{equation}
+
+\end_inset
+
+In practice,
+ it is easy to construct nonograms of any size with multiple solutions
+\begin_inset Foot
+status open
+
+\begin_layout Plain Layout
+For example,
+ the square nonograms where every hint is just a '1' have 
+\begin_inset Formula $n!$
+\end_inset
+
+ solutions for all 
+\begin_inset Formula $n\in\nat$
+\end_inset
+
+;
+ they can then also be padded with empty rows or columns to create rectangular nonograms with the same number of solutions.
+\end_layout
+
+\end_inset
+
+,
+ so we definitely have a true inequality in 
+\begin_inset CommandInset ref
+LatexCommand eqref
+reference "eq:num-solvable-nonograms-upper-bound"
+
+\end_inset
+
+ for all 
+\begin_inset Formula $\rows>1,\,\cols>1$
+\end_inset
+
+.
+ This also implies that when we are given a random semi-possible nonogram of size 
+\begin_inset Formula $n\times m$
+\end_inset
+
+,
+ the probability that it has at least one solution is bounded from above:
+\begin_inset Formula 
+\[
+p_{nm}=\frac{\text{\left|\nonoset_{\text{S}}\left(n,m\right)\right|}}{\left|\nonoset_{0}\left(\rows,\cols\right)\right|}<\frac{\left|G\left(n,m\right)\right|}{\left|\nonoset_{0}\left(\rows,\cols\right)\right|}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Note Note
+status open
+
+\begin_layout Paragraph
+Symmetry of nonograms
+\end_layout
+
+\begin_layout Plain Layout
+Consider the eight nonograms shown in ....
+ They are all distinct elements in 
+\begin_inset Formula $\nonoset_{0}$
+\end_inset
+
+,
+ but for the purpose of solving them ...
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+todo
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+Generally,
+ let 
+\begin_inset Formula $N=\left(\rows,\cols,\rowh,\colh\right)$
+\end_inset
+
+ be any possible nonogram with solution(s) 
+\begin_inset Formula $E^{-1}\left(N\right)$
+\end_inset
+
+.
+ Then the following nonograms are also possible,
+ and have solution(s) that can be obtained from the solutions of 
+\begin_inset Formula $N$
+\end_inset
+
+:
+\end_layout
+
+\begin_layout Itemize
+The row-reversed/column-mirrored version of 
+\begin_inset Formula $N$
+\end_inset
+
+,
+ obtained after individually reversing all row hints and reversing the top-level order of the column hints:
+\begin_inset Newline newline
+\end_inset
+
+
+\begin_inset Formula $N=\left(\rows,\cols,\left\{ \rev{R_{j}}\mid\col\in\cols\right\} ,\left\{ C_{n-i}\mid\row\in\rows\right\} \right)$
+\end_inset
+
+
+\begin_inset Newline newline
+\end_inset
+
+with solutions given by
+\begin_inset Newline newline
+\end_inset
+
+
+\begin_inset Formula $E^{-1}\left(M_{\text{c}}N\right)=\left\{ S^{\text{R}}\in G\left(n,m\right)\mid\exists S\in E^{-1}\left(N\right)\colon S^{\text{R}}...\right\} $
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+The 
+\series bold
+column-reversed
+\series default
+/row-mirrored version of 
+\begin_inset Formula $N$
+\end_inset
+
+,
+ obtained after individually reversing all column hints and reversing the top-level order of the row hints:
+\begin_inset Newline newline
+\end_inset
+
+
+\begin_inset Formula $\text{C}N=\left(\rows,\cols,\left\{ \rowh_{\cols-\col}\mid\col\in\cols\right\} ,\left\{ \rev{\colh_{\row}}\mid\row\in\rows\right\} \right)$
+\end_inset
+
+
+\begin_inset Newline newline
+\end_inset
+
+with solutions given by
+\begin_inset Newline newline
+\end_inset
+
+
+\begin_inset Formula $..$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+The 
+\series bold
+transpose
+\series default
+ of 
+\begin_inset Formula $N$
+\end_inset
+
+,
+ obtained after swapping all rows and columns:
+\begin_inset Newline newline
+\end_inset
+
+
+\begin_inset Formula $N^{\text{T}}=\left(\cols,\rows,\colh,\rowh\right)$
+\end_inset
+
+
+\begin_inset Newline newline
+\end_inset
+
+with solutions given by
+\begin_inset Newline newline
+\end_inset
+
+ 
+\begin_inset Formula $E^{-1}\left(N^{\text{T}}\right)=\left\{ S^{\text{T}}\in G\left(m,n\right)\mid\exists S\in E^{-1}\left(N\right)\forall\row\in\rows\forall\col\in\cols\colon S_{ji}^{\text{T}}=S_{ij}\right\} $
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+Notably,
+ we have 
+\begin_inset Formula $\text{R}^{-1}=\text{R}$
+\end_inset
+
+,
+ 
+\begin_inset Formula $ $
+\end_inset
+
+
+\end_layout
+
+\begin_layout Paragraph
+Unique nonograms
+\end_layout
+
+\begin_layout Plain Layout
+...
+\end_layout
+
+\begin_layout Paragraph
+Information lost in nonograms
+\end_layout
+
+\begin_layout Plain Layout
+Taking the logarithm of inequality 
+\begin_inset CommandInset ref
+LatexCommand eqref
+reference "eq:num-of-nonograms-vs-grids"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+ we see that 
+\begin_inset Formula $H_{0}\left(n,m\right)<n\cdot m$
+\end_inset
+
+,
+ where 
+\begin_inset Formula $H_{0}=\log\left|N_{0}\right|$
+\end_inset
+
+ represents the amount of bits needed to completely and uniquely specify the hints of one nonogram.
+ For large 
+\begin_inset Formula $n$
+\end_inset
+
+,
+ we can again calculate the asymptotic growth rate of the lost information as 
+\begin_inset Formula 
+\begin{align*}
+\Delta H_{\text{grid}}\left(n\right) & =\log\left|G\left(n,m\right)\right|-\log\left|N_{0}\left(n,m\right)\right|=\mathcal{O}\left(nm\right)\\
+ & \approx\log2^{nm}-\log\frac{\varphi^{4}}{5}nm\varphi^{n+m}\\
+ & =\mathcal{O}\left(nm-(n+\log n+m+\log m)\right)
+\end{align*}
+
+\end_inset
+
+and we predict that the number of guesses needed to solve a nonogram,
+ i.e.
+ to reconstruct the original grid from the hints,
+ will grow as 
+\begin_inset Formula $\mathcal{O}\left(\frac{1}{n+m}\frac{1}{2^{n+m}}2^{nm}\right)$
+\end_inset
+
+.
+ This growth is super-exponential if 
+\begin_inset Formula $m\propto n$
+\end_inset
+
+:
+ For square nonograms the growth rate is 
+\begin_inset Formula $\mathcal{O}\left(\frac{1}{2n}2^{n^{2}-2n}\right)$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Plain Layout
+...
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+Naively,
+ this would seem to suggest that when communicating a black and white image between two entities,
+ converting into a nonogram would be more bandwidth-efficient - and by a lot:
+ For just a small 
+\begin_inset Formula $10\times10$
+\end_inset
+
+ square image,
+ the amount of information that needs to be transmitted would already be reduced by a factor of five,
+ down from 100 to approximately 20 bits.
+\end_layout
+
+\begin_layout Plain Layout
+There are two problems with this idea:
+\end_layout
+
+\begin_layout Enumerate
+The amount of processing power needed to restore the grid from the hints grows exponentially.
+\end_layout
+
+\begin_layout Enumerate
+Not all nonograms correspond to exactly one grid:
+ The nonogram might have multiple solutions.
+\end_layout
+
+\begin_layout Plain Layout
+Let 
+\begin_inset Formula $E$
+\end_inset
+
+ be the image-to-nonogram encoding function
+\begin_inset Formula 
+\[
+E\colon G\left(n,m\right)\to N\left(n,m\right)
+\]
+
+\end_inset
+
+which maps a given image 
+\begin_inset Formula $g\in G\left(n,m\right)$
+\end_inset
+
+ to a nonogram 
+\begin_inset Formula $E\left(x\right)\in N\left(n,m\right)$
+\end_inset
+
+ of the same size,
+ then inequality 
+\begin_inset CommandInset ref
+LatexCommand eqref
+reference "eq:num-of-nonograms-vs-grids"
+
+\end_inset
+
+ implies that for images if size 
+\begin_inset Formula $3\times3$
+\end_inset
+
+ or larger,
+ 
+\begin_inset Formula $E$
+\end_inset
+
+ Most nonograms do not have a unique solution.
+\end_layout
+
+\begin_layout Plain Layout
+However,
+ this number includes nonograms that have no solution,
+ since until now we have made no attempt to make the row hints and column hints are consistent.
+ A necessary (but not sufficient) condition for a given nonogram to have a solution is that the total summed length of hints is the same for the rows and columns.
+ This corresponds to the intuitive notion that when counting the number of black pixels in a grid is independent of whether one counts from left to right or top to bottom.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Paragraph
+Distinct hints
+\end_layout
+
+\begin_layout Standard
+Consider the set 
+\begin_inset Formula $h$
+\end_inset
+
+ of all hints summing to a total of 
+\begin_inset Formula $0\leq x\leq n$
+\end_inset
+
+ black pixels valid for a single line of length 
+\begin_inset Formula $n$
+\end_inset
+
+.
+ Analogous to eq.
+ 
+\begin_inset CommandInset ref
+LatexCommand eqref
+reference "eq:num-distinct-hints-unrestricted"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+,
+ we can state the amount of distinct hints as the number of integer sequences 
+\begin_inset Formula $a=\left(a_{1},\ldots a_{k}\right)$
+\end_inset
+
+,
+ but now subject to two constraints instead of one:
+\begin_inset Formula 
+\begin{equation}
+\left|h\left(n,x\right)\right|=\left|\left\{ a\in\mathbb{N}^{k}\mid k\in\mathbb{N}_{0},\sum_{i=1}^{k}a_{i}+\left(k-1\right)\leq n\,\text{ and }\,\sum_{i=1}^{k}a_{i}=x\right\} \right|\label{eq:num-distinct-hints-fixed-sum}
+\end{equation}
+
+\end_inset
+
+Here,
+ the first constraint remains unchanged from eq.
+ 
+\begin_inset CommandInset ref
+LatexCommand eqref
+reference "eq:num-distinct-hints-unrestricted"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+ and just reserves space for the gaps between blocks.
+ The new,
+ second constraint guarantees that there are exactly 
+\begin_inset Formula $x\in\mathbb{N}_{0}$
+\end_inset
+
+ black pixels in the line.
+\end_layout
+
+\begin_layout Standard
+We note that the sets of sequences in eqs.
+ 
+\begin_inset CommandInset ref
+LatexCommand eqref
+reference "eq:num-distinct-hints-unrestricted"
+
+\end_inset
+
+ and 
+\begin_inset CommandInset ref
+LatexCommand eqref
+reference "eq:num-distinct-hints-fixed-sum"
+
+\end_inset
+
+ satisfy the relations 
+\begin_inset Formula $h\left(n,x\right)\subset h\left(n\right)$
+\end_inset
+
+ as well as 
+\begin_inset Formula $h\left(n,x_{1}\right)\cap h\left(n,x_{2}\right)=\emptyset\,\forall x_{1}\neq x_{2}$
+\end_inset
+
+.
+ Therefore we have 
+\begin_inset Formula $\bigcup_{x}h\left(n,x\right)=h\left(n\right)$
+\end_inset
+
+ and the corresponding sum rule:
+\begin_inset Formula 
+\[
+\sum_{x=0}^{n}\left|h\left(n,x\right)\right|=\left|h\left(n\right)\right|
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Evaluating 
+\begin_inset CommandInset ref
+LatexCommand eqref
+reference "eq:num-distinct-hints-fixed-sum"
+
+\end_inset
+
+ requires some caution.
+ The cases 
+\begin_inset Formula $x=0$
+\end_inset
+
+ (no hints,
+ 
+\begin_inset Formula $a$
+\end_inset
+
+ is the empty sequence and 
+\begin_inset Formula $k=0$
+\end_inset
+
+),
+ 
+\begin_inset Formula $x=1$
+\end_inset
+
+ (a single hint of length 1,
+ 
+\begin_inset Formula $k=1$
+\end_inset
+
+) and 
+\begin_inset Formula $x=n$
+\end_inset
+
+ (a single hint of length 
+\begin_inset Formula $n$
+\end_inset
+
+,
+ 
+\begin_inset Formula $k=1$
+\end_inset
+
+) can be calculated directly:
+ For all three of those we have 
+\begin_inset Formula $\left|h\left(n,x\right)\right|=1$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+For the intermediate cases with 
+\begin_inset Formula $1<x<n$
+\end_inset
+
+,
+ we note that the number of blocks 
+\begin_inset Formula $k$
+\end_inset
+
+ is now also subject to two constraints:
+\begin_inset Formula 
+\begin{align*}
+k & \leq n-x+1\,\text{ and }\,k\leq x
+\end{align*}
+
+\end_inset
+
+where the first constraint reserves sufficient space for the gaps between blocks,
+ and the second constraint enforces the maximum number of black pixels.
+ Note that the second constraint grows with rising 
+\begin_inset Formula $x$
+\end_inset
+
+,
+ the first one falls with 
+\begin_inset Formula $x$
+\end_inset
+
+.
+ Therefore we have the following combined constraint:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+k\leq\min\left(n-x+1,x\right)\eqqcolon k_{\text{max}}^{\prime}
+\]
+
+\end_inset
+
+Using the 
+\begin_inset Formula $k_{\text{max }}$
+\end_inset
+
+ from the unrestricted case 
+\begin_inset Formula $\eqref{eq:k-max-unrestricted}$
+\end_inset
+
+ we can also express this as 
+\begin_inset Formula $k_{\text{max}}^{\prime}=k_{\text{max}}-\left\lfloor \left|x-\frac{n+1}{2}\right|\right\rfloor $
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+For any fixed 
+\begin_inset Formula $k\in\left\{ 1,\ldots k_{\text{max}}^{\prime}\right\} $
+\end_inset
+
+,
+ the number of distinct integer sequences 
+\begin_inset Formula $a$
+\end_inset
+
+ of length 
+\begin_inset Formula $k$
+\end_inset
+
+ that sum to 
+\begin_inset Formula $x$
+\end_inset
+
+ is again identical to the number of decompositions of 
+\begin_inset Formula $x$
+\end_inset
+
+ into exactly 
+\begin_inset Formula $k$
+\end_inset
+
+ integers,
+ which is 
+\begin_inset Formula $\binom{x-1}{k-1}$
+\end_inset
+
+.
+ Inserting this into eq.
+ 
+\begin_inset CommandInset ref
+LatexCommand eqref
+reference "eq:num-distinct-hints-fixed-sum"
+
+\end_inset
+
+ we can find an expression for 
+\begin_inset Formula $\left|h\left(n,x\right)\right|$
+\end_inset
+
+ if 
+\begin_inset Formula $x>0$
+\end_inset
+
+:
+\begin_inset Formula 
+\[
+\left|h\left(n,x\right)\right|=\sum_{k=1}^{k_{\text{max}}^{\prime}}\binom{x-1}{k-1}=\sum_{k=1}^{x}\binom{x-1}{k-1}-\sum_{k=n-x+2}^{x}\binom{x-1}{k-1}=2^{x-1}-S\left(n,x\right)
+\]
+
+\end_inset
+
+where we introduced a line saturation term
+\begin_inset Formula 
+\[
+S\left(n,x\right)=\binom{x-1}{n-x+1}{}_{2}F_{1}\left(1,n-2x+2;n-x+2;-1\right)
+\]
+
+\end_inset
+
+using the hypergeometric function 
+\begin_inset Formula $_{2}F_{1}\left(a,b;c;z\right)$
+\end_inset
+
+.
+ The saturation term is non-zero
+\begin_inset Foot
+status open
+
+\begin_layout Plain Layout
+We use the convention that 
+\begin_inset Formula $\binom{a}{b}=0$
+\end_inset
+
+ for all negative arguments.
+\end_layout
+
+\end_inset
+
+ only for 
+\begin_inset Formula $x\geq\left\lceil \frac{n+1}{2}\right\rceil $
+\end_inset
+
+,
+ so for smaller 
+\begin_inset Formula $x$
+\end_inset
+
+ we simply have 
+\begin_inset Formula $\left|h\left(n,x\right)\right|=2^{x-1}$
+\end_inset
+
+,
+ independent of 
+\begin_inset Formula $n$
+\end_inset
+
+.
+ This can be understood intuitively ...
+ 
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+hints that are not too long will always fit,
+ only once the line is full are possible hints being excluded
+\end_layout
+
+\end_inset
+
+ 
+\begin_inset Note Note
+status collapsed
+
+\begin_layout Plain Layout
+In our case we even have the special case 
+\begin_inset Formula $a=1$
+\end_inset
+
+,
+ 
+\begin_inset Formula $z=-1$
+\end_inset
+
+,
+ as well as 
+\begin_inset Formula $b=2+n-2x$
+\end_inset
+
+,
+ 
+\begin_inset Formula $c=b+x$
+\end_inset
+
+,
+ and we can express 
+\begin_inset Formula $_{2}F_{1}$
+\end_inset
+
+ as ...
+\begin_inset Formula 
+\[
+_{2}F_{1}\left(1,b,b+x;-1\right)=\ldots
+\]
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+One can verify that for all 
+\begin_inset Formula $0<x<n$
+\end_inset
+
+ the function 
+\begin_inset Formula $S\left(n,x\right)$
+\end_inset
+
+ is always a finite,
+ positive integer.
+ The function 
+\begin_inset Formula $\left|h\left(n,x\right)\right|$
+\end_inset
+
+ also reproduces the special cases 
+\begin_inset Formula $x=1$
+\end_inset
+
+ and 
+\begin_inset Formula $x=n$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Subsection
+Composite Nonograms
+\end_layout
+
+\begin_layout Standard
+...
+\end_layout
+
+\begin_layout Section
+Difficulty Classification of Nonograms
+\end_layout
+
+\begin_layout Standard
 \begin_inset Newpage newpage
 \end_inset
 

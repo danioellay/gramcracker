@@ -1,0 +1,70 @@
+## Total numbers of square nonograms for some dimension n
+
+n= 0 : 1 nonograms, 1 grids
+n= 1 : 4 nonograms, 2 grids
+n= 2 : 81 nonograms, 16 grids
+n= 3 : 15625 nonograms, 512 grids
+n= 4 : 16777216 nonograms, 65536 grids
+n= 5 : 137858491849 nonograms, 33554432 grids
+n= 6 : 7355827511386641 nonograms, 68719476736 grids
+n= 7 : 2758702310349224820736 nonograms, 562949953421312 grids
+n= 8 : 7011372354671045074462890625 nonograms, 18446744073709551616 grids
+n= 9 : 122749609618842355502421774953773681 nonograms, 2417851639229258349412352 grids
+n= 10 : 14697715679690864505827555550150426126974976 nonograms, 1267650600228229401496703205376 grids
+n= 11 : 12073418715788883912779146692785092210415148945056689 nonograms, 2658455991569831745807614120560689152 grids
+n= 12 : 67950460601476266384112451371342454648054783922069258776139841 nonograms, 22300745198530623141535718272648361505980416 grids
+
+
+## Complete sampling of all square nonograms of sizes 1x1, 2x2, 3x3, 4x4, and their properties
+
+n=1 hints are [[0], [1]]
+	#total nonograms = 4 (4)
+	#possible nonograms = 2 (0.5)
+	#impossible nonograms = 2 (0.5)
+	#nonograms with no solution = 0 (0.0)
+	#nonograms with a solution = 2 (1.0)
+	#nonograms with a unique solution = 2 (1.0)
+	#nonograms with multiple solutions = 0 (0.0)
+n=2 hints are [[0], [1], [2]]
+	#total nonograms = 81 (81)
+	#possible nonograms = 19 (0.2345679012345679)
+	#impossible nonograms = 62 (0.7654320987654321)
+	#nonograms with no solution = 4 (0.21052631578947367)
+	#nonograms with a solution = 15 (0.7894736842105263)
+	#nonograms with a unique solution = 14 (0.9333333333333333)
+	#nonograms with multiple solutions = 1 (0.06666666666666667)
+n=3 hints are [[0], [1], [1, 1], [2], [3]]
+	#total nonograms = 15625 (15625)
+	#possible nonograms = 2443 (0.156352)
+	#impossible nonograms = 13182 (0.843648)
+	#nonograms with no solution = 1998 (0.817846909537454)
+	#nonograms with a solution = 445 (0.18215309046254605)
+	#nonograms with a unique solution = 384 (0.8629213483146068)
+	#nonograms with multiple solutions = 61 (0.13707865168539327)
+n=4 hints are [[0], [1], [1, 1], [1, 2], [2], [2, 1], [3], [4]]
+	#total nonograms = 16777216 (16777216)
+	#possible nonograms = 1955044 (0.11652970314025879)
+	#impossible nonograms = 14822172 (0.8834702968597412)
+	#nonograms with no solution = 1896848 (0.9702328950141276)
+	#nonograms with a solution = 58196 (0.029767104985872442)
+	#nonograms with a unique solution = 52362 (0.8997525603134237)
+	#nonograms with multiple solutions = 5834 (0.1002474396865764)
+
+
+## Statistical sampling of larger square nonograms nxn, and their properties
+
+n=5 hints are [[0], [1], [1, 1], [1, 1, 1], [1, 2], [1, 3], [2], [2, 1], [2, 2], [3]]... (total 13)
+	#total nonograms sampled = 1000000 (137858491849)
+	#possible nonograms = 1000000 (1.0)
+	#nonograms with no solution = 996141 (0.996141)
+	#nonograms with a solution = 3859 (0.003859)
+	#nonograms with a unique solution = 2993 (0.7755895309665717)
+	#nonograms with multiple solutions = 866 (0.22441046903342834)
+n=6 hints are [[0], [1], [1, 1], [1, 1, 1], [1, 1, 2], [1, 2], [1, 2, 1], [1, 3], [1, 4], [2]]... (total 21)
+	#total nonograms sampled = 1000000 (7355827511386641)
+	#possible nonograms = 1000000 (1.0)
+	#nonograms with no solution = 999738 (0.999738)
+	#nonograms with a solution = 262 (0.000262)
+	#nonograms with a unique solution = 170 (0.648854961832061)
+	#nonograms with multiple solutions = 92 (0.3511450381679389)
+	
