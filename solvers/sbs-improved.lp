@@ -3,8 +3,8 @@
 % https://github.com/v4hn/nonogram_asp
 % tl;dr: encode only the block start. This should reduce grounding size
 
-% run with clingo nonograms/example_01.lp solvers/symbolic-block-start.lp
-%     or with: clinguin client-server --domain-files nonograms/example_01.lp solvers/symbolic-block-start.lp --ui-files solvers/nonogram-ui.lp
+% run with clingo nonograms/example_01.lp solvers/sbs-improved.lp
+%     or with: python3 -m gui nonograms/example_01.lp sbs-improved
 
 
 row(1..h).
@@ -16,11 +16,11 @@ pos_c(1..h).
 % Determine empty columns and rows
 % ---------------------------------------------
 
-% Columns with no positive hints are zero columns
+% Columns with no positive hints are empty columns
 empty_col(C) :- col(C), not has_positive_col_hint(C).
 has_positive_col_hint(C) :- col(C), col_hint(C, _, L), L > 0.
 
-% Rows with no positive hints are zero rows
+% Rows with no positive hints are empty rows
 empty_row(R) :- row(R), not has_positive_row_hint(R).
 has_positive_row_hint(R) :- row(R), row_hint(R, _, L), L > 0.
 
