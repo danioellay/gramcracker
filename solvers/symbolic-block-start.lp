@@ -4,7 +4,7 @@
 % tl;dr: encode only the block start. This should reduce grounding size
 
 % run with clingo nonograms/example_01.lp solvers/symbolic-block-start.lp
-%     or with: clinguin client-server --domain-files nonograms/example_01.lp solvers/symbolic-block-start.lp --ui-files solvers/nonogram-ui.lp
+%     or with: python3 -m gui nonograms/example_01.lp symbolic-block-start
 
 
 

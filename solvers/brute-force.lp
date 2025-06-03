@@ -1,8 +1,8 @@
 %%% ASP Nonogram solver
 %%% "Brute force" problem encoding
 %%% Author: Fabian Kraus
-%%% run with: clinguin client-server --domain-files nonograms/example_05.lp solvers/brute-force.lp --ui-files solvers/nonogram-ui.lp
-%%%       or: clingo nonograms/example_05.lp solvers/brute-force.lp
+%%% run with clingo nonograms/example_01.lp solvers/brute-force.lp
+%%%     or with: python3 -m gui nonograms/example_01.lp brute-force
 
 %%% PROBLEM ENCODING
 % Pixel Grid: every pixel has to have exactly one color
