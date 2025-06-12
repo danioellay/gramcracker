@@ -81,8 +81,14 @@ class NonogramGUI(tk.Tk):
         solvers = [f for f in listdir("solvers/") if isfile(join("solvers/", f)) and f.endswith(".lp")]
         for i, solver in enumerate(solvers):
             # Create a lambda function that calls _on_solver with the correct solver
-            self.solver_menu.add_command(label=solver.split(".")[0], accelerator=f"Ctrl+{i+1}", command=lambda s=solver, e=None: self._on_solver(s))
+            self.solver_menu.add_command(label=solver.split(".")[0], accelerator=f"Ctrl+{i+1}", command=lambda s=solver: self._on_solver(s))
             self.bind_all(f"<Control-Key-{i+1}>", lambda e, s=solver: self._on_solver(s))
+
+        self.view_menu = tk.Menu(self.menubar, tearoff=False)
+        self.menubar.add_cascade(menu=self.view_menu, label="View")
+        self.show_hint_feedback_var = BooleanVar(value=True)
+        self.show_hint_feedback_var.trace_add('write', self._on_toggle_show_hint_feedback)
+        self.view_menu.add_checkbutton(label="Show Hint Feedback", variable=self.show_hint_feedback_var)
 
         # Setup nonogram drawing canvas and add to window
         self.figure_frame = tk.Frame(self)
@@ -221,10 +227,12 @@ class NonogramGUI(tk.Tk):
                 self._on_leftclick_cell(y, x)
 
     def _on_leftclick_cell(self, row: int, col: int):
+        color_hints = self.show_hint_feedback_var.get()
+
         self.solution_handler.working_solution.fill[row][col] = not self.solution_handler.working_solution.fill[row][col]
         self.pixels[row][col].set_visible(self.solution_handler.working_solution.fill[row][col])
-        self.row_hints[row].set_color('black' if self.solution_handler.solves_row(row) else 'red')
-        self.col_hints[col].set_color('black' if self.solution_handler.solves_col(col) else 'red')
+        self.row_hints[row].set_color('black' if not color_hints or self.solution_handler.solves_row(row) else 'red')
+        self.col_hints[col].set_color('black' if not color_hints or self.solution_handler.solves_col(col) else 'red')
         self.canvas.draw_idle()
 
     def _on_del_window(self) -> None:
@@ -253,18 +261,18 @@ class NonogramGUI(tk.Tk):
         # Draw row hints to the left of the grid
         self.row_hints: list[Text] = []
         for i, hints in enumerate(nonogram.row_hints):
-            hint_text = ' '.join(map(str, hints))
+            hint_text = ' '.join(map(str, hints)) if hints else "0"
             hint = self.axes.text(-0.5, nonogram.height - i - 0.5, hint_text, va='center', ha='right', fontsize=18, color='red')
-            if not hints or len(hints) == 1 and hints[0] == 0:
+            if (not hints or len(hints) == 1 and hints[0] == 0) or not self.show_hint_feedback_var.get():
                 hint.set_color('black')
             self.row_hints.append(hint)
 
         # Draw column hints above the grid, stacked vertically
         self.col_hints: list[Text] = []
         for j, hints in enumerate(nonogram.col_hints):
-            hint_text = '\n'.join(map(str, hints))
+            hint_text = '\n'.join(map(str, hints)) if hints else "0"
             hint = self.axes.text(j + 0.5, nonogram.height + 0.5, hint_text, va='bottom', ha='center', fontsize=18, color='red')
-            if not hints or len(hints) == 1 and hints[0] == 0:
+            if (not hints or len(hints) == 1 and hints[0] == 0) or not self.show_hint_feedback_var.get():
                 hint.set_color('black')
             self.col_hints.append(hint)
 
@@ -294,9 +302,14 @@ class NonogramGUI(tk.Tk):
         self.canvas.draw_idle()
 
     def draw_solution(self, solution: NonogramSoln):
+        color_hints = self.show_hint_feedback_var.get()
         for r, row in enumerate(solution.fill):
-            self.row_hints[r].set_color('black' if self.solution_handler.solves_row(r) else 'red')
+            self.row_hints[r].set_color('black' if not color_hints or self.solution_handler.solves_row(r) else 'red')
             for c, filled in enumerate(row):
-                self.col_hints[c].set_color('black' if self.solution_handler.solves_col(c) else 'red')
+                self.col_hints[c].set_color('black' if not color_hints or self.solution_handler.solves_col(c) else 'red')
                 self.pixels[r][c].set_visible(filled)
         self.canvas.draw_idle()
+
+    def _on_toggle_show_hint_feedback(self, *_):
+        self.draw_solution(self.solution_handler.working_solution)
+
