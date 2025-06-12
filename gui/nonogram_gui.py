@@ -107,6 +107,7 @@ class NonogramGUI(tk.Tk):
         # self.canvas.mpl_connect('button_release_event', self._on_button_release)
         self.canvas.mpl_connect('motion_notify_event', self._on_mouse_motion)
         # self.canvas.mpl_connect('scroll_event', self._on_scroll)
+        self.block_hover = False
 
         # Process launch arguments
         if len(args) > 1:
@@ -228,8 +229,15 @@ class NonogramGUI(tk.Tk):
             x = ceil(event.xdata - 1)
             if y >= 0 and y < nonogram.height and x >= 0 and x < nonogram.width:
                 self._on_leftclick_cell(y, x)
+            elif y >= 0 and x < 0:
+                self._on_leftclick_rowhint(y)
+            elif x >= 0 and y < 0:
+                self._on_leftclick_colhint(x)
 
     def _on_mouse_motion(self, event: Event):
+        if self.block_hover:
+            return
+        
         if event.inaxes != self.axes or not hasattr(self.solution_handler, "working_solution") or not self.show_hint_highlight_var.get():
             self._highlight_hint(-1, -1)
             return
@@ -278,6 +286,79 @@ class NonogramGUI(tk.Tk):
         self.row_hints[row].set_color('black' if not color_hints or self.solution_handler.solves_row(row) else 'red')
         self.col_hints[col].set_color('black' if not color_hints or self.solution_handler.solves_col(col) else 'red')
         self.canvas.draw_idle()
+
+    def _on_leftclick_rowhint(self, row: int):
+        nonogram = self.nonogram_handler.get_nonogram()
+        if not nonogram:
+            return
+        
+        old_hint = nonogram.row_hints[row]
+        new_hint = self._open_hint_edit_dialog(old_hint, nonogram.width)
+        if new_hint != None:
+            nonogram.row_hints[row] = new_hint
+            self.row_hints[row].set_text(' '.join(map(str, nonogram.row_hints[row])) if nonogram.row_hints[row] else "0")
+            self.row_hints[row].set_color('black' if not self.show_hint_highlight_var.get() or self.solution_handler.solves_row(row) else 'red')
+            self.canvas.draw_idle()
+
+    def _on_leftclick_colhint(self, col: int):
+        nonogram = self.nonogram_handler.get_nonogram()
+        if not nonogram:
+            return
+        
+        old_hint = nonogram.col_hints[col]
+        new_hint = self._open_hint_edit_dialog(old_hint, nonogram.height)
+        if new_hint != None:
+            nonogram.col_hints[col] = new_hint
+            self.col_hints[col].set_text('\n'.join(map(str, nonogram.col_hints[col])) if nonogram.col_hints[col] else "0")
+            self.col_hints[col].set_color('black' if not self.show_hint_highlight_var.get() or self.solution_handler.solves_col(col) else 'red')
+            self.canvas.draw_idle()
+
+    def _open_hint_edit_dialog(self, hint: list[int], length: int):
+        self.block_hover = True
+        # Load the current string
+        current_string = ' '.join(map(str, hint)) if hint else "0"
+
+        # Create a custom dialog
+        dialog = tk.Toplevel(self)
+        dialog.title("Edit Hint")
+        dialog.geometry("400x150")
+
+        # Add an entry widget
+        entry = tk.Entry(dialog, width=40)
+        entry.insert(0, current_string)
+        entry.pack(pady=20)
+        self.result = None
+
+        # Function to handle OK button click
+        def on_ok():
+            new_string = entry.get()
+            try:
+                self.result = list(map(int, new_string.split()))
+                dialog.destroy()
+            except:
+                print(f"invalid hint: {new_string}")
+
+        # Add OK and Cancel buttons
+        ok_button = tk.Button(dialog, text="OK", command=on_ok)
+        ok_button.pack(side=tk.LEFT, padx=10)
+
+        cancel_button = tk.Button(dialog, text="Cancel", command=dialog.destroy)
+        cancel_button.pack(side=tk.RIGHT, padx=10)
+
+        # Bind the Enter key to the OK button command
+        dialog.bind('<Return>', lambda event: on_ok())
+
+        # Bind the Escape key to the Cancel button command
+        dialog.bind('<Escape>', lambda event: dialog.destroy())
+
+        # Focus on the entry widget so the user can start typing immediately
+        entry.focus_set()
+
+        dialog.wait_window()
+
+        self.block_hover = False
+
+        return self.result
 
     def _on_del_window(self) -> None:
         self.quit()
