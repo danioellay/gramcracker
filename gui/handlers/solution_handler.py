@@ -52,11 +52,11 @@ class SolutionHandler:
             unique_time = time.time()
 
         # Console output
-        if not check_unique:
-            if not model:
-                print(f"Solver {solver_path}' found no model after {format_time(end_time - start_time)}:")
-            else:
-                print(f"Solver {solver_path}' found a model after {format_time(end_time - start_time)}:")
+        if not model:
+            print(f"Solver {solver_path}' found no model after {format_time(end_time - start_time)}:")
+
+        elif not check_unique:
+            print(f"Solver {solver_path}' found a model after {format_time(end_time - start_time)}:")
         else:
             if not model2:
                 print(f"Solver '{solver_path}' took {format_time(unique_time - start_time)} to find a unique model:")
