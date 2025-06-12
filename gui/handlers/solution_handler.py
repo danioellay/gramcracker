@@ -56,7 +56,7 @@ class SolutionHandler:
             self.res = f"Solver '{solver_path}' found no solutions after {format_time(end_time - start_time)}"
 
         elif not check_unique:
-            self.res = f"Solver '{solver_path}' found a solutions after {format_time(end_time - start_time)}"
+            self.res = f"Solver '{solver_path}' found a solution after {format_time(end_time - start_time)}"
         else:
             if not model2:
                 self.res = f"Solver '{solver_path}' took {format_time(unique_time - start_time)} to find a unique solution"
