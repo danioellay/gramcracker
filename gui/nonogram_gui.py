@@ -88,7 +88,10 @@ class NonogramGUI(tk.Tk):
         self.menubar.add_cascade(menu=self.view_menu, label="View")
         self.show_hint_feedback_var = BooleanVar(value=True)
         self.show_hint_feedback_var.trace_add('write', self._on_toggle_show_hint_feedback)
-        self.view_menu.add_checkbutton(label="Show Hint Feedback", variable=self.show_hint_feedback_var)
+        self.view_menu.add_checkbutton(label="Color hints as correctness feedback", variable=self.show_hint_feedback_var)
+        self.show_hint_highlight_var = BooleanVar(value=True)
+        self.show_hint_highlight_var.trace_add('write', self._on_toggle_show_hint_highlight)
+        self.view_menu.add_checkbutton(label="Highlight hovered cell hints", variable=self.show_hint_highlight_var)
 
         # Setup nonogram drawing canvas and add to window
         self.figure_frame = tk.Frame(self)
@@ -227,26 +230,42 @@ class NonogramGUI(tk.Tk):
                 self._on_leftclick_cell(y, x)
 
     def _on_mouse_motion(self, event: Event):
-        if event.inaxes != self.axes or not hasattr(self.solution_handler, "working_solution"):
+        if event.inaxes != self.axes or not hasattr(self.solution_handler, "working_solution") or not self.show_hint_highlight_var.get():
             self._highlight_hint(-1, -1)
             return
         
         nonogram = self.nonogram_handler.get_nonogram()
         y = ceil(nonogram.height - event.ydata - 1)
         x = ceil(event.xdata - 1)
-        if y >= 0 and y < nonogram.height and x >= 0 and x < nonogram.width:
-            if self.highlighted_x != x or self.highlighted_y != y:
-                self._highlight_hint(x, y)
+        if self.highlighted_x != x or self.highlighted_y != y:
+            self._highlight_hint(x, y)
 
-    def _highlight_hint(self, x, y):
+    def _highlight_hint(self, x: int, y: int):
+        # Restore default appearance of previously selected row
         self.row_hints[self.highlighted_y].set_fontweight('normal')
-        if y != -1:
+        for cell in self.pixels[self.highlighted_y]:
+            cell.set_alpha(0.8)
+
+        nonogram = self.nonogram_handler.get_nonogram()
+        # Highlight newly selected row
+        if y >= 0 and y < nonogram.height:
             self.row_hints[y].set_fontweight('bold')
+            for cell in self.pixels[y]:
+                cell.set_alpha(0.88)
         self.highlighted_y = y
 
+        # Restore default appearance of previously selected column
         self.col_hints[self.highlighted_x].set_fontweight('normal')
-        if x != -1:
+        for row in self.pixels:
+            row[self.highlighted_x].set_alpha(0.8)
+
+        # Highlight newly selected column
+        if x >= 0 and x < nonogram.width:
             self.col_hints[x].set_fontweight('bold')
+            for row in self.pixels:
+                row[x].set_alpha(0.88)
+            # Need to overwrite one pixel
+            self.pixels[y][self.highlighted_x].set_alpha(0.88)
         self.highlighted_x = x
 
         self.canvas.draw_idle()
@@ -339,3 +358,5 @@ class NonogramGUI(tk.Tk):
     def _on_toggle_show_hint_feedback(self, *_):
         self.draw_solution(self.solution_handler.working_solution)
 
+    def _on_toggle_show_hint_highlight(self, *_):
+        self._highlight_hint(-1,-1)
