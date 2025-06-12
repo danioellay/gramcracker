@@ -102,7 +102,7 @@ class NonogramGUI(tk.Tk):
         # Setup button event callbacks
         self.canvas.mpl_connect('button_press_event', self._on_button_press)
         # self.canvas.mpl_connect('button_release_event', self._on_button_release)
-        # self.canvas.mpl_connect('motion_notify_event', self._on_mouse_motion)
+        self.canvas.mpl_connect('motion_notify_event', self._on_mouse_motion)
         # self.canvas.mpl_connect('scroll_event', self._on_scroll)
 
         # Process launch arguments
@@ -226,6 +226,31 @@ class NonogramGUI(tk.Tk):
             if y >= 0 and y < nonogram.height and x >= 0 and x < nonogram.width:
                 self._on_leftclick_cell(y, x)
 
+    def _on_mouse_motion(self, event: Event):
+        if event.inaxes != self.axes or not hasattr(self.solution_handler, "working_solution"):
+            self._highlight_hint(-1, -1)
+            return
+        
+        nonogram = self.nonogram_handler.get_nonogram()
+        y = ceil(nonogram.height - event.ydata - 1)
+        x = ceil(event.xdata - 1)
+        if y >= 0 and y < nonogram.height and x >= 0 and x < nonogram.width:
+            if self.highlighted_x != x or self.highlighted_y != y:
+                self._highlight_hint(x, y)
+
+    def _highlight_hint(self, x, y):
+        self.row_hints[self.highlighted_y].set_fontweight('normal')
+        if y != -1:
+            self.row_hints[y].set_fontweight('bold')
+        self.highlighted_y = y
+
+        self.col_hints[self.highlighted_x].set_fontweight('normal')
+        if x != -1:
+            self.col_hints[x].set_fontweight('bold')
+        self.highlighted_x = x
+
+        self.canvas.draw_idle()
+
     def _on_leftclick_cell(self, row: int, col: int):
         color_hints = self.show_hint_feedback_var.get()
 
@@ -300,6 +325,7 @@ class NonogramGUI(tk.Tk):
         self.axes.set_xlim(-0.75*max([len(rh) for rh in nonogram.row_hints]), nonogram.width)
         self.axes.set_ylim(-0, nonogram.height + 0.9*max([len(ch) for ch in nonogram.col_hints]))
         self.canvas.draw_idle()
+        self.highlighted_x, self.highlighted_y = -1, -1
 
     def draw_solution(self, solution: NonogramSoln):
         color_hints = self.show_hint_feedback_var.get()
