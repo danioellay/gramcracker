@@ -26,6 +26,20 @@ WINDOW_HEIGHT = 600
 SQUARE_SIZE = 50 #default side length of a grid cell, pixels
 
 
+class StatusBar(tk.Frame):
+    def __init__(self, master):
+        tk.Frame.__init__(self, master, height=50)
+        self.label = tk.Label(self)
+        self.label.pack(side=tk.LEFT)
+        self.pack(side=tk.BOTTOM, fill=tk.X)
+
+    def set(self, newText):
+        self.label.config(text=newText)
+    
+    def clear(self):
+        self.label.config(text="")
+
+
 class NonogramGUI(tk.Tk):
 
     def __init__(self, args) -> None:
@@ -102,6 +116,11 @@ class NonogramGUI(tk.Tk):
         self.canvas = FigureCanvasTkAgg(self.figure, master=self.figure_frame)
         self.canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
 
+        # Setup status bar
+        self.status = StatusBar(self)
+        self.status.pack(side=tk.BOTTOM, fill=tk.X)
+        self.status.set("halsd")
+
         # Setup button event callbacks
         self.canvas.mpl_connect('button_press_event', self._on_button_press)
         # self.canvas.mpl_connect('button_release_event', self._on_button_release)
@@ -149,7 +168,8 @@ class NonogramGUI(tk.Tk):
         plt.cla()
 
     def _on_solver(self, name: str, *_):
-        self.solution_handler.run_solver(name.split(".")[0], self.check_uniqueness_var.get())
+        res = self.solution_handler.run_solver(name.split(".")[0], self.check_uniqueness_var.get())
+        self.status.set(res)
         self.draw_solution(self.solution_handler.working_solution)
     
     def _on_file_open(self, *_):
