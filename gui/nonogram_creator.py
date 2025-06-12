@@ -101,7 +101,7 @@ class NonogramCreator(tk.Toplevel):
                         neighbour_count += 1
                     self.grid[row][col] = 0 if random.random() < neighbour_count*self.pxcorr/4 else 255
 
-        elif opt_str == "image":
+        elif opt_str == "image" and hasattr(self, 'im_original'):
             # print("reload->image")
 
             # Resize the image to a lower resolution
@@ -132,11 +132,11 @@ class NonogramCreator(tk.Toplevel):
         self.minsize(1050, 650)
 
         leftframe = tk.Frame(self)
-        leftframe.grid(row=0, column=0)
+        leftframe.pack(side=tk.LEFT, fill=tk.X, expand=False)
         rightframe = tk.Frame(self)
-        rightframe.grid(row=0, column=1)
-        bottomframe = tk.Frame(self)
-        bottomframe.grid(row=2, column=0, columnspan=1)
+        rightframe.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
+        bottomframe = tk.Frame(leftframe)
+        bottomframe.pack(side=tk.BOTTOM, anchor="s")
 
         # Labels and Entry widgets for height and width
         frame = tk.Frame(leftframe)
@@ -196,6 +196,12 @@ class NonogramCreator(tk.Toplevel):
         
         tk.Label(leftframe).pack()
 
+        # Buttons for OK and Cancel
+        tk.Button(bottomframe, text="Cancel", command=self._on_cancel).grid(row=0, column=0)
+        tk.Button(bottomframe, text="Reload", command=self.reload).    grid(row=0, column=1)
+        tk.Button(bottomframe, text="Invert", command=self.invert).    grid(row=0, column=2)
+        tk.Button(bottomframe, text="OK",     command=self.destroy).   grid(row=0, column=3)
+
         # Create a Tkinter label to display the image
         self.figure, self.axes = plt.subplots()
         self.axes.set_aspect('equal')
@@ -203,12 +209,6 @@ class NonogramCreator(tk.Toplevel):
         plt.imshow(self.grid, 'gray', vmin=0, vmax=255)
         self.canvas = FigureCanvasTkAgg(self.figure, master=rightframe)
         self.canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
-
-        # Buttons for OK and Cancel
-        tk.Button(bottomframe, text="Cancel", command=self._on_cancel).grid(row=0, column=0)
-        tk.Button(bottomframe, text="Reload", command=self.reload).    grid(row=0, column=1)
-        tk.Button(bottomframe, text="Invert", command=self.invert).    grid(row=0, column=2)
-        tk.Button(bottomframe, text="OK",     command=self.destroy).   grid(row=0, column=3)
 
     def _on_cancel(self, *_):
         self.success = False

@@ -26,6 +26,20 @@ WINDOW_HEIGHT = 600
 SQUARE_SIZE = 50 #default side length of a grid cell, pixels
 
 
+class StatusBar(tk.Frame):
+    def __init__(self, master):
+        tk.Frame.__init__(self, master, height=50)
+        self.label = tk.Label(self)
+        self.label.pack(side=tk.LEFT)
+        self.pack(side=tk.BOTTOM, fill=tk.X)
+
+    def set(self, newText):
+        self.label.config(text=newText)
+    
+    def clear(self):
+        self.label.config(text="")
+
+
 class NonogramGUI(tk.Tk):
 
     def __init__(self, args) -> None:
@@ -81,8 +95,17 @@ class NonogramGUI(tk.Tk):
         solvers = [f for f in listdir("solvers/") if isfile(join("solvers/", f)) and f.endswith(".lp")]
         for i, solver in enumerate(solvers):
             # Create a lambda function that calls _on_solver with the correct solver
-            self.solver_menu.add_command(label=solver.split(".")[0], accelerator=f"Ctrl+{i+1}", command=lambda s=solver, e=None: self._on_solver(s))
+            self.solver_menu.add_command(label=solver.split(".")[0], accelerator=f"Ctrl+{i+1}", command=lambda s=solver: self._on_solver(s))
             self.bind_all(f"<Control-Key-{i+1}>", lambda e, s=solver: self._on_solver(s))
+
+        self.view_menu = tk.Menu(self.menubar, tearoff=False)
+        self.menubar.add_cascade(menu=self.view_menu, label="View")
+        self.show_hint_feedback_var = BooleanVar(value=True)
+        self.show_hint_feedback_var.trace_add('write', self._on_toggle_show_hint_feedback)
+        self.view_menu.add_checkbutton(label="Color hints as correctness feedback", variable=self.show_hint_feedback_var)
+        self.show_hint_highlight_var = BooleanVar(value=True)
+        self.show_hint_highlight_var.trace_add('write', self._on_toggle_show_hint_highlight)
+        self.view_menu.add_checkbutton(label="Highlight hovered cell hints", variable=self.show_hint_highlight_var)
 
         # Setup nonogram drawing canvas and add to window
         self.figure_frame = tk.Frame(self)
@@ -93,11 +116,17 @@ class NonogramGUI(tk.Tk):
         self.canvas = FigureCanvasTkAgg(self.figure, master=self.figure_frame)
         self.canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
 
+        # Setup status bar
+        self.status = StatusBar(self)
+        self.status.pack(side=tk.BOTTOM, fill=tk.X)
+        self.status.set("halsd")
+
         # Setup button event callbacks
         self.canvas.mpl_connect('button_press_event', self._on_button_press)
         # self.canvas.mpl_connect('button_release_event', self._on_button_release)
-        # self.canvas.mpl_connect('motion_notify_event', self._on_mouse_motion)
+        self.canvas.mpl_connect('motion_notify_event', self._on_mouse_motion)
         # self.canvas.mpl_connect('scroll_event', self._on_scroll)
+        self.block_hover = False
 
         # Process launch arguments
         if len(args) > 1:
@@ -139,7 +168,8 @@ class NonogramGUI(tk.Tk):
         plt.cla()
 
     def _on_solver(self, name: str, *_):
-        self.solution_handler.run_solver(name.split(".")[0], self.check_uniqueness_var.get())
+        res = self.solution_handler.run_solver(name.split(".")[0], self.check_uniqueness_var.get())
+        self.status.set(res)
         self.draw_solution(self.solution_handler.working_solution)
     
     def _on_file_open(self, *_):
@@ -219,13 +249,136 @@ class NonogramGUI(tk.Tk):
             x = ceil(event.xdata - 1)
             if y >= 0 and y < nonogram.height and x >= 0 and x < nonogram.width:
                 self._on_leftclick_cell(y, x)
+            elif y >= 0 and x < 0:
+                self._on_leftclick_rowhint(y)
+            elif x >= 0 and y < 0:
+                self._on_leftclick_colhint(x)
+
+    def _on_mouse_motion(self, event: Event):
+        if self.block_hover:
+            return
+        
+        if event.inaxes != self.axes or not hasattr(self.solution_handler, "working_solution") or not self.show_hint_highlight_var.get():
+            self._highlight_hint(-1, -1)
+            return
+        
+        nonogram = self.nonogram_handler.get_nonogram()
+        y = ceil(nonogram.height - event.ydata - 1)
+        x = ceil(event.xdata - 1)
+        if self.highlighted_x != x or self.highlighted_y != y:
+            self._highlight_hint(x, y)
+
+    def _highlight_hint(self, x: int, y: int):
+        # Restore default appearance of previously selected row
+        self.row_hints[self.highlighted_y].set_fontweight('normal')
+        for cell in self.pixels[self.highlighted_y]:
+            cell.set_alpha(0.8)
+
+        nonogram = self.nonogram_handler.get_nonogram()
+        # Highlight newly selected row
+        if y >= 0 and y < nonogram.height:
+            self.row_hints[y].set_fontweight('bold')
+            for cell in self.pixels[y]:
+                cell.set_alpha(0.88)
+        self.highlighted_y = y
+
+        # Restore default appearance of previously selected column
+        self.col_hints[self.highlighted_x].set_fontweight('normal')
+        for row in self.pixels:
+            row[self.highlighted_x].set_alpha(0.8)
+
+        # Highlight newly selected column
+        if x >= 0 and x < nonogram.width:
+            self.col_hints[x].set_fontweight('bold')
+            for row in self.pixels:
+                row[x].set_alpha(0.88)
+            # Need to overwrite one pixel
+            self.pixels[y][self.highlighted_x].set_alpha(0.88)
+        self.highlighted_x = x
+
+        self.canvas.draw_idle()
 
     def _on_leftclick_cell(self, row: int, col: int):
+        color_hints = self.show_hint_feedback_var.get()
+
         self.solution_handler.working_solution.fill[row][col] = not self.solution_handler.working_solution.fill[row][col]
         self.pixels[row][col].set_visible(self.solution_handler.working_solution.fill[row][col])
-        self.row_hints[row].set_color('black' if self.solution_handler.solves_row(row) else 'red')
-        self.col_hints[col].set_color('black' if self.solution_handler.solves_col(col) else 'red')
+        self.row_hints[row].set_color('black' if not color_hints or self.solution_handler.solves_row(row) else 'red')
+        self.col_hints[col].set_color('black' if not color_hints or self.solution_handler.solves_col(col) else 'red')
         self.canvas.draw_idle()
+
+    def _on_leftclick_rowhint(self, row: int):
+        nonogram = self.nonogram_handler.get_nonogram()
+        if not nonogram:
+            return
+        
+        old_hint = nonogram.row_hints[row]
+        new_hint = self._open_hint_edit_dialog(old_hint, nonogram.width)
+        if new_hint != None:
+            nonogram.row_hints[row] = new_hint
+            self.row_hints[row].set_text(' '.join(map(str, nonogram.row_hints[row])) if nonogram.row_hints[row] else "0")
+            self.row_hints[row].set_color('black' if not self.show_hint_highlight_var.get() or self.solution_handler.solves_row(row) else 'red')
+            self.canvas.draw_idle()
+
+    def _on_leftclick_colhint(self, col: int):
+        nonogram = self.nonogram_handler.get_nonogram()
+        if not nonogram:
+            return
+        
+        old_hint = nonogram.col_hints[col]
+        new_hint = self._open_hint_edit_dialog(old_hint, nonogram.height)
+        if new_hint != None:
+            nonogram.col_hints[col] = new_hint
+            self.col_hints[col].set_text('\n'.join(map(str, nonogram.col_hints[col])) if nonogram.col_hints[col] else "0")
+            self.col_hints[col].set_color('black' if not self.show_hint_highlight_var.get() or self.solution_handler.solves_col(col) else 'red')
+            self.canvas.draw_idle()
+
+    def _open_hint_edit_dialog(self, hint: list[int], length: int):
+        self.block_hover = True
+        # Load the current string
+        current_string = ' '.join(map(str, hint)) if hint else "0"
+
+        # Create a custom dialog
+        dialog = tk.Toplevel(self)
+        dialog.title("Edit Hint")
+        dialog.geometry("400x150")
+
+        # Add an entry widget
+        entry = tk.Entry(dialog, width=40)
+        entry.insert(0, current_string)
+        entry.pack(pady=20)
+        self.result = None
+
+        # Function to handle OK button click
+        def on_ok():
+            new_string = entry.get()
+            try:
+                self.result = list(map(int, new_string.split()))
+                dialog.destroy()
+            except:
+                print(f"invalid hint: {new_string}")
+
+        # Add OK and Cancel buttons
+        ok_button = tk.Button(dialog, text="OK", command=on_ok)
+        ok_button.pack(side=tk.LEFT, padx=10)
+
+        cancel_button = tk.Button(dialog, text="Cancel", command=dialog.destroy)
+        cancel_button.pack(side=tk.RIGHT, padx=10)
+
+        # Bind the Enter key to the OK button command
+        dialog.bind('<Return>', lambda event: on_ok())
+
+        # Bind the Escape key to the Cancel button command
+        dialog.bind('<Escape>', lambda event: dialog.destroy())
+
+        # Focus on the entry widget so the user can start typing immediately
+        entry.focus_set()
+
+        dialog.wait_window()
+
+        self.block_hover = False
+
+        return self.result
 
     def _on_del_window(self) -> None:
         self.quit()
@@ -253,18 +406,18 @@ class NonogramGUI(tk.Tk):
         # Draw row hints to the left of the grid
         self.row_hints: list[Text] = []
         for i, hints in enumerate(nonogram.row_hints):
-            hint_text = ' '.join(map(str, hints))
+            hint_text = ' '.join(map(str, hints)) if hints else "0"
             hint = self.axes.text(-0.5, nonogram.height - i - 0.5, hint_text, va='center', ha='right', fontsize=18, color='red')
-            if not hints or len(hints) == 1 and hints[0] == 0:
+            if (not hints or len(hints) == 1 and hints[0] == 0) or not self.show_hint_feedback_var.get():
                 hint.set_color('black')
             self.row_hints.append(hint)
 
         # Draw column hints above the grid, stacked vertically
         self.col_hints: list[Text] = []
         for j, hints in enumerate(nonogram.col_hints):
-            hint_text = '\n'.join(map(str, hints))
+            hint_text = '\n'.join(map(str, hints)) if hints else "0"
             hint = self.axes.text(j + 0.5, nonogram.height + 0.5, hint_text, va='bottom', ha='center', fontsize=18, color='red')
-            if not hints or len(hints) == 1 and hints[0] == 0:
+            if (not hints or len(hints) == 1 and hints[0] == 0) or not self.show_hint_feedback_var.get():
                 hint.set_color('black')
             self.col_hints.append(hint)
 
@@ -292,11 +445,19 @@ class NonogramGUI(tk.Tk):
         self.axes.set_xlim(-0.75*max([len(rh) for rh in nonogram.row_hints]), nonogram.width)
         self.axes.set_ylim(-0, nonogram.height + 0.9*max([len(ch) for ch in nonogram.col_hints]))
         self.canvas.draw_idle()
+        self.highlighted_x, self.highlighted_y = -1, -1
 
     def draw_solution(self, solution: NonogramSoln):
+        color_hints = self.show_hint_feedback_var.get()
         for r, row in enumerate(solution.fill):
-            self.row_hints[r].set_color('black' if self.solution_handler.solves_row(r) else 'red')
+            self.row_hints[r].set_color('black' if not color_hints or self.solution_handler.solves_row(r) else 'red')
             for c, filled in enumerate(row):
-                self.col_hints[c].set_color('black' if self.solution_handler.solves_col(c) else 'red')
+                self.col_hints[c].set_color('black' if not color_hints or self.solution_handler.solves_col(c) else 'red')
                 self.pixels[r][c].set_visible(filled)
         self.canvas.draw_idle()
+
+    def _on_toggle_show_hint_feedback(self, *_):
+        self.draw_solution(self.solution_handler.working_solution)
+
+    def _on_toggle_show_hint_highlight(self, *_):
+        self._highlight_hint(-1,-1)

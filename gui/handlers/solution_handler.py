@@ -15,11 +15,11 @@ class SolutionHandler:
         self.given_nonogram = nonogram
         self.working_solution = NonogramSoln(nonogram)
 
-    def run_solver(self, solver_path: str, check_unique: bool = True):
+    def run_solver(self, solver_path: str, check_unique: bool = True) -> str:
         """Run the logic program at the given path, assume it is a nonogram solver and try to find one/two models, depending on the check_unique flag"""
         if not self.given_nonogram:
             print("Error: No nonogram to solve")
-            return
+            return "Error: No nonogram to solve"
 
         # Initialize the clingo control specifying two models are required, and give the dimensional constants
         ctl = Control([f"{2 if check_unique else 1}", 
@@ -50,19 +50,20 @@ class SolutionHandler:
             handler.resume()
             model2 = handler.model()
             unique_time = time.time()
-
+        self.res = ""
         # Console output
-        if not check_unique:
-            if not model:
-                print(f"Solver {solver_path}' found no model after {format_time(end_time - start_time)}:")
-            else:
-                print(f"Solver {solver_path}' found a model after {format_time(end_time - start_time)}:")
+        if not model:
+            self.res = f"Solver '{solver_path}' found no solutions after {format_time(end_time - start_time)}"
+
+        elif not check_unique:
+            self.res = f"Solver '{solver_path}' found a solution after {format_time(end_time - start_time)}"
         else:
             if not model2:
-                print(f"Solver '{solver_path}' took {format_time(unique_time - start_time)} to find a unique model:")
+                self.res = f"Solver '{solver_path}' took {format_time(unique_time - start_time)} to find a unique solution"
             else:
-                print(f"Solver '{solver_path}' took {format_time(unique_time - start_time)} to find at least two models:")
+                self.res = f"Solver '{solver_path}' took {format_time(unique_time - start_time)} to find at least two solutions"
 
+        print(self.res + ":")
         print(f"\tGrounding:  {format_time(ground_time - start_time)}")
         print(f"\tSolving:    {format_time(end_time - ground_time)}")
         if check_unique:
@@ -71,6 +72,8 @@ class SolutionHandler:
         # Clear the working solution and only fill from the first model
         self.working_solution = NonogramSoln(self.given_nonogram)
         self.working_solution.fill_from_model(model)
+
+        return self.res
 
     def solves_row(self, row: int) -> bool:
         """Does the current working solution match the hints in the specified row in the given nonogram?"""
