@@ -101,7 +101,7 @@ class NonogramCreator(tk.Toplevel):
                         neighbour_count += 1
                     self.grid[row][col] = 0 if random.random() < neighbour_count*self.pxcorr/4 else 255
 
-        elif opt_str == "image":
+        elif opt_str == "image" and hasattr(self, 'im_original'):
             # print("reload->image")
 
             # Resize the image to a lower resolution
