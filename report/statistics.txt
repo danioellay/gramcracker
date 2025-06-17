@@ -52,3 +52,19 @@ n=4 hints are [[0], [1], [1, 1], [1, 2], [2], [2, 1], [3], [4]]
 
 
 ## Statistical sampling of larger square nonograms nxn, and their properties
+
+n=5 hints are [[0], [1], [1, 1], [1, 1, 1], [1, 2], [1, 3], [2], [2, 1], [2, 2], [3]]... (total 13)
+	#total nonograms sampled = 1000000 (137858491849)
+	#legal nonograms = 1000000 (1.0)
+	#nonograms with no solution = 996141 (0.996141)
+	#nonograms with a solution = 3859 (0.003859)
+	#nonograms with a unique solution = 2993 (0.7755895309665717)
+	#nonograms with multiple solutions = 866 (0.22441046903342834)
+n=6 hints are [[0], [1], [1, 1], [1, 1, 1], [1, 1, 2], [1, 2], [1, 2, 1], [1, 3], [1, 4], [2]]... (total 21)
+	#total nonograms sampled = 1000000 (7355827511386641)
+	#legal nonograms = 1000000 (1.0)
+	#nonograms with no solution = 999738 (0.999738)
+	#nonograms with a solution = 262 (0.000262)
+	#nonograms with a unique solution = 170 (0.648854961832061)
+	#nonograms with multiple solutions = 92 (0.3511450381679389)
+	
