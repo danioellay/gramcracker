@@ -1596,8 +1596,8 @@ status open
 5\\
 1.3\\
 2.2\\
-1.1.1\\
-3.1
+3.1\\
+1.1.1
 \end{array}}_{A_{5}} & \boxed{\begin{array}{c}
 4\\
 1.2\\
@@ -1614,8 +1614,8 @@ status open
 1\\
 \emptyword
 \end{array}}_{C_{4}} &  & \boxed{\begin{array}{c}
-1.1\\
 3\\
+1.1\\
 2\\
 1\\
 \emptyword
