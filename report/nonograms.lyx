@@ -752,7 +752,7 @@ Out of those
 \end_inset
 
  is the golden ratio) only describe one possible line configuration,
- exactly 
+ since exactly 
 \begin_inset Formula $F_{n+1}-1$
 \end_inset
 
@@ -764,7 +764,7 @@ The vast majority of line configurations can not be described by any hint withou
 \end_layout
 
 \begin_layout Itemize
-The most difficult nonograms have a black to white ratio of roughly one third,
+The most difficult nonograms have a black to white ratio of roughly one in three,
 \end_layout
 
 \begin_layout Itemize
@@ -1678,7 +1678,7 @@ The algorithm that creates the possible hints
 \end_layout
 
 \begin_layout Paragraph
-Ambiguity of hints
+Hint Ambiguity
 \end_layout
 
 \begin_layout Standard
@@ -1898,7 +1898,11 @@ This expression also correctly simplifies to
 \end_inset
 
 .
- The multiplicities 
+ The 
+\emph on
+hint ambiguities
+\emph default
+ 
 \begin_inset Formula $\left|e_{n}^{-1}\left(a\right)\right|$
 \end_inset
 
@@ -1911,7 +1915,7 @@ This expression also correctly simplifies to
 
 \end_inset
 
- These multiplicities are shown in 
+ These ambiguities are shown in 
 \begin_inset CommandInset ref
 LatexCommand formatted
 reference "fig:hints-list-small-n"
@@ -1984,7 +1988,10 @@ An illustration of all possible hints for small line lengths
  The hints that unambiguously determine the line content are at the bottom and have a blue background,
  while the remaining,
  ambiguous hints are on top with an orange backdrop.
- Next to each hint the number of matching line configurations is also shown.
+ Next to each hint the number of matching line configurations,
+ aka.
+ the hints ambiguity,
+ is also shown.
 \end_layout
 
 \end_inset
@@ -2001,7 +2008,7 @@ We can go even further and ask:
 
 ,
  what is the most ambiguous hint you can give for it?
- And what is its multiplicity?
+ And what is its ambiguity?
 \end_layout
 
 \begin_layout Standard
@@ -2014,7 +2021,7 @@ reference "eq:hint-multiplicity"
 \end_inset
 
 ,
- we see that a hints' multiplicity is given by a binomial coefficient 
+ we see that a hints' ambiguity is given by a binomial coefficient 
 \begin_inset Formula $\binom{x}{y}$
 \end_inset
 
@@ -2096,11 +2103,11 @@ Here,
 \end_layout
 
 \begin_layout Standard
-We also found an interesting exact identity relating the maximum multiplicity of nonogram hints to the coefficients of the Fibonacci polynomials 
+We also found an interesting identity relating the maximal ambiguity of nonogram hints to the coefficients of the Fibonacci polynomials 
 \begin_inset Formula $F_{n}\left(x\right)$
 \end_inset
 
-
+,
 \begin_inset Formula 
 \[
 \max_{a\in\posshints n}\left|e_{n}^{-1}\left(a\right)\right|=\max\text{coeff}_{x}\left[F_{n+2}\left(x\right)\right]
@@ -2108,7 +2115,7 @@ We also found an interesting exact identity relating the maximum multiplicity of
 
 \end_inset
 
-which can be verified directly by rewriting the set of multiplicities as 
+which can be verified directly by rewriting the set of ambiguities as 
 \begin_inset Formula 
 \[
 e_{n}^{-1}=\left\{ \binom{n-\dsum a-1}{\left|a\right|}\right\} _{a\in\posshints n}=\left\{ \binom{n}{0},\binom{n-1}{1},\binom{n-2}{2},\ldots\binom{n-n}{n}\right\} \cup\ldots
@@ -2138,7 +2145,7 @@ However,
 \begin_inset Formula $\cancel{\text{better}}$
 \end_inset
 
- worse approximation of the maximum multiplicity for large 
+ worse approximation of the maximum ambiguity for large 
 \begin_inset Formula $n$
 \end_inset
 
@@ -2218,7 +2225,7 @@ From this we can predict that the average number of guesses necessary to reconst
 \end_layout
 
 \begin_layout Paragraph
-Symmetry group of hints
+Hint Symmetry
 \end_layout
 
 \begin_layout Standard
