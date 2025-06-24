@@ -2136,16 +2136,7 @@ We also found an interesting identity relating the maximal ambiguity of nonogram
 \begin_inset Formula $F_{n}\left(x\right)$
 \end_inset
 
-
-\begin_inset Foot
-status open
-
-\begin_layout Plain Layout
-The Fibonacci polynomials 
-\begin_inset Formula $F_{n}\left(x\right)$
-\end_inset
-
- are defined through the relation 
+ defined through the relation 
 \begin_inset Formula $F_{n}\left(x\right)=xF_{n-1}\left(x\right)+F_{n-2}\left(x\right)$
 \end_inset
 
@@ -2157,12 +2148,7 @@ The Fibonacci polynomials
 \begin_inset Formula $F_{1}\left(x\right)=1$
 \end_inset
 
-.
-\end_layout
-
-\end_inset
-
-,
+:
 \begin_inset Formula 
 \[
 \max_{a\in\posshints n}\left|e_{n}^{-1}\left(a\right)\right|=\max\text{coeff}_{x}\left[F_{n+2}\left(x\right)\right]
@@ -2173,13 +2159,12 @@ The Fibonacci polynomials
 which can be verified directly by rewriting the set of ambiguities as 
 \begin_inset Formula 
 \[
-e_{n}^{-1}=\left\{ \binom{n-\dsum a-1}{\left|a\right|}\right\} _{a\in\posshints n}=\left\{ \binom{n}{0},\binom{n-1}{1},\binom{n-2}{2},\ldots\binom{1}{n-1},\binom{0}{n}\right\} \cup\ldots
+\left\{ \binom{n-\dsum a-1}{\left|a\right|}\right\} _{a\in\posshints n}=\left\{ \binom{n}{0},\binom{n-1}{1},\binom{n-2}{2},\ldots\binom{1}{n-1},\binom{0}{n}\right\} \cup\ldots
 \]
 
 \end_inset
 
- where the omitted elements at the end will always be numerically smaller than at least one element in the first group,
- and thus can be ignored when taking the maximum.
+ where the omitted elements at the end will always be numerically smaller than at least one element in the first group and thus can be ignored when taking the maximum.
  The OEIS
 \begin_inset CommandInset citation
 LatexCommand cite
