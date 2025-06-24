@@ -1988,10 +1988,12 @@ An illustration of all possible hints for small line lengths
  The hints that unambiguously determine the line content are at the bottom and have a blue background,
  while the remaining,
  ambiguous hints are on top with an orange backdrop.
- Next to each hint the number of matching line configurations,
- aka.
- the hints ambiguity,
- is also shown.
+ Symmetric hints are marked by an asterisk,
+ and the number of matching line configurations (the ambiguity 
+\begin_inset Formula $\left|e_{n}^{-1}\left(a\right)\right|$
+\end_inset
+
+) is also shown next to each hint.
 \end_layout
 
 \end_inset
