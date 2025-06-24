@@ -380,10 +380,10 @@ Note that we do not restrict ourselves to decimal numbers,
 
 \begin_layout Itemize
 \begin_inset FormulaMacro
-\newcommand{\rev}[1]{#1^{-1}}
+\newcommand{\rev}[1]{R\left(#1\right)}
 \end_inset
 
-The reversal of a word 
+The reflection of a word 
 \begin_inset Formula $w\in\words X$
 \end_inset
 
@@ -721,12 +721,16 @@ goals
 
 \end_layout
 
+\begin_layout Paragraph
+Section Summary
+\end_layout
+
 \begin_layout Standard
-In this section we will show that:
+In this section we show that:
 \end_layout
 
 \begin_layout Itemize
-The number of possible hints for a line of length 
+The number of possible hints for a line (row/column) of length 
 \begin_inset Formula $n$
 \end_inset
 
@@ -760,7 +764,19 @@ Out of those
 \end_layout
 
 \begin_layout Itemize
-The vast majority of line configurations can not be described by any hint without ambiguity,
+The vast majority of line configurations can not be uniquely described by a hint,
+\end_layout
+
+\begin_layout Itemize
+The largest ambiguity that a hint for a line of length 
+\begin_inset Formula $n$
+\end_inset
+
+ can have is given by the largest coefficient of the Fibonacci polynomial 
+\begin_inset Formula $F_{n+2}\left(x\right)$
+\end_inset
+
+,
 \end_layout
 
 \begin_layout Itemize
@@ -1292,8 +1308,8 @@ Fibonacci number
 \end_inset
 
 .
- The appearance of the Fibonacci sequence is perhaps surprising,
- but the validity of eq.
+ The appearance of the Fibonacci sequence is perhaps surprising;
+ the validity of eq.
  
 \begin_inset CommandInset ref
 LatexCommand eqref
@@ -1301,7 +1317,8 @@ reference "eq:num-distinct-hints-per-line-unrestricted"
 
 \end_inset
 
- may also be derived inductively by asking oneself which hints are not possible for a line of length 
+ can be shown to follow directly from the properties of the binomial coefficients,
+ but it may also be derived inductively by asking which hints are not possible for a line of length 
 \begin_inset Formula $n$
 \end_inset
 
@@ -1311,7 +1328,16 @@ reference "eq:num-distinct-hints-per-line-unrestricted"
 \end_inset
 
 .
- The proof is outlined below:
+ 
+\end_layout
+
+\begin_layout Standard
+This proof is more interesting to discuss,
+ since it also gives us an explicit algorithm to construct every possible hint for some given line length 
+\begin_inset Formula $n$
+\end_inset
+
+:
 \end_layout
 
 \begin_layout Itemize
@@ -1375,12 +1401,13 @@ For
 \end_layout
 
 \begin_layout Itemize
-For any fixed 
+Now,
+ for any fixed 
 \begin_inset Formula $n>3$
 \end_inset
 
 ,
- we can assume that this relation holds:
+ let us assume that the following relation holds:
 \begin_inset Formula 
 \begin{equation}
 \left|\posshints n\right|=\left|\posshints{n-1}\right|+\left|\posshints{n-2}\right|\label{eq:fibonacci-proof-induction-assumption}
@@ -2109,6 +2136,32 @@ We also found an interesting identity relating the maximal ambiguity of nonogram
 \begin_inset Formula $F_{n}\left(x\right)$
 \end_inset
 
+
+\begin_inset Foot
+status open
+
+\begin_layout Plain Layout
+The Fibonacci polynomials 
+\begin_inset Formula $F_{n}\left(x\right)$
+\end_inset
+
+ are defined through the relation 
+\begin_inset Formula $F_{n}\left(x\right)=xF_{n-1}\left(x\right)+F_{n-2}\left(x\right)$
+\end_inset
+
+ with 
+\begin_inset Formula $F_{0}\left(x\right)=0$
+\end_inset
+
+ and 
+\begin_inset Formula $F_{1}\left(x\right)=1$
+\end_inset
+
+.
+\end_layout
+
+\end_inset
+
 ,
 \begin_inset Formula 
 \[
@@ -2120,12 +2173,12 @@ We also found an interesting identity relating the maximal ambiguity of nonogram
 which can be verified directly by rewriting the set of ambiguities as 
 \begin_inset Formula 
 \[
-e_{n}^{-1}=\left\{ \binom{n-\dsum a-1}{\left|a\right|}\right\} _{a\in\posshints n}=\left\{ \binom{n}{0},\binom{n-1}{1},\binom{n-2}{2},\ldots\binom{n-n}{n}\right\} \cup\ldots
+e_{n}^{-1}=\left\{ \binom{n-\dsum a-1}{\left|a\right|}\right\} _{a\in\posshints n}=\left\{ \binom{n}{0},\binom{n-1}{1},\binom{n-2}{2},\ldots\binom{1}{n-1},\binom{0}{n}\right\} \cup\ldots
 \]
 
 \end_inset
 
- where the additional elements at the end will always be numerically smaller than at least one element in the first group,
+ where the omitted elements at the end will always be numerically smaller than at least one element in the first group,
  and thus can be ignored when taking the maximum.
  The OEIS
 \begin_inset CommandInset citation
@@ -2233,12 +2286,147 @@ Hint Symmetry
 \begin_layout Standard
 For later reference,
  we want to conclude this section by examining nonogram-style line hints in terms of their symmetry properties.
- ...
+ It is apparent from 
+\begin_inset CommandInset ref
+LatexCommand formatted
+reference "fig:hints-list-small-n"
+
+\end_inset
+
+ that all hints are either palindromes,
+ or they are the reflection of another hint.
+ For example,
+ the hint 
+\begin_inset Formula $a=1.2.3$
+\end_inset
+
+ is the reflection of 
+\begin_inset Formula $b=3.2.1$
+\end_inset
+
+,
+ which we will denote as 
+\begin_inset Formula $a=\rev b$
+\end_inset
+
+,
+ while the hint 
+\begin_inset Formula $a=1.2.1$
+\end_inset
+
+ is its own reverse,
+ i.e.
+ 
+\begin_inset Formula $a=\rev a$
+\end_inset
+
+.
+ Therefore,
+ the set of possible hints 
+\begin_inset Formula $\posshints n$
+\end_inset
+
+ is closed under reflection and thus their symmetry group is (isomorphic to) the cyclic group 
+\begin_inset Formula $C_{2}$
+\end_inset
+
+ consisting only of the involution 
+\begin_inset Formula $\rev{\circ}$
+\end_inset
+
+ as well as the identity map 
+\begin_inset FormulaMacro
+\newcommand{\id}{\mathbb{I}}
+\end_inset
+
+
+\begin_inset Formula $\id$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+This insight allows us to calculate exactly how many hints in 
+\begin_inset Formula $\posshints n$
+\end_inset
+
+ are not the reflection of some other hint but are truly unique:
+ We can apply the 
+\emph on
+orbit-counting theorem
+\emph default
+ to get
+\begin_inset Formula 
+\[
+\left|\posshints n\slash C_{2}\right|=\frac{1}{2}\left(\left|\posshints n\right|+\left|\posshints n^{R}\right|\right)
+\]
+
+\end_inset
+
+where 
+\begin_inset Formula $\posshints n\slash C_{2}$
+\end_inset
+
+ is the set of all orbits in 
+\begin_inset Formula $\posshints n$
+\end_inset
+
+ under the group action of 
+\begin_inset Formula $C_{2}$
+\end_inset
+
+,
+ and 
+\begin_inset Formula $\left|\posshints n^{R}\right|=\left\{ a\in\posshints n:\rev a=a\right\} $
+\end_inset
+
+ are the fixpoints of the reflection operator.
+\end_layout
+
+\begin_layout Standard
+To determine the number of fixpoints,
+ we first realize that it must be given by a recursive relation of the type 
+\begin_inset Formula $\left|\posshints n^{R}\right|=\left|\posshints{n-1}^{R}\right|+S_{n}^{\prime}$
+\end_inset
+
+,
+ since obviously 
+\begin_inset Formula $\posshints{n-1}^{R}\subset\posshints n^{R}$
+\end_inset
+
+.
+ The additional term 
+\begin_inset Formula $S_{n}^{\prime}$
+\end_inset
+
+ can then be calculated by distinguishing four distinct cases:
+\end_layout
+
+\begin_layout Itemize
+...
 \begin_inset Note Note
 status open
 
 \begin_layout Plain Layout
-TODO use group theory magic
+If 
+\begin_inset Formula $n=2k$
+\end_inset
+
+,
+ we have 
+\begin_inset Formula $\posshints n^{R}=\left\{ a\in\posshints n:a=b.\rev b\right\} $
+\end_inset
+
+ where 
+\begin_inset Formula $b\in\words{\nat}$
+\end_inset
+
+ are any words subject to the constraint 
+\begin_inset Formula $\dsum b+\left|b\right|-1\leq k$
+\end_inset
+
+
 \end_layout
 
 \end_inset
@@ -2408,7 +2596,8 @@ For example,
 \begin_inset Formula $n\in\nat$
 \end_inset
 
-.
+;
+ they can then also be padded with empty rows or columns to create rectangular nonograms with the same number of solutions.
 \end_layout
 
 \end_inset
