@@ -454,10 +454,14 @@ and
 
 .
  
-\begin_inset Formula $\log\left(x\right)$
+\begin_inset Formula $\log x$
 \end_inset
 
- denotes the base 2 logarithm.
+ denotes the base 2 logarithm and 
+\begin_inset Formula $\ln x$
+\end_inset
+
+ the natural logarithm.
 \end_layout
 
 \begin_layout Section
@@ -1336,7 +1340,7 @@ reference "eq:num-distinct-hints-per-line-unrestricted"
 
 \end_inset
 
- can be shown to follow directly from the properties of the binomial coefficients,
+ can be shown to follow directly from the properties of the binomial coefficients ,
  but it may also be derived inductively by asking which hints are not possible for a line of length 
 \begin_inset Formula $n$
 \end_inset
@@ -1347,16 +1351,20 @@ reference "eq:num-distinct-hints-per-line-unrestricted"
 \end_inset
 
 .
- 
-\end_layout
-
-\begin_layout Standard
-This proof is more interesting to discuss,
- since it also gives us an explicit algorithm to construct every possible hint for some given line length 
+ This second version of the proof interesting to discuss here since it also gives us an explicit algorithm to construct every possible hint for some given line length 
 \begin_inset Formula $n$
 \end_inset
 
-:
+ (the second variant of the proof may also be found in 
+\begin_inset CommandInset citation
+LatexCommand cite
+after "Section 2"
+key "DeterminingPaintbyNumbersPuzzles"
+literal "false"
+
+\end_inset
+
+):
 \end_layout
 
 \begin_layout Itemize
@@ -2219,7 +2227,177 @@ However,
 
 \end_layout
 
+\begin_layout Paragraph
+Forceless hints
+\end_layout
+
 \begin_layout Standard
+Even hints that are ambiguous may still allow us to extract some partial information about the line configuration:
+ This is possible if a certain cell in the line is black in every matching configuration,
+ see for example the nonogram in 
+\begin_inset CommandInset ref
+LatexCommand formatted
+reference "fig:forceless-hints-nonogram"
+
+\end_inset
+
+.
+ 
+\begin_inset Float figure
+placement document
+alignment document
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename forcehint0.pdf
+	width 30col%
+
+\end_inset
+
+
+\begin_inset Formula $\quad$
+\end_inset
+
+
+\begin_inset Graphics
+	filename forcehint.pdf
+	width 30col%
+
+\end_inset
+
+
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+\begin_inset CommandInset label
+LatexCommand label
+name "fig:forceless-hints-nonogram"
+
+\end_inset
+
+A nonogram containing ambiguous hints (row two and column five) which force some pixels to be black.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The number of hints that do 
+\emph on
+not
+\emph default
+ force any pixels has been studied in 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "DeterminingPaintbyNumbersPuzzles,AsymptoticsUselessHintSequences"
+literal "false"
+
+\end_inset
+
+ where such hints are called 
+\emph on
+forceless
+\emph default
+ or 
+\emph on
+useless
+\emph default
+ hints,
+ respectively;
+ we denote the set of such hints for a line of length 
+\begin_inset Formula $n$
+\end_inset
+
+ by 
+\begin_inset FormulaMacro
+\newcommand{\forceless}[1]{f_{#1}}
+\end_inset
+
+
+\begin_inset Formula $\forceless n\subset\posshints n$
+\end_inset
+
+.
+ In 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "DeterminingPaintbyNumbersPuzzles"
+literal "false"
+
+\end_inset
+
+ the author proved that the number of forceless hints 
+\begin_inset Formula $\left|\forceless n\right|$
+\end_inset
+
+ is bounded both from below and above,
+\begin_inset Formula 
+\[
+c_{1}\frac{\varphi^{n}}{n}\leq\left|\forceless n\right|\leq c_{2}\frac{\varphi^{n}}{n}\ln n
+\]
+
+\end_inset
+
+where 
+\begin_inset Formula $c_{1,2}$
+\end_inset
+
+ are some positive real constants.
+ It follows that the majority of all line configurations give rise to forceless hints (see also 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "NonogramCombinatorialQuestions"
+literal "false"
+
+\end_inset
+
+).
+ In 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "AsymptoticsUselessHintSequences"
+literal "false"
+
+\end_inset
+
+ the authors were able to improve this upper bound for 
+\begin_inset Formula $\left|\forceless n\right|$
+\end_inset
+
+:
+ They showed that
+\begin_inset Formula 
+\[
+k_{1}\frac{\varphi^{n}}{n}\leq\left|\forceless n\right|\leq k_{2}\frac{\varphi^{n}}{n}
+\]
+
+\end_inset
+
+for some positive constants 
+\begin_inset Formula $k_{1,2}$
+\end_inset
+
+,
+ which implies that the asymptotic probability for a randomly chosen hint of length 
+\begin_inset Formula $n$
+\end_inset
+
+ to be forceless is 
+\begin_inset Formula $\Theta\left(n^{-1}\right)$
+\end_inset
+
+.
+ 
 \begin_inset Note Note
 status open
 

@@ -40,7 +40,7 @@ class SolutionHandler:
         # Initialize the clingo control and give the dimensional constants
         ctl = Control([f"{0 if check_unique else 1}", 
                        "-c", f"w={self.given_nonogram.width}", 
-                       "-c", f"h={self.given_nonogram.height}"])
+                       "-c", f"h={self.given_nonogram.height}", "-e", "cautious"])
 
         # Add the hint predicates to the base program
         for row_index, row in enumerate(self.given_nonogram.row_hints):
