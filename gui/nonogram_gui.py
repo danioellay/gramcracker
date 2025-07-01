@@ -256,8 +256,7 @@ class NonogramGUI(tk.Tk):
     def _on_button_press(self, event: Event):
         if event.inaxes != self.axes:
             return
-        if not hasattr(self.solution_handler, "curr_soln_idx"):
-            return
+        self.solution_handler.use_working_soln()
         
         if event.button == 1: #(left mouse button)
             nonogram = self.nonogram_handler.get_nonogram()

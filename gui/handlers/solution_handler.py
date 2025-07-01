@@ -4,21 +4,30 @@
 from gui.common import *
 from clingo import Control
 import time
+from copy import deepcopy
 
 class SolutionHandler:
     def __init__(self):
-        self.given_nonogram: Nonogram | None = None
+        self.given_nonogram: Nonogram
         self.solutions: List[NonogramSoln] = []
-        self.curr_soln_idx: int = 0
+        self.curr_soln_idx: int = -1 # == -1 if in working solution
+        self.working_soln: NonogramSoln
 
     def give_nonogram(self, nonogram: Nonogram):
         """Give a reference to a nonogram that will be solved when run_solver is called"""
         self.given_nonogram = nonogram
-        self.curr_soln_idx = 0
+        self.curr_soln_idx = -1
         self.solutions = []
+        self.working_soln = NonogramSoln(nonogram)
 
     def get_curr_soln(self) -> NonogramSoln:
+        if self.curr_soln_idx < 0:
+            return self.working_soln
         return self.solutions[self.curr_soln_idx]
+    
+    def use_working_soln(self):
+        self.working_soln = deepcopy(self.get_curr_soln())
+        self.curr_soln_idx = -1
 
     def run_solver(self, solver_path: str, check_unique: bool = True, all_models: bool = False) -> str:
         """Run the logic program at the given path, assume it is a nonogram solver and try to find one/two models, depending on the check_unique flag"""
@@ -121,6 +130,7 @@ class SolutionHandler:
     
     def next_soln(self):
         if len(self.solutions) < 2:
+            self.curr_soln_idx = 0
             return
         self.curr_soln_idx += 1
         if self.curr_soln_idx >= len(self.solutions):
@@ -128,6 +138,7 @@ class SolutionHandler:
 
     def prev_soln(self):
         if len(self.solutions) < 2:
+            self.curr_soln_idx = 0
             return
         self.curr_soln_idx -= 1
         if self.curr_soln_idx < 0:
@@ -138,9 +149,6 @@ class SolutionHandler:
         if not self.given_nonogram:
             print("Error: No nonogram to check rows for")
             return False
-        if not self.solutions:
-            print("Error: No solution to check rows in")
-            return False
         
         hints = self.given_nonogram.row_hints[row]
         line = self.get_curr_soln().fill[row]
@@ -150,9 +158,6 @@ class SolutionHandler:
         """Does the current working solution match the hints in the specified column in the given nonogram?"""
         if not self.given_nonogram:
             print("Error: No nonogram to check columns for")
-            return False
-        if not self.solutions:
-            print("Error: No solution to check columns in")
             return False
         
         hints = self.given_nonogram.col_hints[col]
