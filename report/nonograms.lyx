@@ -35,7 +35,7 @@ figs-within-sections
 \output_sync 0
 \bibtex_command default
 \index_command default
-\float_placement H
+\float_placement class
 \float_alignment center
 \paperfontsize 11
 \spacing single
@@ -91,7 +91,7 @@ figs-within-sections
 \dynamic_quotes 0
 \papercolumns 1
 \papersides 1
-\paperpagestyle fancy
+\paperpagestyle headings
 \tablestyle default
 \listings_params "frame=lines,breaklines=true,breakatwhitespace=true,basicstyle={\ttfamily \small}"
 \tracking_changes false
@@ -744,80 +744,6 @@ goals
 
 \end_layout
 
-\begin_layout Paragraph
-Section Summary
-\end_layout
-
-\begin_layout Standard
-In this section we show that:
-\end_layout
-
-\begin_layout Itemize
-The number of possible hints for a line (row/column) of length 
-\begin_inset Formula $n$
-\end_inset
-
- is given by the Fibonacci number 
-\begin_inset Formula $F_{n+2}$
-\end_inset
-
-,
-\end_layout
-
-\begin_layout Itemize
-Out of those 
-\begin_inset Formula $F_{n+2}$
-\end_inset
-
- possible hints,
- approximately 
-\begin_inset Formula $\nicefrac{1}{\varphi^{2}}\approx38\%$
-\end_inset
-
- (where 
-\begin_inset Formula $\varphi$
-\end_inset
-
- is the golden ratio) only describe one possible line configuration since exactly 
-\begin_inset Formula $F_{n+1}-1$
-\end_inset
-
- hints are ambiguous (i.e.
- they describe two or more distinct lines at once),
-\end_layout
-
-\begin_layout Itemize
-The vast majority of line configurations can not be unambiguously described by a hint,
-\end_layout
-
-\begin_layout Itemize
-The largest ambiguity that a hint for a line of length 
-\begin_inset Formula $n$
-\end_inset
-
- can have is given by the largest coefficient of the Fibonacci polynomial 
-\begin_inset Formula $F_{n+2}\left(x\right)$
-\end_inset
-
-,
-\end_layout
-
-\begin_layout Itemize
-The most difficult nonograms have a black to white ratio of roughly one in three,
-\end_layout
-
-\begin_layout Itemize
-...
-\begin_inset Newpage newpage
-\end_inset
-
-
-\end_layout
-
-\begin_layout Subsection
-Possible Nonograms
-\end_layout
-
 \begin_layout Standard
 Consider the two Nonograms shown in 
 \begin_inset CommandInset ref
@@ -913,7 +839,80 @@ TODO tease rest of section
 
 \end_layout
 
-\begin_layout Subsubsection
+\begin_layout Paragraph
+Section Summary
+\end_layout
+
+\begin_layout Standard
+In this section we show that:
+\end_layout
+
+\begin_layout Itemize
+The number of possible hints for a line (row/column) of length 
+\begin_inset Formula $n$
+\end_inset
+
+ is given by the Fibonacci number 
+\begin_inset Formula $F_{n+2}$
+\end_inset
+
+,
+\end_layout
+
+\begin_layout Itemize
+Out of those 
+\begin_inset Formula $F_{n+2}$
+\end_inset
+
+ possible hints,
+ approximately 
+\begin_inset Formula $\nicefrac{1}{\varphi^{2}}\approx38\%$
+\end_inset
+
+ (where 
+\begin_inset Formula $\varphi$
+\end_inset
+
+ is the golden ratio) only describe one possible line configuration since exactly 
+\begin_inset Formula $F_{n+1}-1$
+\end_inset
+
+ hints are ambiguous (i.e.
+ they describe two or more distinct lines at once),
+\end_layout
+
+\begin_layout Itemize
+The vast majority of line configurations can not be unambiguously described by a hint,
+\end_layout
+
+\begin_layout Itemize
+The largest ambiguity that a hint for a line of length 
+\begin_inset Formula $n$
+\end_inset
+
+ can have is given by the largest coefficient of the Fibonacci polynomial 
+\begin_inset Formula $F_{n+2}\left(x\right)$
+\end_inset
+
+,
+\end_layout
+
+\begin_layout Itemize
+The most difficult nonograms have a black to white ratio of roughly one in three,
+\end_layout
+
+\begin_layout Itemize
+...
+\end_layout
+
+\begin_layout Standard
+\begin_inset Newpage newpage
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
 Possible line hints
 \end_layout
 
@@ -2036,12 +2035,16 @@ An illustration of all possible hints for small line lengths
  The hints that unambiguously determine the line content are at the bottom and have a blue background,
  while the remaining,
  ambiguous hints are on top with an orange backdrop.
- Palindromic hints are marked by an asterisk,
+ Hints that do not force any pixels to be black (see the next section) are marked by a subscript '
+\begin_inset Formula $f$
+\end_inset
+
+',
  and the number of matching line configurations (the ambiguity 
 \begin_inset Formula $\left|e_{n}^{-1}\left(a\right)\right|$
 \end_inset
 
-) is also shown next to each hint.
+) is also shown to the right of each hint.
 \end_layout
 
 \end_inset
@@ -2077,13 +2080,13 @@ reference "eq:hint-multiplicity"
 
 ,
  and these assume their maximum around the point 
-\begin_inset Formula $y\approx2x$
+\begin_inset Formula $x\approx\frac{1}{2}y$
 \end_inset
 
 ;
  plugging this in,
  we get 
-\begin_inset Formula $n-\dsum a+\approx2\left|a\right|$
+\begin_inset Formula $n-\dsum a-1\approx\frac{1}{2}\left|a\right|$
 \end_inset
 
 .
@@ -2227,6 +2230,13 @@ However,
 
 \end_layout
 
+\begin_layout Standard
+\begin_inset Newpage newpage
+\end_inset
+
+
+\end_layout
+
 \begin_layout Paragraph
 Forceless hints
 \end_layout
@@ -2241,8 +2251,10 @@ reference "fig:forceless-hints-nonogram"
 
 \end_inset
 
-.
- 
+:
+ Here,
+ two rows can already be solved completely just by filling all the nonograms forced pixels,
+ and the rest of the nonogram follows quickly from there.
 \begin_inset Float figure
 placement document
 alignment document
@@ -2278,7 +2290,8 @@ name "fig:forceless-hints-nonogram"
 
 \end_inset
 
-A nonogram containing ambiguous hints (row two and column five) which force some pixels to be black.
+A nonogram containing ambiguous hints (row two and column five) which force some pixels to be black,
+ as is shown on the right side.
 \end_layout
 
 \end_inset
@@ -2328,7 +2341,24 @@ useless
 \end_inset
 
 .
- In 
+ For small 
+\begin_inset Formula $n$
+\end_inset
+
+,
+ we have indicated the forceless hints in 
+\begin_inset CommandInset ref
+LatexCommand formatted
+reference "fig:hints-list-small-n"
+
+\end_inset
+
+:
+ From this it is apparent that the most ambiguous hints also tend to be forceless.
+\end_layout
+
+\begin_layout Standard
+In 
 \begin_inset CommandInset citation
 LatexCommand cite
 key "DeterminingPaintbyNumbersPuzzles"
@@ -2336,7 +2366,19 @@ literal "false"
 
 \end_inset
 
- the author proved that the number of forceless hints 
+ the author showed that a non-empty hint 
+\begin_inset Formula $a\in\posshints n\backslash\left\{ \emptyword\right\} $
+\end_inset
+
+ is forceless if it satisfies the inequality
+\begin_inset Formula 
+\[
+\dsum a+\max a+\left|a\right|-1\leq n
+\]
+
+\end_inset
+
+and continued to prove that the number of forceless hints 
 \begin_inset Formula $\left|\forceless n\right|$
 \end_inset
 
@@ -2353,7 +2395,12 @@ where
 \end_inset
 
  are some positive real constants.
- It follows that the majority of all line configurations give rise to forceless hints (see also 
+ It follows that for large 
+\begin_inset Formula $n$
+\end_inset
+
+,
+ the probability that a random line configuration encodes to a forceless hint approaches 1 (see also 
 \begin_inset CommandInset citation
 LatexCommand cite
 key "NonogramCombinatorialQuestions"
@@ -2362,7 +2409,11 @@ literal "false"
 \end_inset
 
 ).
- In 
+ 
+\end_layout
+
+\begin_layout Standard
+In 
 \begin_inset CommandInset citation
 LatexCommand cite
 key "AsymptoticsUselessHintSequences"
@@ -2392,7 +2443,7 @@ for some positive constants
 \begin_inset Formula $n$
 \end_inset
 
- to be forceless is 
+ to be forceless is in 
 \begin_inset Formula $\Theta\left(n^{-1}\right)$
 \end_inset
 
@@ -2719,7 +2770,14 @@ reference "eq:poss-hints-orbits"
 
 \end_layout
 
-\begin_layout Subsubsection
+\begin_layout Standard
+\begin_inset Newpage newpage
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
 Possible Nonograms
 \end_layout
 
@@ -2803,7 +2861,7 @@ reference "fig:impossible-nonograms-sum"
 
  clearly can not have a solution,
  even though they only contain hints we described as possible,
- and it would be a clear misnomer to refer to these nonograms as 
+ and it would be a misnomer to refer to these nonograms as 
 \emph on
 possible
 \emph default
@@ -2866,15 +2924,15 @@ Let us denote the subset of all nonograms satisfying these constraints by
 
 :
  We will refer to nonograms in 
-\begin_inset Formula $\nonoset_{\sigma}$
+\begin_inset Formula $\nonoset_{0}$
 \end_inset
 
  as 
 \emph on
 semi-possible nonograms
 \emph default
-:
- It will be instructive to consider these nonograms first before adding constraint number three.
+.
+ It will be instructive to consider this broader class of nonograms first before adding constraint number three.
 \end_layout
 
 \begin_layout Paragraph
@@ -2904,7 +2962,7 @@ How many semi-possible nonograms of some fixed size
  is given by the following product of Fibonacci numbers:
 \begin_inset Formula 
 \[
-\left|\nonoset_{\sigma}\left(\rows,\cols\right)\right|=\left|\posshints{\rows}\right|^{\cols}\cdot\left|\posshints{\cols}\right|^{\rows}=\underbrace{F_{\cols+2}^{\rows}}_{\text{rows}}\cdot\underbrace{F_{\rows+2}^{\cols}}_{\text{columns}}
+\left|\nonoset_{0}\left(\rows,\cols\right)\right|=\left|\posshints{\rows}\right|^{\cols}\cdot\left|\posshints{\cols}\right|^{\rows}=\underbrace{F_{\cols+2}^{\rows}}_{\text{rows}}\cdot\underbrace{F_{\rows+2}^{\cols}}_{\text{columns}}
 \]
 
 \end_inset
@@ -2915,7 +2973,7 @@ Using the usual approximation for
 
 ,
  we can conclude that the number of hint-distinct nonograms 
-\begin_inset Formula $\left|\nonoset_{\sigma}\left(n,m\right)\right|\approx\nicefrac{1}{\sqrt{5^{n+m}}}\cdot\varphi^{2\left(n+m+n\cdot m\right)}$
+\begin_inset Formula $\left|\nonoset_{0}\left(n,m\right)\right|\approx\nicefrac{1}{\sqrt{5^{n+m}}}\cdot\varphi^{2\left(n+m+n\cdot m\right)}$
 \end_inset
 
  grows exponentially with size.
@@ -2936,7 +2994,7 @@ lot
 :
 \begin_inset Formula 
 \begin{equation}
-\left|\nonoset_{\sigma}\left(n,m\right)\right|\gg\left|G\left(n,m\right)\right|\label{eq:num-of-nonograms-vs-grids}
+\left|\nonoset_{0}\left(n,m\right)\right|\gg\left|G\left(n,m\right)\right|\label{eq:num-of-nonograms-vs-grids}
 \end{equation}
 
 \end_inset
@@ -2952,7 +3010,7 @@ For example,
 
 ,
  but there are already about 
-\begin_inset Formula $\left|\nonoset_{\sigma}\left(10,10\right)\right|=\left(F_{12}^{10}\right)^{2}\approx1.5\cdot10^{43}$
+\begin_inset Formula $\left|\nonoset_{0}\left(10,10\right)\right|=\left(F_{12}^{10}\right)^{2}\approx1.5\cdot10^{43}$
 \end_inset
 
  semi-possible nonograms of that size!
@@ -2969,7 +3027,7 @@ What does this imply regarding the solvability of nonograms?
 
  solvable nonograms.
  Let 
-\begin_inset Formula $\nonoset_{\text{s}}\subset\nonoset$
+\begin_inset Formula $\nonoset_{\text{S}}\subset\nonoset_{\Sigma}$
 \end_inset
 
  be the set of all solvable nonograms for some given size 
@@ -2980,7 +3038,7 @@ What does this imply regarding the solvability of nonograms?
  then we have:
 \begin_inset Formula 
 \begin{equation}
-\left|\nonoset_{\text{s}}\left(n,m\right)\right|\leq2^{n\cdot m}\label{eq:num-solvable-nonograms-upper-bound}
+\left|\nonoset_{\text{S}}\left(n,m\right)\right|\leq2^{n\cdot m}\label{eq:num-solvable-nonograms-upper-bound}
 \end{equation}
 
 \end_inset
@@ -3027,7 +3085,7 @@ reference "eq:num-solvable-nonograms-upper-bound"
  the probability that it has at least one solution is bounded from above:
 \begin_inset Formula 
 \[
-p_{nm}=\frac{\text{\left|\nonoset_{\text{s}}\left(n,m\right)\right|}}{\left|\nonoset_{\sigma}\left(\rows,\cols\right)\right|}<\frac{\left|G\left(n,m\right)\right|}{\left|\nonoset_{\sigma}\left(\rows,\cols\right)\right|}
+p_{nm}=\frac{\text{\left|\nonoset_{\text{S}}\left(n,m\right)\right|}}{\left|\nonoset_{0}\left(\rows,\cols\right)\right|}<\frac{\left|G\left(n,m\right)\right|}{\left|\nonoset_{0}\left(\rows,\cols\right)\right|}
 \]
 
 \end_inset
@@ -3353,7 +3411,7 @@ However,
 
 \end_layout
 
-\begin_layout Subsubsection
+\begin_layout Paragraph
 Distinct hints
 \end_layout
 
