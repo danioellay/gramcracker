@@ -2,16 +2,18 @@
 # Author: Fabian Kraus
 
 import tkinter as tk
+import tkinter.ttk as ttk
 from tkinter import StringVar, filedialog
 
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
-import random
-
 import cv2
 import numpy as np
 from typing import List, Tuple
+
+from .handlers.nonogram_handler import NonogramHandler
+from .handlers.solution_handler import SolutionHandler
 
 def spinbox_int(master, title, callback, min_value, max_value, initial_value, step=1):
     tk.Label(master, text=title).pack(side=tk.LEFT, padx=5, pady=1)
@@ -67,7 +69,7 @@ class NonogramCreator(tk.Toplevel):
     width: int = 15
     height: int = 15
     bwratio: float = 0.6
-    pxcorr: float = 0.6
+    pxcorr: float = 0.7
     threshold: int = 127
     im_file_path: str = ""
     grid = np.full((height, width), 255, dtype=np.uint8)
@@ -120,11 +122,25 @@ class NonogramCreator(tk.Toplevel):
             # Apply a binary threshold to the image
             _, self.grid = cv2.threshold(im_scaled, self.threshold, 255, cv2.THRESH_BINARY)
 
-        # self.update()
+        # Convert grid to nonogram, then solve it to check uniqueness
+        nono_handler = NonogramHandler()
+        nono_handler.hints_from_grid((self.grid != 255).tolist())
+        soln_handler = SolutionHandler()
+        nonogram = nono_handler.get_nonogram()
+        assert(nonogram)
+        soln_handler.give_nonogram(nonogram)
+        _ = soln_handler.run_solver("sbs-improved", True, False)
+        assert(soln_handler.solutions)
+        assert(len(soln_handler.solutions) > 0)
+        if len(soln_handler.solutions) > 1:
+            self.uniqueness_label.configure(text="Nonogram is not unique!")
+            self.uniqueness_counter.configure(text=f"({len(soln_handler.solutions)}+ Solutions)")
+        else:
+            self.uniqueness_label.configure(text="Nonogram is unique!")
+            self.uniqueness_counter.configure(text="(1 Solution)")
+
         plt.imshow(self.grid, 'gray', vmin=0, vmax=255)
         self.canvas.draw()
-
-        # self.redraw_grid()
 
     def _invert(self):
         self.grid = 255 - self.grid
@@ -135,8 +151,8 @@ class NonogramCreator(tk.Toplevel):
         # Create a custom dialog window
         tk.Toplevel.__init__(self, parent)
         self.title("Nonogram Generator")
-        self.geometry("1050x650")
-        self.minsize(1050, 650)
+        self.geometry("1050x850")
+        self.minsize(1050, 850)
 
         leftframe = tk.Frame(self)
         leftframe.pack(side=tk.LEFT, fill=tk.X, expand=False)
@@ -148,7 +164,7 @@ class NonogramCreator(tk.Toplevel):
         # Labels and Entry widgets for height and width
         frame = tk.Frame(leftframe)
         frame.pack(side=tk.TOP)
-        tk.Label(frame, text="Dimensions: ", font=("", 12)).grid(row=0,column=0, columnspan=1, pady=1)
+        tk.Label(frame, text="Dimensions", font=("", 12)).grid(row=0,column=0, columnspan=1, pady=1)
 
         frame = tk.Frame(leftframe)
         frame.pack(side=tk.TOP)
@@ -158,14 +174,16 @@ class NonogramCreator(tk.Toplevel):
         frame.pack(side=tk.TOP)
         spinbox_int(frame, "Height:", self._on_set_height, 1, 1024, self.height)
         
+        separator = ttk.Separator(leftframe, orient=tk.HORIZONTAL)
+        separator.pack(side=tk.TOP, fill=tk.X, pady=17)
+
         # Variable to hold the selected option
         self.selected_option_var = StringVar(value="empty")
         self.selected_option_var.trace_add('write', self._on_option_select)
 
         frame = tk.Frame(leftframe)
         frame.pack(side=tk.TOP)
-        tk.Label(frame).pack()
-        tk.Label(frame, text="Nonogram contents:", font=("",12)).pack()
+        tk.Label(frame, text="Image", font=("",12)).pack()
 
         # List of options
         options = [
@@ -201,7 +219,17 @@ class NonogramCreator(tk.Toplevel):
                 self.file_select_bt.configure(state=tk.DISABLED)
                 self.threshold_sb.configure(state=tk.DISABLED)
         
-        tk.Label(leftframe).pack()
+        separator = ttk.Separator(leftframe, orient=tk.HORIZONTAL)
+        separator.pack(side=tk.TOP, fill=tk.X, pady=17)
+
+        tk.Label(leftframe, text="Uniqueness", font=("",12)).pack()
+        self.uniqueness_label = tk.Label(leftframe, text="Nonogram is unique!")
+        self.uniqueness_label.pack()
+        self.uniqueness_counter = tk.Label(leftframe, text="(1 Solution)")
+        self.uniqueness_counter.pack()
+
+        separator = ttk.Separator(leftframe, orient=tk.HORIZONTAL)
+        separator.pack(side=tk.TOP, fill=tk.X, pady=17)
 
         # Buttons, keybinds for OK and Cancel
         tk.Button(bottomframe, text="Cancel", command=self._on_cancel).grid(row=0, column=0)
@@ -300,5 +328,6 @@ class NonogramCreator(tk.Toplevel):
         else:
             w, h = len(self.im_original), len(self.im_original[0])
             self.file_select_bt.configure(text=''.join(filename.split("/")[-1].split(".")[:-1]) + f"({w}x{h})")
+
         self.reload()
 
