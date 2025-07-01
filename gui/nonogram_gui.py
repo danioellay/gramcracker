@@ -3,13 +3,12 @@
 # run with: python3 -m gui [optional parameter: nonogram filename] [optional parameter: solver name]
 #    e.g. : python3 -m gui nonograms/example_05.lp symbolic-block-start
 
-import tkinter as tk
-from tkinter import filedialog, Event, BooleanVar
-import os
 from os import listdir
 from os.path import isfile, join
-
 from math import ceil
+
+import tkinter as tk
+from tkinter import filedialog, Event, BooleanVar
 
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import matplotlib.pyplot as plt
@@ -119,7 +118,7 @@ class NonogramGUI(tk.Tk):
         # Setup status bar
         self.status = StatusBar(self)
         self.status.pack(side=tk.BOTTOM, fill=tk.X)
-        self.status.set("halsd")
+        self.status.set("Ready.")
 
         # Setup button event callbacks
         self.canvas.mpl_connect('button_press_event', self._on_button_press)
@@ -392,7 +391,7 @@ class NonogramGUI(tk.Tk):
 
         # Draw the nonogram fully filled and save each pixel as a separate object, then hide them
         # The pixels are indexed by [row][column], starting at index 0!
-        self.pixels: list[list[patches.Patch]] = [[None for _ in range(nonogram.width)] for _ in range(nonogram.height)]
+        self.pixels: list[list[patches.Patch | None]] = [[None for _ in range(nonogram.width)] for _ in range(nonogram.height)]
         for x in range(nonogram.width):
             col = x
             for y in range(nonogram.height):

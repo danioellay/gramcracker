@@ -7,7 +7,7 @@ from clingo import Model
 
 @dataclass
 class Nonogram:
-    width: int
+    width : int
     height: int
     row_hints: List[List[int]]
     col_hints: List[List[int]]
@@ -22,10 +22,16 @@ class NonogramSoln:
         self.fill = [[False for _ in range(nonogram.width)] for _ in range(nonogram.height)]
 
     def fill_from_model(self, model: Model | None):
-        if model:
-            for symbol in model.symbols(atoms=True):
-                if symbol.name == 'fill':
-                    self.fill[symbol.arguments[0].number - 1][symbol.arguments[1].number - 1] = True
+        if not model:
+            return
+        
+        for row in self.fill:
+            for cell in row:
+                cell = False
+        
+        for symbol in model.symbols(atoms=True):
+            if symbol.name == 'fill':
+                self.fill[symbol.arguments[0].number - 1][symbol.arguments[1].number - 1] = True
 
 
 def check_line(line: List[bool], hints: List[int]) -> bool:

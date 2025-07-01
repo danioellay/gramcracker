@@ -11,6 +11,7 @@ import random
 
 import cv2
 import numpy as np
+from typing import List, Tuple
 
 def spinbox_int(master, title, callback, min_value, max_value, initial_value, step=1):
     tk.Label(master, text=title).pack(side=tk.LEFT, padx=5, pady=1)
@@ -63,15 +64,23 @@ def spinbox_float(master, title, callback, min_value, max_value, initial_value, 
 
 
 class NonogramCreator(tk.Toplevel):
-    width: int = 5
-    height: int = 5
-    bwratio: float = 0.5
-    pxcorr: float = 0.8
+    width: int = 15
+    height: int = 15
+    bwratio: float = 0.6
+    pxcorr: float = 0.6
     threshold: int = 127
     im_file_path: str = ""
     grid = np.full((height, width), 255, dtype=np.uint8)
     success: bool = True
 
+    def get(self) -> Tuple[int, int, List[List[int]]] | None:
+        # Wait for the dialog to close
+        self.wait_window()
+        if self.success:
+            return self.width, self.height, (self.grid != 255).tolist()
+        else:
+            return None
+        
     def reload(self):
         opt_str = self.selected_option_var.get()
         if opt_str == "empty":
@@ -81,25 +90,26 @@ class NonogramCreator(tk.Toplevel):
         elif opt_str == "random":
             # print("reload->random")
             # generate random boolean matrix
-            initial = np.zeros((self.height, self.width), dtype=np.uint8)
-            for row in range(self.height):
-                for col in range(self.width):
-                    initial[row][col] = 0 if random.random() < self.bwratio else 255
+            self.grid = np.random.choice([0, 255], size=(self.height, self.width), p=[1 - self.bwratio, self.bwratio]).astype(np.uint8)
 
             # correlate neighboring values in matrix
-            self.grid = np.zeros((self.height, self.width), dtype=np.uint8)
-            for row in range(self.height):
-                for col in range(self.width):
-                    neighbour_count = 0
-                    if row > 0 and initial[row-1][col]:
-                        neighbour_count += 1
-                    if row < self.height - 1 and initial[row+1][col]:
-                        neighbour_count += 1
-                    if col > 0 and initial[row][col-1]:
-                        neighbour_count += 1
-                    if col < self.width - 1 and initial[row][col+1]:
-                        neighbour_count += 1
-                    self.grid[row][col] = 0 if random.random() < neighbour_count*self.pxcorr/4 else 255
+            for i in range(self.height):
+                for j in range(self.width):
+                    if np.random.rand() < self.pxcorr:
+                        # Check neighboring cells
+                        neighbors = []
+                        if i > 0:
+                            neighbors.append(self.grid[i-1, j])
+                        if j > 0:
+                            neighbors.append(self.grid[i, j-1])
+                        if i < self.height - 1:
+                            neighbors.append(self.grid[i+1, j])
+                        if j < self.width - 1:
+                            neighbors.append(self.grid[i, j+1])
+
+                        # If there are any neighbors, set the current cell to the majority value
+                        if neighbors:
+                            self.grid[i, j] = max(set(neighbors), key=neighbors.count)
 
         elif opt_str == "image" and hasattr(self, 'im_original'):
             # print("reload->image")
@@ -110,17 +120,14 @@ class NonogramCreator(tk.Toplevel):
             # Apply a binary threshold to the image
             _, self.grid = cv2.threshold(im_scaled, self.threshold, 255, cv2.THRESH_BINARY)
 
-        self.update()
+        # self.update()
         plt.imshow(self.grid, 'gray', vmin=0, vmax=255)
         self.canvas.draw()
 
         # self.redraw_grid()
 
-    def invert(self):
-        for row in range(self.height):
-            for col in range(self.width):
-                x = self.grid[row][col]
-                self.grid[row][col] = 255 if x == 0 else 0
+    def _invert(self):
+        self.grid = 255 - self.grid
         plt.imshow(self.grid, 'gray', vmin=0, vmax=255)
         self.canvas.draw()
 
@@ -196,13 +203,15 @@ class NonogramCreator(tk.Toplevel):
         
         tk.Label(leftframe).pack()
 
-        # Buttons for OK and Cancel
+        # Buttons, keybinds for OK and Cancel
         tk.Button(bottomframe, text="Cancel", command=self._on_cancel).grid(row=0, column=0)
         tk.Button(bottomframe, text="Reload", command=self.reload).    grid(row=0, column=1)
-        tk.Button(bottomframe, text="Invert", command=self.invert).    grid(row=0, column=2)
+        tk.Button(bottomframe, text="Invert", command=self._invert).    grid(row=0, column=2)
         tk.Button(bottomframe, text="OK",     command=self.destroy).   grid(row=0, column=3)
+        self.bind('<Return>', lambda _: self.destroy())
+        self.bind('<Escape>', lambda _: self._on_cancel())
 
-        # Create a Tkinter label to display the image
+        # Create a canvas to display the image
         self.figure, self.axes = plt.subplots()
         self.axes.set_aspect('equal')
         self.figure.tight_layout()
@@ -293,10 +302,3 @@ class NonogramCreator(tk.Toplevel):
             self.file_select_bt.configure(text=''.join(filename.split("/")[-1].split(".")[:-1]) + f"({w}x{h})")
         self.reload()
 
-    def get(self):
-        # Wait for the dialog to close
-        self.wait_window()
-        if self.success:
-            return self.width, self.height, (self.grid != 255).tolist()
-        else:
-            return None, None, None
