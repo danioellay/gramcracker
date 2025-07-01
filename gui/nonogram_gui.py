@@ -105,6 +105,10 @@ class NonogramGUI(tk.Tk):
         self.show_hint_feedback_var.trace_add('write', self._on_toggle_show_hint_feedback)
         self.view_menu.add_checkbutton(label="Color hints as correctness feedback", variable=self.show_hint_feedback_var)
         self.show_hint_highlight_var = BooleanVar(value=True)
+        if self.nonogram_handler.get_nonogram():
+            nonogram = self.nonogram_handler.get_nonogram()
+            size = nonogram.width * nonogram.height
+            self.show_hint_highlight_var.set(size < 20*20)
         self.show_hint_highlight_var.trace_add('write', self._on_toggle_show_hint_highlight)
         self.view_menu.add_checkbutton(label="Highlight hovered cell hints", variable=self.show_hint_highlight_var)
         self.view_menu.add_command(label="View Next Solution", accelerator="Ctrl+J", command=self._on_next_soln)
@@ -197,6 +201,9 @@ class NonogramGUI(tk.Tk):
         nonogram = self.nonogram_handler.get_nonogram()
         self._clear_all()
         self.draw_nonogram(nonogram)
+        if hasattr(self, "show_hint_highlight_var"):
+            size = nonogram.width * nonogram.height
+            self.show_hint_highlight_var.set(size < 20*20)
         self.solution_handler.give_nonogram(nonogram)
 
     def _on_file_new(self, *_):
@@ -213,11 +220,16 @@ class NonogramGUI(tk.Tk):
             self.nonogram_handler.hints_from_grid(grid)
         else:
             self.nonogram_handler.resize(width, height)
-        
+    
         nonogram = self.nonogram_handler.get_nonogram()
+
         self.solution_handler.give_nonogram(nonogram)
         if hasattr(self, "axes"):
             self.draw_nonogram(nonogram)
+            
+        if hasattr(self, "show_hint_highlight_var"):
+            size = nonogram.width * nonogram.height
+            self.show_hint_highlight_var.set(size < 20*20)
 
     def _on_file_new_from_current(self, *_):
         self.nonogram_handler.loaded_nonogram_filename = None
@@ -273,7 +285,7 @@ class NonogramGUI(tk.Tk):
         if self.block_hover:
             return
         
-        if event.inaxes != self.axes or not hasattr(self.solution_handler, "working_solution") or not self.show_hint_highlight_var.get():
+        if event.inaxes != self.axes or not self.show_hint_highlight_var.get():
             self._highlight_hint(-1, -1)
             return
         
