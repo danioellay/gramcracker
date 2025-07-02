@@ -12,6 +12,20 @@ Example uses:
 > 
 > python -m gui nonograms/example_05.lp sbs-improved
 
+### Manual Solving
+Inside the _Nonogram GUI_, you can try to solve a nonogram manually by clicking on the cells.
+By default, unsatisfied hints are emphasized in red. You can disable this in the 'View' menu.
+
+### Automatic Solving
+You can also use the computer to solve the nonogram for you with the 'Solver' menu. Here you can also enable uniqueness checking and have an option to find all solutions to a given nonogram.
+If a solver found multiple solutions, you can cycle through them using Ctrl + H and Ctrl + J, or the 'View' menu.
+
+### Nonogram Editing
+You can change any row or column hint directly by clicking on it and entering a valid list of numbers, separated by spaces.
+You can also fill the grid arbitrarily and then turn that grid into a nonogram by pressing Ctrl + Shift + N, or by using the 'File/New from current solution' menu option.
+
+To resize the nonogram, you need to use the _Nonogram Generator_. 
+
 ## Nonogram Generator
 The _Nonogram Generator_ opens when you launch the application without parameters, or by pressing Ctrl + N from inside the _Nonogram GUI_.
 Here you can create a nonogram yourself using the controls on the left hand side.
