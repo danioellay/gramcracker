@@ -23,8 +23,7 @@ If a solver found multiple solutions, you can cycle through them using Ctrl + H 
 ### Nonogram Editing
 You can change any row or column hint directly by clicking on it and entering a valid list of numbers, separated by spaces.
 You can also fill the grid arbitrarily and then turn that grid into a nonogram by pressing Ctrl + Shift + N, or by using the 'File/New from current solution' menu option.
-
-To resize the nonogram, you need to use the _Nonogram Generator_. 
+Resizing the nonogram is not supported, you need to use the _Nonogram Generator_ to create a new one. 
 
 ## Nonogram Generator
 The _Nonogram Generator_ opens when you launch the application without parameters, or by pressing Ctrl + N from inside the _Nonogram GUI_.
