@@ -162,7 +162,17 @@ class NonogramGUI(tk.Tk):
 
         # Process launch arguments
         if len(args) > 1:
-            self.nonogram_handler.load_file(args[1])
+            try:
+                self.nonogram_handler.load_file(args[1])
+            except Warning as w:
+                print(f"Could not open file: {w.args[0]}")
+                self.destroy()
+                exit()
+            except:
+                print(f"Unknown error: Could not load nonogram file")
+                self.destroy()
+                exit()
+
             nonogram = self.nonogram_handler.get_nonogram()
             if nonogram:
                 self.solution_handler.give_nonogram(nonogram)
@@ -225,12 +235,18 @@ class NonogramGUI(tk.Tk):
         self.draw_solution(self.solution_handler.get_curr_soln())
     
     def _on_file_open(self, *_) -> None:
-        file_types = [('ASP encoding', '*.lp'), ('Raw format (UNIMPLEMENTED)', '*.txt')]
+        file_types = [('Text format', '*.txt'), ('ASP encoding', '*.lp')]
         init_dir = "nonograms"
         file_path = filedialog.askopenfilename(title="Select a file encoding a Nonogram", initialdir=init_dir, filetypes=file_types)
         if not file_path:
             return
-        self.nonogram_handler.load_file(file_path)
+
+        try:
+            self.nonogram_handler.load_file(file_path)
+        except Warning as w:
+            self.status.set(f"Could not open file: {w.args[0]}")
+        except:
+            self.status.set(f"Unknown error: Could not load nonogram file")
         self._clear_all()
 
         nonogram = self.nonogram_handler.get_nonogram()
@@ -302,7 +318,7 @@ class NonogramGUI(tk.Tk):
         self.status.set(f"Saved.")
 
     def _on_file_save_as(self, *_) -> None:
-        file_types = [('Logic Program', '*.lp')]
+        file_types = [('Text format', '*.txt'), ('ASP encoding', '*.lp')]
         init_dir = ""
         file_path = filedialog.asksaveasfilename(title="Export Nonogram Encoding", initialdir=init_dir, filetypes=file_types)
         if not file_path:
