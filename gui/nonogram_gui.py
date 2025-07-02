@@ -123,7 +123,7 @@ class NonogramGUI(tk.Tk):
         if self.nonogram_handler.get_nonogram():
             nonogram = self.nonogram_handler.get_nonogram()
             size = nonogram.width * nonogram.height
-            self.show_hint_highlight_var.set(size < 20*20)
+            self.show_hint_highlight_var.set(size <= 20*20)
         self.show_hint_highlight_var.trace_add('write', self._on_toggle_show_hint_highlight)
         self.view_menu.add_checkbutton(label="Highlight hovered cell hints", variable=self.show_hint_highlight_var)
 
@@ -232,7 +232,7 @@ class NonogramGUI(tk.Tk):
         self.draw_nonogram(nonogram)
         if hasattr(self, "show_hint_highlight_var"):
             size = nonogram.width * nonogram.height
-            self.show_hint_highlight_var.set(size < 20*20)
+            self.show_hint_highlight_var.set(size <= 20*20)
         self.solution_handler.give_nonogram(nonogram)
         self.status.set(f"Loaded nonogram from {file_path.split("/")[-1]}.")
 
@@ -260,7 +260,7 @@ class NonogramGUI(tk.Tk):
             
         if hasattr(self, "show_hint_highlight_var"):
             size = nonogram.width * nonogram.height
-            self.show_hint_highlight_var.set(size < 20*20)
+            self.show_hint_highlight_var.set(size <= 20*20)
         if hasattr(self, 'status'):
             self.status.set(f"Ready.")
 
