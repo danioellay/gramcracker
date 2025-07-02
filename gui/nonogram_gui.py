@@ -433,7 +433,7 @@ class NonogramGUI(tk.Tk):
         self.row_hints[row] = []
         if not new_hint:
             hint = [self.axes.text(-0.66, nonogram.height - row - 0.6, "0", va='center', ha='center', fontsize=18, color='red')]
-            if not self.show_hint_feedback_var.get():
+            if not self.show_hint_feedback_var.get() or self.solution_handler.solves_row(row):
                 hint[0].set_color('black')
             self.row_hints[row] = hint
         else:
@@ -462,7 +462,7 @@ class NonogramGUI(tk.Tk):
         self.col_hints[col] = []
         if not new_hint:
             hint = [self.axes.text(col + 0.5, nonogram.height + 0.33, "0", va='center', ha='center', fontsize=18, color='red')]
-            if not self.show_hint_feedback_var.get():
+            if not self.show_hint_feedback_var.get() or self.solution_handler.solves_col(col):
                 hint[0].set_color('black')
             self.col_hints[col] = hint
         else:
@@ -564,7 +564,7 @@ class NonogramGUI(tk.Tk):
         for i, hints in enumerate(nonogram.row_hints):
             if not hints:
                 hint = [self.axes.text(-0.66, nonogram.height - i - 0.6, "0", va='center', ha='center', fontsize=18, color='red')]
-                if not self.show_hint_feedback_var.get():
+                if not self.show_hint_feedback_var.get() or self.solution_handler.solves_row(i):
                     hint[0].set_color('black')
                 self.row_hints.append(hint)
                 continue
@@ -572,7 +572,7 @@ class NonogramGUI(tk.Tk):
             self.row_hints.append([])
             for j, l in enumerate(reversed(hints)):
                 hint = self.axes.text(-0.66-j*0.7, nonogram.height - i - 0.6, str(l), va='center', ha='center', fontsize=18 if l < 10 else 13, color='red')
-                if not self.show_hint_feedback_var.get():
+                if not self.show_hint_feedback_var.get() or self.solution_handler.solves_row(i):
                     hint.set_color('black')
                 self.row_hints[-1].append(hint)
 
@@ -581,7 +581,7 @@ class NonogramGUI(tk.Tk):
         for j, hints in enumerate(nonogram.col_hints):
             if not hints:
                 hint = [self.axes.text(j + 0.5, nonogram.height + 0.33, "0", va='center', ha='center', fontsize=18, color='red')]
-                if not self.show_hint_feedback_var.get():
+                if not self.show_hint_feedback_var.get() or self.solution_handler.solves_col(j):
                     hint[0].set_color('black')
                 self.col_hints.append(hint)
                 continue
@@ -589,7 +589,7 @@ class NonogramGUI(tk.Tk):
             self.col_hints.append([])
             for i, l in enumerate(reversed(hints)):
                 hint = self.axes.text(j + 0.5, nonogram.height + 0.33 + i*0.8, str(l), va='center', ha='center', fontsize=18 if l < 10 else 13, color='red')
-                if not self.show_hint_feedback_var.get():
+                if not self.show_hint_feedback_var.get() or self.solution_handler.solves_col(j):
                     hint.set_color('black')
                 self.col_hints[-1].append(hint)
 
