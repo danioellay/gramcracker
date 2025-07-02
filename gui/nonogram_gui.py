@@ -120,10 +120,6 @@ class NonogramGUI(tk.Tk):
         self.view_menu.add_checkbutton(label="Color hints as correctness feedback", variable=self.show_hint_feedback_var)
 
         self.show_hint_highlight_var = BooleanVar(value=True)
-        nonogram = self.nonogram_handler.get_nonogram()
-        if nonogram:
-            size = nonogram.width * nonogram.height
-            self.show_hint_highlight_var.set(size <= 20*20)
         self.show_hint_highlight_var.trace_add('write', self._on_toggle_show_hint_highlight)
         self.view_menu.add_checkbutton(label="Highlight hovered cell hints", variable=self.show_hint_highlight_var)
 
@@ -180,6 +176,8 @@ class NonogramGUI(tk.Tk):
         nonogram = self.nonogram_handler.get_nonogram()
         if nonogram:
             self.draw_nonogram(nonogram)
+            size = nonogram.width * nonogram.height
+            self.show_hint_highlight_var.set(size <= 20*20)
 
         if len(args) > 2:
             self._on_solver(args[2])
