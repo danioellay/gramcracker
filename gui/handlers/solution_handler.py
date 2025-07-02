@@ -85,16 +85,16 @@ class SolutionHandler:
         # If trying to find all solutions, keep going
         if model2 and check_unique and all_models:
             while True:
-                print(f"looking for model nr {len(self.solutions) + 1}...")
+                # print(f"looking for model nr {len(self.solutions) + 1}...")
                 handler.resume()
                 next_model = handler.model()
                 if next_model:
-                    print(f"found model nr {len(self.solutions) + 1}!")
+                    # print(f"found model nr {len(self.solutions) + 1}!")
                     next_soln = NonogramSoln(self.given_nonogram)
                     next_soln.fill_from_model(next_model)
                     self.solutions.append(next_soln)
                 else:
-                    print(f"model nr {len(self.solutions) + 1} not found! Ending search...")
+                    # print(f"model nr {len(self.solutions) + 1} not found! Ending search...")
                     print()
                     break
                 

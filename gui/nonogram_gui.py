@@ -413,7 +413,7 @@ class NonogramGUI(tk.Tk):
         entry = tk.Entry(dialog, width=40)
         entry.insert(0, current_string)
         entry.pack(pady=20)
-        result: List[List[int]] = [[]]
+        result: List[List[int]] = [hint]
 
         # Add a label widget for feedback
         feedback = [tk.Label(dialog, text="")]
@@ -432,8 +432,10 @@ class NonogramGUI(tk.Tk):
                 if min_len <= length:
                     dialog.destroy()
                 else:
+                    result[0] = hint
                     feedback[0].configure(text=f"Hint too long! (Needs {min_len}+ units)")
             except:
+                result[0] = hint
                 feedback[0].configure(text=f"Invalid hint!")
 
         # Add OK and Cancel buttons
