@@ -120,8 +120,8 @@ class NonogramGUI(tk.Tk):
         self.view_menu.add_checkbutton(label="Color hints as correctness feedback", variable=self.show_hint_feedback_var)
 
         self.show_hint_highlight_var = BooleanVar(value=True)
-        if self.nonogram_handler.get_nonogram():
-            nonogram = self.nonogram_handler.get_nonogram()
+        nonogram = self.nonogram_handler.get_nonogram()
+        if nonogram:
             size = nonogram.width * nonogram.height
             self.show_hint_highlight_var.set(size <= 20*20)
         self.show_hint_highlight_var.trace_add('write', self._on_toggle_show_hint_highlight)
@@ -163,9 +163,13 @@ class NonogramGUI(tk.Tk):
         # Process launch arguments
         if len(args) > 1:
             self.nonogram_handler.load_file(args[1])
-            self.solution_handler.give_nonogram(self.nonogram_handler.get_nonogram())
+            nonogram = self.nonogram_handler.get_nonogram()
+            if nonogram:
+                self.solution_handler.give_nonogram(nonogram)
 
-        self.draw_nonogram(self.nonogram_handler.get_nonogram())
+        nonogram = self.nonogram_handler.get_nonogram()
+        if nonogram:
+            self.draw_nonogram(nonogram)
 
         if len(args) > 2:
             self._on_solver(args[2])
@@ -227,14 +231,17 @@ class NonogramGUI(tk.Tk):
         if not file_path:
             return
         self.nonogram_handler.load_file(file_path)
-        nonogram = self.nonogram_handler.get_nonogram()
         self._clear_all()
-        self.draw_nonogram(nonogram)
-        if hasattr(self, "show_hint_highlight_var"):
-            size = nonogram.width * nonogram.height
-            self.show_hint_highlight_var.set(size <= 20*20)
-        self.solution_handler.give_nonogram(nonogram)
-        self.status.set(f"Loaded nonogram from {file_path.split("/")[-1]}.")
+
+        nonogram = self.nonogram_handler.get_nonogram()
+        if nonogram:
+            self.draw_nonogram(nonogram)
+            if hasattr(self, "show_hint_highlight_var"):
+                size = nonogram.width * nonogram.height
+                self.show_hint_highlight_var.set(size <= 20*20)
+
+            self.solution_handler.give_nonogram(nonogram)
+            self.status.set(f"Loaded nonogram from {file_path.split("/")[-1]}.")
 
     def _on_file_new(self, *_) -> None:
         creator = NonogramCreator(self)
@@ -253,16 +260,16 @@ class NonogramGUI(tk.Tk):
             self.nonogram_handler.resize(width, height)
     
         nonogram = self.nonogram_handler.get_nonogram()
-
-        self.solution_handler.give_nonogram(nonogram)
-        if hasattr(self, "axes"):
-            self.draw_nonogram(nonogram)
+        if nonogram:
+            self.solution_handler.give_nonogram(nonogram)
+            if hasattr(self, "axes"):
+                self.draw_nonogram(nonogram)
             
-        if hasattr(self, "show_hint_highlight_var"):
-            size = nonogram.width * nonogram.height
-            self.show_hint_highlight_var.set(size <= 20*20)
-        if hasattr(self, 'status'):
-            self.status.set(f"Ready.")
+            if hasattr(self, "show_hint_highlight_var"):
+                size = nonogram.width * nonogram.height
+                self.show_hint_highlight_var.set(size <= 20*20)
+            if hasattr(self, 'status'):
+                self.status.set(f"Ready.")
 
     def _on_file_new_from_current(self, *_) -> None:
         self.nonogram_handler.loaded_nonogram_filename = None
@@ -272,10 +279,11 @@ class NonogramGUI(tk.Tk):
         self.nonogram_handler.hints_from_grid(grid)
 
         nonogram = self.nonogram_handler.get_nonogram()
-        self.solution_handler.give_nonogram(nonogram)
-        self._clear_all()
-        self.draw_nonogram(nonogram)
-        self.status.set(f"Ready.")
+        if nonogram:
+            self.solution_handler.give_nonogram(nonogram)
+            self._clear_all()
+            self.draw_nonogram(nonogram)
+            self.status.set(f"Ready.")
 
     def _on_file_export_image(self, *_) -> None:
         file_types = [('SVG image', '*.svg'), ('PDF Document', '*.pdf'), ('PNG image', '*.png'), ('JPG image', '*.jpg')]
@@ -303,7 +311,7 @@ class NonogramGUI(tk.Tk):
         self.nonogram_handler.save_file()
         self.status.set(f"Saved nonogram to {file_path.split("/")[-1]}.")
 
-    def _on_button_press(self, event: MouseEvent) -> None:
+    def _on_button_press(self, event) -> None:
         if event.inaxes != self.axes:
             return
         self.solution_handler.use_working_soln()
@@ -320,7 +328,7 @@ class NonogramGUI(tk.Tk):
             elif x >= 0 and y < 0:
                 self._on_leftclick_colhint(x)
 
-    def _on_mouse_motion(self, event: MouseEvent) -> None:
+    def _on_mouse_motion(self, event) -> None:
         if self.block_hover:
             return
         
@@ -329,6 +337,8 @@ class NonogramGUI(tk.Tk):
             return
         
         nonogram = self.nonogram_handler.get_nonogram()
+        if not nonogram:
+            return
         y = ceil(nonogram.height - event.ydata - 1)
         x = ceil(event.xdata - 1)
         if self.highlighted_x != x or self.highlighted_y != y:
@@ -341,6 +351,9 @@ class NonogramGUI(tk.Tk):
             cell.set_alpha(0.8)
 
         nonogram = self.nonogram_handler.get_nonogram()
+        if not nonogram:
+            return
+        
         # Highlight newly selected row
         if y >= 0 and y < nonogram.height:
             self.row_hints[y].set_fontweight('bold')
@@ -472,15 +485,17 @@ class NonogramGUI(tk.Tk):
 
         # Draw the nonogram fully filled and save each pixel as a separate object, then hide them
         # The pixels are indexed by [row][column], starting at index 0!
-        self.pixels: list[list[patches.Patch]] = [[None for _ in range(nonogram.width)] for _ in range(nonogram.height)]
-        for x in range(nonogram.width):
-            col = x
-            for y in range(nonogram.height):
-                row = nonogram.height - y - 1
-                # self.axes.text(x,y,f"{row}|{col}", fontsize=8)
-                pixel = patches.Rectangle((x, y), 1, 1, linewidth=0, facecolor='black', alpha=0.8)
+        self.pixels: list[list[patches.Patch]] = [
+            [
+                patches.Rectangle((col, nonogram.height - row - 1), 1, 1, linewidth=0, facecolor='black', alpha=0.8)
+                for col in range(nonogram.width)
+            ]
+            for row in range(nonogram.height)
+        ]
+        for row in range(nonogram.height):
+            for col in range(nonogram.width):
+                pixel = self.pixels[row][col]
                 self.axes.add_patch(pixel)
-                self.pixels[row][col] = pixel
                 pixel.set_visible(False)
 
         # Draw row hints to the left of the grid
