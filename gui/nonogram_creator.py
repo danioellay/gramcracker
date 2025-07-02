@@ -69,13 +69,13 @@ class NonogramCreator(tk.Toplevel):
     width: int = 15
     height: int = 15
     bwratio: float = 0.6
-    pxcorr: float = 0.7
+    pxcorr: float = 0.8
     threshold: int = 127
     im_file_path: str = ""
     grid = np.full((height, width), 255, dtype=np.uint8)
     success: bool = True
 
-    def get(self) -> Tuple[int, int, List[List[int]]] | None:
+    def get(self) -> Tuple[int, int, List[List[bool]]] | None:
         # Wait for the dialog to close
         self.wait_window()
         if self.success:

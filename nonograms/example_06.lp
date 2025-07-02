@@ -1,6 +1,6 @@
 %%% ASP Nonogram solver
 %%% Problem Instance encoding
-%%% 32x32 Nonogram, difficult (~30s with block start solver)
+%%% 32x32 Nonogram, 1152 distinct solutions, difficult (~30s with block start solver)
 %%% Author: Fabian Kraus
 #const w = 32.  % Size of the Nonogram (w x h bw image)
 #const h = 32.

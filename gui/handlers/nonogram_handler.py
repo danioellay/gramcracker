@@ -5,7 +5,7 @@ from gui.common import *
 
 class NonogramHandler:
     def __init__(self):
-        self.loaded_nonogram: Nonogram | None = None
+        self.loaded_nonogram: Nonogram
         self.loaded_nonogram_filename: str | None = None
 
     def load_file(self, path: str) -> None:
@@ -87,10 +87,6 @@ class NonogramHandler:
 
     def clear_hints(self):
         """Remove all row and column hints from the loaded nonogram"""
-        if not self.loaded_nonogram:
-            print("Error: No nonogram loaded to clear hints in")
-            return
-        
         self.loaded_nonogram.col_hints = [[0] for _ in range(self.loaded_nonogram.width)]
         self.loaded_nonogram.row_hints = [[0] for _ in range(self.loaded_nonogram.height)]
         self.loaded_nonogram_filename = None
@@ -132,6 +128,6 @@ class NonogramHandler:
                 for idx, length in enumerate(hints, start=1):
                     f.write(f"col_hint({col_num}, {idx}, {length}).\n")
 
-    def get_nonogram(self) -> Nonogram | None:
+    def get_nonogram(self) -> Nonogram:
         """Get a reference to the currently loaded nonogram"""
         return self.loaded_nonogram

@@ -8,7 +8,8 @@ from os.path import isfile, join
 from math import ceil
 
 import tkinter as tk
-from tkinter import filedialog, Event, BooleanVar
+from tkinter import filedialog, BooleanVar
+from matplotlib.backend_bases import MouseEvent
 
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import matplotlib.pyplot as plt
@@ -20,7 +21,7 @@ from .nonogram_creator import NonogramCreator
 from .handlers.nonogram_handler import NonogramHandler
 from .handlers.solution_handler import SolutionHandler
 
-WINDOW_WIDTH = 600
+WINDOW_WIDTH = 800
 WINDOW_HEIGHT = 600
 SQUARE_SIZE = 50 #default side length of a grid cell, pixels
 
@@ -32,10 +33,10 @@ class StatusBar(tk.Frame):
         self.label.pack(side=tk.LEFT)
         self.pack(side=tk.BOTTOM, fill=tk.X)
 
-    def set(self, newText):
+    def set(self, newText) -> None:
         self.label.config(text=newText)
     
-    def clear(self):
+    def clear(self) -> None:
         self.label.config(text="")
 
 
@@ -43,10 +44,12 @@ class NonogramGUI(tk.Tk):
 
     def __init__(self, args) -> None:
         tk.Tk.__init__(self)
+
         # Setup data handlers
         self.nonogram_handler = NonogramHandler()
         self.solution_handler = SolutionHandler()
 
+        # Open nonogram generator first if no arguments and wait for this to close
         if len(args) == 1:
             self.withdraw()
             self._on_file_new()
@@ -64,6 +67,8 @@ class NonogramGUI(tk.Tk):
         # Setup window menubar
         self.menubar = tk.Menu(self, type='menubar')
         self.configure(menu=self.menubar)
+
+        # File menu
         self.file_menu = tk.Menu(self.menubar, tearoff=False)
         self.menubar.add_cascade(menu=self.file_menu, label="File")
         self.file_menu.add_command(label="Open", accelerator="Ctrl+O", command=self._on_file_open)
@@ -86,12 +91,19 @@ class NonogramGUI(tk.Tk):
         self.bind_all("<Control-I>", self._on_file_export_image)
         self.file_menu.add_command(label="Exit", command=self._on_del_window)
 
+        # Solver menu
         self.solver_menu = tk.Menu(self.menubar, tearoff=False)
         self.menubar.add_cascade(menu=self.solver_menu, label="Solver")
+
         self.check_uniqueness_var = BooleanVar(value=True)
-        self.solver_menu.add_checkbutton(label="Also check uniqueness", variable=self.check_uniqueness_var)
+        self.solver_menu.add_checkbutton(label="Check uniqueness", variable=self.check_uniqueness_var)
+        self.check_uniqueness_var.trace_add('write', self._on_toggle_check_uniqueness)
+
         self.find_all_solns_var = BooleanVar(value=False)
         self.solver_menu.add_checkbutton(label="Find all solutions", variable=self.find_all_solns_var)
+        self.find_all_solns_var.trace_add('write', self._on_toggle_check_uniqueness)
+
+        self.solver_menu.add_separator()
 
         solvers = [f for f in listdir("solvers/") if isfile(join("solvers/", f)) and f.endswith(".lp")]
         for i, solver in enumerate(solvers):
@@ -99,11 +111,14 @@ class NonogramGUI(tk.Tk):
             self.solver_menu.add_command(label=solver.split(".")[0], accelerator=f"Ctrl+{i+1}", command=lambda s=solver: self._on_solver(s))
             self.bind_all(f"<Control-Key-{i+1}>", lambda e, s=solver: self._on_solver(s))
 
+        # View menu
         self.view_menu = tk.Menu(self.menubar, tearoff=False)
         self.menubar.add_cascade(menu=self.view_menu, label="View")
+
         self.show_hint_feedback_var = BooleanVar(value=True)
         self.show_hint_feedback_var.trace_add('write', self._on_toggle_show_hint_feedback)
         self.view_menu.add_checkbutton(label="Color hints as correctness feedback", variable=self.show_hint_feedback_var)
+
         self.show_hint_highlight_var = BooleanVar(value=True)
         if self.nonogram_handler.get_nonogram():
             nonogram = self.nonogram_handler.get_nonogram()
@@ -111,9 +126,13 @@ class NonogramGUI(tk.Tk):
             self.show_hint_highlight_var.set(size < 20*20)
         self.show_hint_highlight_var.trace_add('write', self._on_toggle_show_hint_highlight)
         self.view_menu.add_checkbutton(label="Highlight hovered cell hints", variable=self.show_hint_highlight_var)
+
+        self.view_menu.add_separator()
+
         self.view_menu.add_command(label="View Next Solution", accelerator="Ctrl+J", command=self._on_next_soln)
         self.bind_all("<Control-j>", self._on_next_soln)
         self.bind_all("<Control-J>", self._on_next_soln)
+
         self.view_menu.add_command(label="View Prev. Solution", accelerator="Ctrl+H", command=self._on_prev_soln)
         self.bind_all("<Control-H>", self._on_prev_soln)
         self.bind_all("<Control-h>", self._on_prev_soln)
@@ -130,13 +149,15 @@ class NonogramGUI(tk.Tk):
         # Setup status bar
         self.status = StatusBar(self)
         self.status.pack(side=tk.BOTTOM, fill=tk.X)
-        self.status.set("Ready.")
+        self.status.set("Initializing...")
 
         # Setup button event callbacks
         self.canvas.mpl_connect('button_press_event', self._on_button_press)
         # self.canvas.mpl_connect('button_release_event', self._on_button_release)
         self.canvas.mpl_connect('motion_notify_event', self._on_mouse_motion)
         # self.canvas.mpl_connect('scroll_event', self._on_scroll)
+
+        # Flag to freeze the currently hovered row/column when opening a dialog box (eg hint editor)
         self.block_hover = False
 
         # Process launch arguments
@@ -154,44 +175,52 @@ class NonogramGUI(tk.Tk):
         self.update()
         self.update_idletasks()
         self.focus_force()
+        self.status.set("Ready.")
         return self.mainloop()
     
-    def _on_next_soln(self, *_):
+    def _on_next_soln(self, *_) -> None:
         self.solution_handler.next_soln()
         self.draw_solution(self.solution_handler.get_curr_soln())
+        self.status.set(f"Showing solution nr. {self.solution_handler.curr_soln_idx + 1}.")
 
-    def _on_prev_soln(self, *_):
+    def _on_prev_soln(self, *_) -> None:
         self.solution_handler.prev_soln()
         self.draw_solution(self.solution_handler.get_curr_soln())
+        self.status.set(f"Showing solution nr. {self.solution_handler.curr_soln_idx + 1}.")
 
-    def _clear_all(self):
+    def _clear_all(self) -> None:
         if hasattr(self, "pixels"):
             for r in self.pixels:
                 for c in r:
                     c.remove()
             self.pixels.clear()
-            self.pixels = None
+            self.pixels = []
 
         if hasattr(self, "col_hints"):
             for h in self.col_hints:
                 h.remove()
             self.col_hints.clear()
-            self.col_hints = None
+            self.col_hints = []
 
         if hasattr(self, "row_hints"):
             for h in self.row_hints:
                 h.remove()
             self.row_hints.clear()
-            self.row_hints = None
+            self.row_hints = []
 
         plt.cla()
 
-    def _on_solver(self, name: str, *_):
-        res = self.solution_handler.run_solver(name.split(".")[0], self.check_uniqueness_var.get(), self.find_all_solns_var.get())
-        self.status.set(res)
+    def _on_solver(self, name: str, *_) -> None:
+        self.status.set("Solving nonogram...")
+        self.update_idletasks()
+        res = self.solution_handler.run_solver(name.split(".")[0], 
+                                               self.check_uniqueness_var.get(), 
+                                               self.find_all_solns_var.get())
+        self.status.set(res + ".")
+
         self.draw_solution(self.solution_handler.get_curr_soln())
     
-    def _on_file_open(self, *_):
+    def _on_file_open(self, *_) -> None:
         file_types = [('ASP encoding', '*.lp'), ('Raw format (UNIMPLEMENTED)', '*.txt')]
         init_dir = "nonograms"
         file_path = filedialog.askopenfilename(title="Select a file encoding a Nonogram", initialdir=init_dir, filetypes=file_types)
@@ -205,11 +234,13 @@ class NonogramGUI(tk.Tk):
             size = nonogram.width * nonogram.height
             self.show_hint_highlight_var.set(size < 20*20)
         self.solution_handler.give_nonogram(nonogram)
+        self.status.set(f"Loaded nonogram from {file_path.split("/")[-1]}.")
 
-    def _on_file_new(self, *_):
+    def _on_file_new(self, *_) -> None:
         creator = NonogramCreator(self)
         result = creator.get()
         if not result:
+            # self.status.set(f"Ready.")
             return
         width, height, grid = result
         
@@ -230,8 +261,10 @@ class NonogramGUI(tk.Tk):
         if hasattr(self, "show_hint_highlight_var"):
             size = nonogram.width * nonogram.height
             self.show_hint_highlight_var.set(size < 20*20)
+        if hasattr(self, 'status'):
+            self.status.set(f"Ready.")
 
-    def _on_file_new_from_current(self, *_):
+    def _on_file_new_from_current(self, *_) -> None:
         self.nonogram_handler.loaded_nonogram_filename = None
         self.nonogram_handler.clear_hints()
         grid = self.solution_handler.get_curr_soln().fill
@@ -242,21 +275,25 @@ class NonogramGUI(tk.Tk):
         self.solution_handler.give_nonogram(nonogram)
         self._clear_all()
         self.draw_nonogram(nonogram)
+        self.status.set(f"Ready.")
 
-    def _on_file_export_image(self, *_):
+    def _on_file_export_image(self, *_) -> None:
         file_types = [('SVG image', '*.svg'), ('PDF Document', '*.pdf'), ('PNG image', '*.png'), ('JPG image', '*.jpg')]
         init_dir = ""
         file_path = filedialog.asksaveasfilename(title="Export image", initialdir=init_dir, filetypes=file_types)
         if not file_path:
             return
         self.figure.savefig(file_path, bbox_inches='tight')
+        self.status.set(f"Exported image to {file_path.split("/")[-1]}.")
 
-    def _on_file_save(self, *_):
+    def _on_file_save(self, *_) -> None:
         if not self.nonogram_handler.loaded_nonogram_filename:
-            return self._on_file_save_as()
+            self._on_file_save_as()
+            return
         self.nonogram_handler.save_file()
+        self.status.set(f"Saved.")
 
-    def _on_file_save_as(self, *_):
+    def _on_file_save_as(self, *_) -> None:
         file_types = [('Logic Program', '*.lp')]
         init_dir = ""
         file_path = filedialog.asksaveasfilename(title="Export Nonogram Encoding", initialdir=init_dir, filetypes=file_types)
@@ -264,14 +301,16 @@ class NonogramGUI(tk.Tk):
             return
         self.nonogram_handler.loaded_nonogram_filename = file_path
         self.nonogram_handler.save_file()
+        self.status.set(f"Saved nonogram to {file_path.split("/")[-1]}.")
 
-    def _on_button_press(self, event: Event):
+    def _on_button_press(self, event: MouseEvent) -> None:
         if event.inaxes != self.axes:
             return
         self.solution_handler.use_working_soln()
-        
-        if event.button == 1: #(left mouse button)
+
+        if event.button == 1 and event.ydata and event.xdata: #(left mouse button)
             nonogram = self.nonogram_handler.get_nonogram()
+            assert(nonogram)
             y = ceil(nonogram.height - event.ydata - 1)
             x = ceil(event.xdata - 1)
             if y >= 0 and y < nonogram.height and x >= 0 and x < nonogram.width:
@@ -281,11 +320,11 @@ class NonogramGUI(tk.Tk):
             elif x >= 0 and y < 0:
                 self._on_leftclick_colhint(x)
 
-    def _on_mouse_motion(self, event: Event):
+    def _on_mouse_motion(self, event: MouseEvent) -> None:
         if self.block_hover:
             return
         
-        if event.inaxes != self.axes or not self.show_hint_highlight_var.get():
+        if event.inaxes != self.axes or not self.show_hint_highlight_var.get() or not event.ydata or not event.xdata:
             self._highlight_hint(-1, -1)
             return
         
@@ -295,7 +334,7 @@ class NonogramGUI(tk.Tk):
         if self.highlighted_x != x or self.highlighted_y != y:
             self._highlight_hint(x, y)
 
-    def _highlight_hint(self, x: int, y: int):
+    def _highlight_hint(self, x: int, y: int) -> None:
         # Restore default appearance of previously selected row
         self.row_hints[self.highlighted_y].set_fontweight('normal')
         for cell in self.pixels[self.highlighted_y]:
@@ -325,7 +364,7 @@ class NonogramGUI(tk.Tk):
 
         self.canvas.draw_idle()
 
-    def _on_leftclick_cell(self, row: int, col: int):
+    def _on_leftclick_cell(self, row: int, col: int) -> None:
         color_hints = self.show_hint_feedback_var.get()
 
         self.solution_handler.get_curr_soln().fill[row][col] = not self.solution_handler.get_curr_soln().fill[row][col]
@@ -334,7 +373,7 @@ class NonogramGUI(tk.Tk):
         self.col_hints[col].set_color('black' if not color_hints or self.solution_handler.solves_col(col) else 'red')
         self.canvas.draw_idle()
 
-    def _on_leftclick_rowhint(self, row: int):
+    def _on_leftclick_rowhint(self, row: int) -> None:
         nonogram = self.nonogram_handler.get_nonogram()
         if not nonogram:
             return
@@ -347,7 +386,7 @@ class NonogramGUI(tk.Tk):
             self.row_hints[row].set_color('black' if not self.show_hint_highlight_var.get() or self.solution_handler.solves_row(row) else 'red')
             self.canvas.draw_idle()
 
-    def _on_leftclick_colhint(self, col: int):
+    def _on_leftclick_colhint(self, col: int) -> None:
         nonogram = self.nonogram_handler.get_nonogram()
         if not nonogram:
             return
@@ -360,7 +399,7 @@ class NonogramGUI(tk.Tk):
             self.col_hints[col].set_color('black' if not self.show_hint_highlight_var.get() or self.solution_handler.solves_col(col) else 'red')
             self.canvas.draw_idle()
 
-    def _open_hint_edit_dialog(self, hint: list[int], length: int):
+    def _open_hint_edit_dialog(self, hint: list[int], length: int) -> List[int]:
         self.block_hover = True
         # Load the current string
         current_string = ' '.join(map(str, hint)) if hint else "0"
@@ -368,22 +407,34 @@ class NonogramGUI(tk.Tk):
         # Create a custom dialog
         dialog = tk.Toplevel(self)
         dialog.title("Edit Hint")
-        dialog.geometry("400x150")
+        dialog.geometry("500x150")
 
         # Add an entry widget
         entry = tk.Entry(dialog, width=40)
         entry.insert(0, current_string)
         entry.pack(pady=20)
-        self.result = None
+        result: List[List[int]] = [[]]
+
+        # Add a label widget for feedback
+        feedback = [tk.Label(dialog, text="")]
+        feedback[0].pack(pady=20)
 
         # Function to handle OK button click
         def on_ok():
             new_string = entry.get()
             try:
-                self.result = list(map(int, new_string.split()))
-                dialog.destroy()
+                result[0] = list(map(int, new_string.split()))
+                for h in result[0]:
+                    if h <= 0:
+                        raise ValueError
+                    
+                min_len = sum(result[0]) + len(result[0]) - 1
+                if min_len <= length:
+                    dialog.destroy()
+                else:
+                    feedback[0].configure(text=f"Hint too long! (Needs {min_len}+ units)")
             except:
-                print(f"invalid hint: {new_string}")
+                feedback[0].configure(text=f"Invalid hint!")
 
         # Add OK and Cancel buttons
         ok_button = tk.Button(dialog, text="OK", command=on_ok)
@@ -393,10 +444,10 @@ class NonogramGUI(tk.Tk):
         cancel_button.pack(side=tk.RIGHT, padx=10)
 
         # Bind the Enter key to the OK button command
-        dialog.bind('<Return>', lambda event: on_ok())
+        dialog.bind('<Return>', lambda _: on_ok())
 
         # Bind the Escape key to the Cancel button command
-        dialog.bind('<Escape>', lambda event: dialog.destroy())
+        dialog.bind('<Escape>', lambda _: dialog.destroy())
 
         # Focus on the entry widget so the user can start typing immediately
         entry.focus_set()
@@ -405,7 +456,7 @@ class NonogramGUI(tk.Tk):
 
         self.block_hover = False
 
-        return self.result
+        return result[0]
 
     def _on_del_window(self) -> None:
         self.quit()
@@ -488,3 +539,7 @@ class NonogramGUI(tk.Tk):
 
     def _on_toggle_show_hint_highlight(self, *_):
         self._highlight_hint(-1,-1)
+
+    def _on_toggle_check_uniqueness(self, *_):
+        if not self.check_uniqueness_var.get():
+            self.find_all_solns_var.set(False)
