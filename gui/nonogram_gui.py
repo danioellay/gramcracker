@@ -141,6 +141,7 @@ class NonogramGUI(tk.Tk):
 
         # Setup canvas artist storage
         self.pixels: List[List[Patch]] = []
+        self.crosses: List[List[Text]] = []
         self.col_hints: List[List[Text]] = []
         self.row_hints: List[List[Text]] = []
 
@@ -161,6 +162,7 @@ class NonogramGUI(tk.Tk):
         self.drag_end = -1, -1
         self.drag_covered = []
         self.drag_to_erase = False
+        self.drag_to_cross = False
         # self.canvas.mpl_connect('scroll_event', self._on_scroll)
 
         # Flag to freeze the currently hovered row/column when opening a dialog box (eg hint editor)
@@ -331,20 +333,27 @@ class NonogramGUI(tk.Tk):
             return
         self.solution_handler.use_working_soln()
 
-        if event.button == 1 and event.ydata and event.xdata: #(left mouse button)
-            nonogram = self.nonogram_handler.get_curr_nonogram()
-            y = ceil(nonogram.height - event.ydata - 1)
-            x = ceil(event.xdata - 1)
-            if y >= 0 and y < nonogram.height and x >= 0 and x < nonogram.width:
-                self.dragging = True
-                self.drag_start = self.drag_end = y, x
+        nonogram = self.nonogram_handler.get_curr_nonogram()
+        y = ceil(nonogram.height - event.ydata - 1)
+        x = ceil(event.xdata - 1)
+        if y >= 0 and y < nonogram.height and x >= 0 and x < nonogram.width:
+            self.dragging = True
+            self.drag_start = self.drag_end = y, x
+            self.drag_covered = [self.drag_start]
+
+            if event.button == 1: #(left mouse button)
                 self._on_leftclick_cell(*self.drag_start)
-                self.drag_covered = [self.drag_start]
+                self.drag_to_cross = False
                 self.drag_to_erase = self.solution_handler.get_curr_soln().grid[*self.drag_start]
-            elif y >= 0 and x < 0:
-                self._on_leftclick_rowhint(y)
-            elif x >= 0 and y < 0:
-                self._on_leftclick_colhint(x)
+            elif event.button == 3: #(right mouse button)
+                self._on_rightclick_cell(*self.drag_start)
+                self.drag_to_cross = True
+                self.drag_to_erase = self.crosses[y][x].get_visible()
+
+        elif y >= 0 and x < 0 and event.button == 1:
+            self._on_leftclick_rowhint(y)
+        elif x >= 0 and y < 0 and event.button == 1:
+            self._on_leftclick_colhint(x)
 
     def _on_button_release(self, event: MouseEvent) -> None:
         if self.dragging:
@@ -352,6 +361,7 @@ class NonogramGUI(tk.Tk):
             self.drag_start = self.drag_end = -1, -1
             self.drag_covered = []
             self.drag_to_erase = False
+            self.drag_to_cross = False
 
     def _on_mouse_motion(self, event: MouseEvent) -> None:
         if self.block_hover:
@@ -368,9 +378,9 @@ class NonogramGUI(tk.Tk):
         
         x = ceil(event.xdata - 1)
         y = ceil(nonogram.height - event.ydata - 1)
-        if x < 0 or x > nonogram.width:
+        if x < 0 or x >= nonogram.width:
             return
-        if y < 0 or y > nonogram.height:
+        if y < 0 or y >= nonogram.height:
             return
 
         if self.show_hint_highlight_var.get() and (self.highlighted_x != x or self.highlighted_y != y):
@@ -387,28 +397,34 @@ class NonogramGUI(tk.Tk):
             # print("end:", self.drag_end)
 
             # Erase the old dragged line
-            for cell in self.drag_covered:
-                self._on_leftclick_cell(*cell)
+            if self.drag_to_cross:
+                for cell in self.drag_covered:
+                    self._on_rightclick_cell(*cell)
+            else:
+                for cell in self.drag_covered:
+                    self._on_leftclick_cell(*cell)
 
             # Drag a new vertical or horizontal line
             self.drag_covered = []
             grid = self.solution_handler.get_curr_soln().grid
             y0, x0 = self.drag_start
+            points = []
             if abs(dy) > abs(dx):
                 # print("y-mode")
                 for deltay in range(abs(dy) + 1):
-                    point = (y0 + deltay if dy > 0 else y0 - deltay, x0)
-                    if grid[*point] != self.drag_to_erase:
-                        self.drag_covered.append(point)
-                        self._on_leftclick_cell(*point)
+                    points.append((y0 + deltay if dy > 0 else y0 - deltay, x0))
             else:
                 # print("x-mode")
                 for deltax in range(abs(dx) + 1):
-                    point = (y0, x0+deltax if dx > 0 else x0-deltax)
-                    if grid[*point] != self.drag_to_erase:
-                        self.drag_covered.append(point)
-                        self._on_leftclick_cell(*point)
-            # print(self.drag_covered)
+                    points.append((y0, x0+deltax if dx > 0 else x0-deltax))
+
+            for point in points:
+                if self.drag_to_cross and self.crosses[point[0]][point[1]].get_visible() != self.drag_to_erase:
+                    self.drag_covered.append(point)
+                    self._on_rightclick_cell(*point)
+                elif not self.drag_to_cross and grid[*point] != self.drag_to_erase:
+                    self.drag_covered.append(point)
+                    self._on_leftclick_cell(*point)
 
 
     # def _unblock_mouse_motion(self):
@@ -466,6 +482,11 @@ class NonogramGUI(tk.Tk):
             hint.set_color('black' if idx in satisfied_col_indices or not color_hints else 'red')
         
         # Refresh canvas
+        self.canvas.draw_idle()
+
+    def _on_rightclick_cell(self, row: int, col: int) -> None:
+        newval = not self.crosses[row][col].get_visible()
+        self.crosses[row][col].set_visible(newval)
         self.canvas.draw_idle()
 
     def _on_leftclick_rowhint(self, row: int) -> None:
@@ -601,6 +622,8 @@ class NonogramGUI(tk.Tk):
 
         # Ensure the aspect ratio is equal to avoid distortion
         self.axes.set_aspect('equal')
+
+        # Draw a black pixel in every cell then hide it
         self.pixels = [
             [
                 patches.Rectangle((col, nonogram.height - row - 1), 1, 1, linewidth=0, facecolor='black', alpha=0.8)
@@ -613,6 +636,20 @@ class NonogramGUI(tk.Tk):
                 pixel = self.pixels[row][col]
                 self.axes.add_patch(pixel)
                 pixel.set_visible(False)
+
+        # Draw a 'x' in every cell then hide it
+        self.crosses = [
+            [
+                Text(col + 0.5, nonogram.height - row - 0.5, 'x', color='grey', va='center', ha='center', fontsize=14)
+                for col in range(nonogram.width)
+            ]
+            for row in range(nonogram.height)
+        ]
+        for row in range(nonogram.height):
+            for col in range(nonogram.width):
+                cross = self.crosses[row][col]
+                self.axes.add_artist(cross)
+                cross.set_visible(False)
 
         # Draw row hints to the left of the grid
         for i, hints in enumerate(nonogram.row_hints):
@@ -676,6 +713,11 @@ class NonogramGUI(tk.Tk):
     def _draw_solution(self):
         grid = self.solution_handler.get_curr_soln().grid
 
+        # Slower (?)
+        # for r, row in enumerate(grid):
+        #     for c, filled in enumerate(row):
+        #         self.pixels[r][c].set_visible(filled)
+
         true_indices = np.argwhere(grid)
         for r, c in true_indices:
             self.pixels[r][c].set_visible(True)
@@ -684,9 +726,10 @@ class NonogramGUI(tk.Tk):
         for r, c in false_indices:
             self.pixels[r][c].set_visible(False)
 
-        # for r, row in enumerate(grid):
-        #     for c, filled in enumerate(row):
-        #         self.pixels[r][c].set_visible(filled)
+        # Hide all 'x' marks when showing a solvers solution
+        for row in self.crosses:
+            for cross in row:
+                cross.set_visible(False)
         
         self._update_hints_feedback()
     
