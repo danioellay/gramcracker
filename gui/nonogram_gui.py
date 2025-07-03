@@ -360,7 +360,7 @@ class NonogramGUI(tk.Tk):
         # self.block_hover = True
         # self.after(100, self._unblock_mouse_motion)
     
-        if event.inaxes != self.axes or not self.show_hint_highlight_var.get() or not event.ydata or not event.xdata:
+        if event.inaxes != self.axes or not event.ydata or not event.xdata:
             self._highlight_hint(-1, -1)
             return
         
@@ -373,7 +373,7 @@ class NonogramGUI(tk.Tk):
         if y < 0 or y > nonogram.height:
             return
 
-        if self.highlighted_x != x or self.highlighted_y != y:
+        if self.show_hint_highlight_var.get() and (self.highlighted_x != x or self.highlighted_y != y):
             self._highlight_hint(x, y)
 
         if self.dragging and (y, x) != self.drag_end:
