@@ -154,8 +154,12 @@ class NonogramGUI(tk.Tk):
 
         # Setup button event callbacks (typecast to make pylance happy)
         self.canvas.mpl_connect('button_press_event', lambda e: self._on_button_press(cast(MouseEvent, e)))
-        # self.canvas.mpl_connect('button_release_event', self._on_button_release)
+        self.canvas.mpl_connect('button_release_event', lambda e: self._on_button_release(cast(MouseEvent, e)))
         self.canvas.mpl_connect('motion_notify_event', lambda e: self._on_mouse_motion(cast(MouseEvent, e)))
+        self.dragging = False
+        self.drag_start = -1, -1
+        self.drag_end = -1, -1
+        self.drag_covered = []
         # self.canvas.mpl_connect('scroll_event', self._on_scroll)
 
         # Flag to freeze the currently hovered row/column when opening a dialog box (eg hint editor)
@@ -331,18 +335,27 @@ class NonogramGUI(tk.Tk):
             y = ceil(nonogram.height - event.ydata - 1)
             x = ceil(event.xdata - 1)
             if y >= 0 and y < nonogram.height and x >= 0 and x < nonogram.width:
-                self._on_leftclick_cell(y, x)
+                self.dragging = True
+                self.drag_start = self.drag_end = y, x
+                self._on_leftclick_cell(*self.drag_start)
+                self.drag_covered = [self.drag_start]
             elif y >= 0 and x < 0:
                 self._on_leftclick_rowhint(y)
             elif x >= 0 and y < 0:
                 self._on_leftclick_colhint(x)
 
+    def _on_button_release(self, event: MouseEvent) -> None:
+        if self.dragging:
+            self.dragging = False
+            self.drag_start = self.drag_end = -1, -1
+            self.drag_covered = []
+
     def _on_mouse_motion(self, event: MouseEvent) -> None:
         if self.block_hover:
             return
         
-        self.block_hover = True
-        self.after(100, self._unblock_mouse_motion)
+        # self.block_hover = True
+        # self.after(100, self._unblock_mouse_motion)
     
         if event.inaxes != self.axes or not self.show_hint_highlight_var.get() or not event.ydata or not event.xdata:
             self._highlight_hint(-1, -1)
@@ -350,13 +363,53 @@ class NonogramGUI(tk.Tk):
         
         nonogram = self.nonogram_handler.get_curr_nonogram()
         
-        y = ceil(nonogram.height - event.ydata - 1)
         x = ceil(event.xdata - 1)
+        y = ceil(nonogram.height - event.ydata - 1)
+        if x < 0 or x > nonogram.width:
+            return
+        if y < 0 or y > nonogram.height:
+            return
+
         if self.highlighted_x != x or self.highlighted_y != y:
             self._highlight_hint(x, y)
 
-    def _unblock_mouse_motion(self):
-            self.block_hover = False
+        if self.dragging and (y, x) != self.drag_end:
+            # self._on_leftclick_cell(*self.drag_end)
+            self.drag_end = (y, x)
+            dy = self.drag_end[0] - self.drag_start[0]
+            dx = self.drag_end[1] - self.drag_start[1]
+            # self._on_leftclick_cell(*self.drag_end)
+            # print("dx=", dx)
+            # print("dy=", dy)
+            # print("end:", self.drag_end)
+
+            # Erase the old dragged line
+            for cell in self.drag_covered:
+                self._on_leftclick_cell(*cell)
+
+            # Drag a new vertical or horizontal line
+            self.drag_covered = []
+            grid = self.solution_handler.get_curr_soln().grid
+            y0, x0 = self.drag_start
+            if abs(dy) > abs(dx):
+                # print("y-mode")
+                for deltay in range(abs(dy) + 1):
+                    point = (y0 + deltay if dy > 0 else y0 - deltay, x0)
+                    if not grid[*point]:
+                        self.drag_covered.append(point)
+                        self._on_leftclick_cell(*point)
+            else:
+                # print("x-mode")
+                for deltax in range(abs(dx) + 1):
+                    point = (y0, x0+deltax if dx > 0 else x0-deltax)
+                    if not grid[*point]:
+                        self.drag_covered.append(point)
+                        self._on_leftclick_cell(*point)
+            # print(self.drag_covered)
+
+
+    # def _unblock_mouse_motion(self):
+    #         self.block_hover = False
             
     def _highlight_hint(self, x: int, y: int) -> None:
         # Restore default appearance of previously selected row
