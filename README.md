@@ -13,8 +13,10 @@ Example uses:
 > python -m gui nonograms/example_03.lp sbs-improved
 
 ### Manual Solving
-Inside the _Nonogram GUI_, you can try to solve a nonogram manually by left-clicking on the cells. You can also mark cells by right-clicking them. 
-By default, unsatisfied hints are emphasized in red. You can disable this in the 'View' menu.
+Inside the _Nonogram GUI_, you can try to solve a nonogram manually by left-clicking on the cells.
+Multiple cells can be changed at once by dragging the mouse cursor. 
+You can also mark cells with an 'x' by right-clicking them.
+By default, unsatisfied hints are emphasized in red, you can disable this in the 'View' menu.
 
 ### Automatic Solving
 You can also use the computer to solve the nonogram for you with the 'Solver' menu. Here you can also enable uniqueness checking and have an option to find all solutions to a given nonogram.
