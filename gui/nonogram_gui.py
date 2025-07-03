@@ -106,6 +106,10 @@ class NonogramGUI(tk.Tk):
             # Create a lambda function that calls _on_solver with the correct solver
             self.solver_menu.add_command(label=solver.split(".")[0], accelerator=f"Ctrl+{i+1}", command=lambda s=solver: self._on_solver(s))
             self.bind_all(f"<Control-Key-{i+1}>", lambda e, s=solver: self._on_solver(s))
+        
+        num = len(solvers) + 1
+        self.solver_menu.add_command(label="nonogrid", accelerator=f"Ctrl+{num}", command=lambda: self._on_solver("nonogrid.rs"))
+        self.bind_all(f"<Control-Key-{num}>", lambda e: self._on_solver("nonogrid.rs"))
 
         # View menu
         self.view_menu = tk.Menu(self.menubar, tearoff=False)
@@ -247,8 +251,8 @@ class NonogramGUI(tk.Tk):
         self.status.set("Solving nonogram...")
         self.update_idletasks()
         res = self.solution_handler.run_solver(name.split(".")[0], 
-                                               self.check_uniqueness_var.get(), 
-                                               self.find_all_solns_var.get())
+                                            self.check_uniqueness_var.get(), 
+                                            self.find_all_solns_var.get())
         self.status.set(res + ".")
 
         self._draw_solution()

@@ -3,6 +3,7 @@
 
 from gui.common import *
 from clingo import Control
+import subprocess, os
 import time
 from copy import deepcopy
 
@@ -29,6 +30,99 @@ class SolutionHandler:
         self.working_soln = deepcopy(self.get_curr_soln())
         self.curr_soln_idx = -1
 
+    def run_nonogrid_solver(self, check_unique: bool = True, all_models: bool = False) -> str:
+        with open("in.temp", 'w') as f:
+            nonogram = self.given_nonogram
+            for hints in nonogram.row_hints:
+                for l in hints:
+                    f.write(str(l) + ' ')
+                f.write("\n")
+            f.write("\n")
+            for hints in nonogram.col_hints:
+                for l in hints:
+                    f.write(str(l) + ' ')
+                f.write("\n")
+
+        args = []
+        if check_unique and not all_models:
+            args = ["-m", "2"]
+        elif not check_unique:
+            args = ["-m", "1"]
+
+        start_time = time.time()
+        result = subprocess.run(["./nonogrid/target/release/nonogrid",  "in.temp"] + args, stdout=subprocess.PIPE)
+        end_time = time.time()
+
+        os.remove("in.temp")
+        result = result.stdout.decode('utf-8')
+
+        self.solutions = []
+        if "Backtracking found" in result:
+            # Multiple solutions case
+            lines = result.split('\n')
+            i = 0
+            n = len(lines)
+            while i < n:
+                if lines[i].endswith("solution:"):
+                    i += 1  # move to the first grid line
+                    grid_lines = []
+                    while i < n and lines[i].strip() and all(c in {'■', '.'} for c in lines[i].strip()):
+                        grid_lines.append(lines[i].strip())
+                        i += 1
+                    if grid_lines:
+                        height = len(grid_lines)
+                        width = len(grid_lines[0]) if height > 0 else 0
+                        soln = NonogramSoln(self.given_nonogram)
+                        for y in range(height):
+                            for x in range(width):
+                                c = grid_lines[y][x]
+                                soln.grid[y, x] = (c == '■')
+                        self.solutions.append(soln)
+                else:
+                    i += 1
+        else:
+            # Unique solution case
+            lines = result.split('\n')
+            grid_lines = []
+            for line in lines:
+                if line.startswith('#'):
+                    continue
+                line = line.strip()
+                if not line:
+                    continue
+                tokens = line.split()
+                if not tokens:
+                    continue
+                # Find the first non-digit token
+                hint_end = 0
+                for i, token in enumerate(tokens):
+                    if not token.isdigit():
+                        hint_end = i
+                        break
+                if hint_end == 0 and all(token.isdigit() for token in tokens):
+                    continue  # skip lines that are only hints (no grid cells)
+                grid_cells = tokens[hint_end:]
+                if grid_cells:
+                    grid_lines.append(grid_cells)
+            if grid_lines:
+                height = len(grid_lines)
+                width = max(len(cells) for cells in grid_lines) if height > 0 else 0
+                soln = NonogramSoln(self.given_nonogram)
+                for y in range(height):
+                    row_cells = grid_lines[y]
+                    for x in range(width):
+                        if x < len(row_cells):
+                            c = row_cells[x]
+                            soln.grid[y, x] = (c == '■')
+                        else:
+                            soln.grid[y, x] = False  # treat missing cells as empty
+                self.solutions.append(soln)
+        if self.solutions:
+            self.curr_soln_idx = 0
+        res = f"nonogrid needed {format_time(end_time-start_time)} to find {len(self.solutions)} solutions"
+        print(res)
+        return res
+
     def run_solver(self, solver_path: str, check_unique: bool = True, all_models: bool = False) -> str:
         """Run the logic program at the given path, assume it is a nonogram solver and try to find one/two models, depending on the check_unique flag"""
         if not self.given_nonogram:
@@ -36,6 +130,9 @@ class SolutionHandler:
             self.curr_soln_idx = 0
             self.solutions = []
             return "Error: No nonogram to solve"
+        
+        if solver_path == "nonogrid":
+            return self.run_nonogrid_solver(check_unique, all_models)
 
         # Initialize the clingo control and give the dimensional constants
         ctl = Control([f"{0 if check_unique else 1}", 
@@ -101,24 +198,24 @@ class SolutionHandler:
             all_time = time.time()
 
         # Status bar output
-        self.res = ""
+        res = ""
         if not model1:
-            self.res = f"Solver '{solver_path}' found no solutions after {format_time(end_time - start_time)}"
+            res = f"Solver '{solver_path}' found no solutions after {format_time(end_time - start_time)}"
 
         elif not check_unique:
-            self.res = f"Solver '{solver_path}' found a solution after {format_time(end_time - start_time)}"
+            res = f"Solver '{solver_path}' found a solution after {format_time(end_time - start_time)}"
         elif check_unique and not all_models:
             if not model2:
-                self.res = f"Solver '{solver_path}' took {format_time(unique_time - start_time)} to find a unique solution"
+                res = f"Solver '{solver_path}' took {format_time(unique_time - start_time)} to find a unique solution"
             else:
-                self.res = f"Solver '{solver_path}' took {format_time(unique_time - start_time)} to find at least two solutions"
+                res = f"Solver '{solver_path}' took {format_time(unique_time - start_time)} to find at least two solutions"
         elif check_unique and all_models:
             if len(self.solutions) == 1:
-                self.res = f"Solver '{solver_path}' took {format_time(unique_time - start_time)} to find a unique solution"
+                res = f"Solver '{solver_path}' took {format_time(unique_time - start_time)} to find a unique solution"
             else:
-                self.res = f"Solver '{solver_path}' took {format_time(unique_time - start_time)} to find all {len(self.solutions)} solutions"
+                res = f"Solver '{solver_path}' took {format_time(unique_time - start_time)} to find all {len(self.solutions)} solutions"
 
-        print(self.res + ":")
+        print(res + ":")
         print(f"\tGrounding:  {format_time(ground_time - start_time)}")
         print(f"\tSolving:    {format_time(end_time - ground_time)}")
         if check_unique:
@@ -126,7 +223,7 @@ class SolutionHandler:
         if all_models and len(self.solutions) > 1:
             print(f"\tAll Solutions: {format_time(all_time - unique_time)}")
         
-        return self.res
+        return res
     
     def next_soln(self):
         if len(self.solutions) < 2:

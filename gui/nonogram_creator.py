@@ -126,7 +126,8 @@ class NonogramCreator(tk.Toplevel):
         nonogram.init_from_grid(self.grid != 255)
         soln_handler = SolutionHandler()
         soln_handler.give_nonogram(nonogram)
-        _ = soln_handler.run_solver("sbs-improved", True, False)
+        # _ = soln_handler.run_solver("sbs-improved", True, False)
+        _ = soln_handler.run_solver("nonogrid", True, False)
         assert(soln_handler.solutions)
         assert(len(soln_handler.solutions) > 0)
         if len(soln_handler.solutions) > 1:

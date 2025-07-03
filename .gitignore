@@ -8,3 +8,4 @@ gui/__pycache__
 gui/handlers/__pycache__
 images/*
 !images/qrcode.png
+in.temp
