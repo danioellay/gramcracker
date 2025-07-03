@@ -8,12 +8,12 @@ You can start the interactive GUI with
 By default, this will open the _Nonogram Generator_ window, where you can create a black and white image that will be turned into a nonogram after pressing 'OK'.
 Alternatively, you can specify a nonogram encoding file to load at the start, skipping the generator. Lastly, you can give the name of a solver to immediately solve the loaded nonogram. 
 Example uses:
-> python -m gui nonograms/example_04c.lp
+> python -m gui nonograms/example_04.txt
 > 
-> python -m gui nonograms/example_05.lp sbs-improved
+> python -m gui nonograms/example_03.lp sbs-improved
 
 ### Manual Solving
-Inside the _Nonogram GUI_, you can try to solve a nonogram manually by clicking on the cells.
+Inside the _Nonogram GUI_, you can try to solve a nonogram manually by left-clicking on the cells. You can also mark cells by right-clicking them. 
 By default, unsatisfied hints are emphasized in red. You can disable this in the 'View' menu.
 
 ### Automatic Solving
