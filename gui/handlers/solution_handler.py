@@ -147,19 +147,29 @@ class SolutionHandler:
     def solves_row(self, row: int) -> bool:
         """Does the current working solution match the hints in the specified row in the given nonogram?"""
         if not self.given_nonogram:
-            print("Error: No nonogram to check rows for")
             return False
         
-        hints = self.given_nonogram.row_hints[row]
-        line = self.get_curr_soln().fill[row]
-        return check_line(line, hints)
-    
+        row_hint = self.given_nonogram.row_hints[row]
+        return self.get_curr_soln().row_matches_hint(row, row_hint)
+
     def solves_col(self, col: int) -> bool:
         """Does the current working solution match the hints in the specified column in the given nonogram?"""
         if not self.given_nonogram:
-            print("Error: No nonogram to check columns for")
             return False
         
-        hints = self.given_nonogram.col_hints[col]
-        line = [fill[col] for fill in self.get_curr_soln().fill]
-        return check_line(line, hints)
+        col_hint = self.given_nonogram.col_hints[col]
+        return self.get_curr_soln().col_matches_hint(col, col_hint)
+    
+    def solves_row_partial(self, row: int) -> List[int]:
+        if not self.given_nonogram:
+            return []
+        
+        row_hint = self.given_nonogram.row_hints[row]
+        return self.get_curr_soln().row_matches_hint_partial(row, row_hint)
+
+    def solves_col_partial(self, col: int) -> List[int]:
+        if not self.given_nonogram:
+            return []
+        
+        col_hint = self.given_nonogram.col_hints[col]
+        return self.get_curr_soln().col_matches_hint_partial(col, col_hint)

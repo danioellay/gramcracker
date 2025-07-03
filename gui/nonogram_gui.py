@@ -6,6 +6,9 @@
 from os import listdir
 from os.path import isfile, join
 from math import ceil
+from typing import List, cast
+
+import numpy as np
 
 import tkinter as tk
 from tkinter import filedialog, BooleanVar
@@ -14,6 +17,7 @@ from matplotlib.backend_bases import MouseEvent
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
+from matplotlib.patches import Patch
 from matplotlib.text import Text
 
 from .common import *
@@ -49,20 +53,12 @@ class NonogramGUI(tk.Tk):
         self.nonogram_handler = NonogramHandler()
         self.solution_handler = SolutionHandler()
 
-        # Open nonogram generator first if no arguments and wait for this to close
-        if len(args) == 1:
-            self.withdraw()
-            self._on_file_new()
-            if not self.nonogram_handler.get_nonogram() or not hasattr(self.solution_handler, "given_nonogram"):
-                exit()
-            self.deiconify()
-
         # Setup window
         self.geometry(f"{WINDOW_WIDTH}x{WINDOW_HEIGHT}")
         self.minsize(WINDOW_WIDTH, WINDOW_HEIGHT)
         self.title("Nonogram GUI")
-        self.protocol("WM_DELETE_WINDOW", self._on_del_window)
-        self.protocol("tk::mac::Quit", self._on_del_window)
+        self.protocol("WM_DELETE_WINDOW", self.quit)
+        self.protocol("tk::mac::Quit", self.quit)
 
         # Setup window menubar
         self.menubar = tk.Menu(self, type='menubar')
@@ -89,7 +85,7 @@ class NonogramGUI(tk.Tk):
         self.file_menu.add_command(label="Export Image", accelerator="Ctrl+I", command=self._on_file_export_image)
         self.bind_all("<Control-i>", self._on_file_export_image)
         self.bind_all("<Control-I>", self._on_file_export_image)
-        self.file_menu.add_command(label="Exit", command=self._on_del_window)
+        self.file_menu.add_command(label="Exit", command=self.quit)
 
         # Solver menu
         self.solver_menu = tk.Menu(self.menubar, tearoff=False)
@@ -137,27 +133,46 @@ class NonogramGUI(tk.Tk):
         self.figure_frame = tk.Frame(self)
         self.figure_frame.pack(fill=tk.BOTH, expand=True)
         self.figure, self.axes = plt.subplots()
-        plt.subplots_adjust(left=0.05, right=0.9, top=1.0, bottom=0.05)
+        plt.subplots_adjust(left=0.0, right=1.0, top=1.0, bottom=0.0)
+        plt.tight_layout()
         self.axes.set_aspect('equal')
         self.canvas = FigureCanvasTkAgg(self.figure, master=self.figure_frame)
         self.canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+
+        # Setup canvas artist storage
+        self.pixels: List[List[Patch]] = []
+        self.col_hints: List[List[Text]] = []
+        self.row_hints: List[List[Text]] = []
+
+        # Flags indicating which cell is currently being hovered over
+        self.highlighted_x, self.highlighted_y = -1, -1
 
         # Setup status bar
         self.status = StatusBar(self)
         self.status.pack(side=tk.BOTTOM, fill=tk.X)
         self.status.set("Initializing...")
 
-        # Setup button event callbacks
-        self.canvas.mpl_connect('button_press_event', self._on_button_press)
+        # Setup button event callbacks (typecast to make pylance happy)
+        self.canvas.mpl_connect('button_press_event', lambda e: self._on_button_press(cast(MouseEvent, e)))
         # self.canvas.mpl_connect('button_release_event', self._on_button_release)
-        self.canvas.mpl_connect('motion_notify_event', self._on_mouse_motion)
+        self.canvas.mpl_connect('motion_notify_event', lambda e: self._on_mouse_motion(cast(MouseEvent, e)))
         # self.canvas.mpl_connect('scroll_event', self._on_scroll)
 
         # Flag to freeze the currently hovered row/column when opening a dialog box (eg hint editor)
         self.block_hover = False
 
         # Process launch arguments
-        if len(args) > 1:
+        
+        if len(args) == 1:
+            # Open nonogram generator first if no arguments and wait for it to close
+            self.withdraw()
+            self._on_file_new()
+            if self.nonogram_handler.get_curr_nonogram().width == 0:
+                exit()
+            self.deiconify()
+
+        elif len(args) > 1:
+            # Open the nonogram encoding at the path indicated by the first argument
             try:
                 self.nonogram_handler.load_file(args[1])
             except Warning as w:
@@ -169,58 +184,55 @@ class NonogramGUI(tk.Tk):
                 self.destroy()
                 exit()
 
-            nonogram = self.nonogram_handler.get_nonogram()
-            if nonogram:
-                self.solution_handler.give_nonogram(nonogram)
+            nonogram = self.nonogram_handler.get_curr_nonogram()
+            self.solution_handler.give_nonogram(nonogram)
 
-        nonogram = self.nonogram_handler.get_nonogram()
-        if nonogram:
-            self.draw_nonogram(nonogram)
-            size = nonogram.width * nonogram.height
-            self.show_hint_highlight_var.set(size <= 20*20)
+        nonogram = self.nonogram_handler.get_curr_nonogram()
+        self._draw_nonogram(nonogram)
+        size = nonogram.width * nonogram.height
+        self.show_hint_highlight_var.set(size <= 20*20)
 
+        self.solved_on_start = False
         if len(args) > 2:
+            # Run the solver indicated by the second argument
             self._on_solver(args[2])
+            self.solved_on_start = True
 
     def run(self) -> None:
         # Finish setting up the GUI and enter mainloop
         self.update()
         self.update_idletasks()
         self.focus_force()
-        self.status.set("Ready.")
+        if not self.solved_on_start:
+            self.status.set("Ready.")
         return self.mainloop()
     
     def _on_next_soln(self, *_) -> None:
         self.solution_handler.next_soln()
-        self.draw_solution(self.solution_handler.get_curr_soln())
+        self._draw_solution()
         self.status.set(f"Showing solution nr. {self.solution_handler.curr_soln_idx + 1}.")
 
     def _on_prev_soln(self, *_) -> None:
         self.solution_handler.prev_soln()
-        self.draw_solution(self.solution_handler.get_curr_soln())
+        self._draw_solution()
         self.status.set(f"Showing solution nr. {self.solution_handler.curr_soln_idx + 1}.")
 
     def _clear_all(self) -> None:
-        if hasattr(self, "pixels"):
-            for r in self.pixels:
-                for c in r:
-                    c.remove()
-            self.pixels.clear()
-            self.pixels = []
+        # Clear all artists from the canvas
+        for p in self.pixels:
+            for pp in p:
+                pp.remove()
+        self.pixels.clear()
 
-        if hasattr(self, "col_hints"):
-            for h in self.col_hints:
-                for hh in h:
-                    hh.remove()
-            self.col_hints.clear()
-            self.col_hints = []
+        for ch in self.col_hints:
+            for h in ch:
+                h.remove()
+        self.col_hints.clear()
 
-        if hasattr(self, "row_hints"):
-            for h in self.row_hints:
-                for hh in h:
-                    hh.remove()
-            self.row_hints.clear()
-            self.row_hints = []
+        for rh in self.row_hints:
+            for h in rh:
+                h.remove()
+        self.row_hints.clear()
 
         plt.cla()
 
@@ -232,7 +244,7 @@ class NonogramGUI(tk.Tk):
                                                self.find_all_solns_var.get())
         self.status.set(res + ".")
 
-        self.draw_solution(self.solution_handler.get_curr_soln())
+        self._draw_solution()
     
     def _on_file_open(self, *_) -> None:
         file_types = [('Text format', '*.txt'), ('ASP encoding', '*.lp')]
@@ -249,57 +261,39 @@ class NonogramGUI(tk.Tk):
             self.status.set(f"Unknown error: Could not load nonogram file")
         self._clear_all()
 
-        nonogram = self.nonogram_handler.get_nonogram()
-        if nonogram:
-            self.draw_nonogram(nonogram)
-            if hasattr(self, "show_hint_highlight_var"):
-                size = nonogram.width * nonogram.height
-                self.show_hint_highlight_var.set(size <= 20*20)
-
-            self.solution_handler.give_nonogram(nonogram)
-            self.status.set(f"Loaded nonogram from {file_path.split("/")[-1]}.")
+        nonogram = self.nonogram_handler.get_curr_nonogram()
+        self._draw_nonogram(nonogram)
+        self.solution_handler.give_nonogram(nonogram)
+        self.status.set(f"Loaded nonogram from {file_path.split("/")[-1]}.")
 
     def _on_file_new(self, *_) -> None:
         creator = NonogramCreator(self)
-        result = creator.get()
-        if not result:
+        grid = creator.get()
+        if grid is None:
             # self.status.set(f"Ready.")
             return
-        width, height, grid = result
         
         self._clear_all()
         self.nonogram_handler.loaded_nonogram_filename = None
-        
-        if grid:
-            self.nonogram_handler.hints_from_grid(grid)
-        else:
-            self.nonogram_handler.resize(width, height)
+        self.nonogram_handler.get_curr_nonogram().init_from_grid(grid)
     
-        nonogram = self.nonogram_handler.get_nonogram()
-        if nonogram:
-            self.solution_handler.give_nonogram(nonogram)
-            if hasattr(self, "axes"):
-                self.draw_nonogram(nonogram)
-            
-            if hasattr(self, "show_hint_highlight_var"):
-                size = nonogram.width * nonogram.height
-                self.show_hint_highlight_var.set(size <= 20*20)
-            if hasattr(self, 'status'):
-                self.status.set(f"Ready.")
+        nonogram = self.nonogram_handler.get_curr_nonogram()
+        self._draw_nonogram(nonogram)
+        self.solution_handler.give_nonogram(nonogram)
+        self.status.set(f"Ready.")
 
     def _on_file_new_from_current(self, *_) -> None:
         self.nonogram_handler.loaded_nonogram_filename = None
-        self.nonogram_handler.clear_hints()
-        grid = self.solution_handler.get_curr_soln().fill
+        # self.nonogram_handler.clear_hints()
+        grid = self.solution_handler.get_curr_soln().grid
 
-        self.nonogram_handler.hints_from_grid(grid)
+        self.nonogram_handler.get_curr_nonogram().init_from_grid(grid)
 
-        nonogram = self.nonogram_handler.get_nonogram()
-        if nonogram:
-            self.solution_handler.give_nonogram(nonogram)
-            self._clear_all()
-            self.draw_nonogram(nonogram)
-            self.status.set(f"Ready.")
+        nonogram = self.nonogram_handler.get_curr_nonogram()
+        self._clear_all()
+        self._draw_nonogram(nonogram)
+        self.solution_handler.give_nonogram(nonogram)
+        self.status.set(f"Created nonogram from previous grid configuration.")
 
     def _on_file_export_image(self, *_) -> None:
         file_types = [('SVG image', '*.svg'), ('PDF Document', '*.pdf'), ('PNG image', '*.png'), ('JPG image', '*.jpg')]
@@ -333,8 +327,7 @@ class NonogramGUI(tk.Tk):
         self.solution_handler.use_working_soln()
 
         if event.button == 1 and event.ydata and event.xdata: #(left mouse button)
-            nonogram = self.nonogram_handler.get_nonogram()
-            assert(nonogram)
+            nonogram = self.nonogram_handler.get_curr_nonogram()
             y = ceil(nonogram.height - event.ydata - 1)
             x = ceil(event.xdata - 1)
             if y >= 0 and y < nonogram.height and x >= 0 and x < nonogram.width:
@@ -355,9 +348,7 @@ class NonogramGUI(tk.Tk):
             self._highlight_hint(-1, -1)
             return
         
-        nonogram = self.nonogram_handler.get_nonogram()
-        if not nonogram:
-            return
+        nonogram = self.nonogram_handler.get_curr_nonogram()
         
         y = ceil(nonogram.height - event.ydata - 1)
         x = ceil(event.xdata - 1)
@@ -374,9 +365,7 @@ class NonogramGUI(tk.Tk):
         for cell in self.pixels[self.highlighted_y]:
             cell.set_alpha(0.8)
 
-        nonogram = self.nonogram_handler.get_nonogram()
-        if not nonogram:
-            return
+        nonogram = self.nonogram_handler.get_curr_nonogram()
         
         # Highlight newly selected row
         if y >= 0 and y < nonogram.height:
@@ -405,20 +394,26 @@ class NonogramGUI(tk.Tk):
         self.canvas.draw_idle()
 
     def _on_leftclick_cell(self, row: int, col: int) -> None:
-        color_hints = self.show_hint_feedback_var.get()
+        # Toggle the corresponding pixel in both the current solution and the pixel grid
+        prev_val = self.solution_handler.get_curr_soln().grid[row, col]
+        curr_val = not prev_val
+        self.solution_handler.get_curr_soln().grid[row, col] = curr_val
+        self.pixels[row][col].set_visible(curr_val)
 
-        self.solution_handler.get_curr_soln().fill[row][col] = not self.solution_handler.get_curr_soln().fill[row][col]
-        self.pixels[row][col].set_visible(self.solution_handler.get_curr_soln().fill[row][col])
-        for hint in self.row_hints[row]:
-            hint.set_color('black' if not color_hints or self.solution_handler.solves_row(row) else 'red')
-        for hint in self.col_hints[col]:
-            hint.set_color('black' if not color_hints or self.solution_handler.solves_col(col) else 'red')
+        # Update just the two line hints instead of calling _update_hints_feeback to improve performance
+        color_hints = self.show_hint_feedback_var.get()
+        satisfied_row_indices = self.solution_handler.solves_row_partial(row) 
+        satisfied_col_indices = self.solution_handler.solves_col_partial(col) 
+        for idx, hint in enumerate(reversed(self.row_hints[row])):
+            hint.set_color('black' if idx in satisfied_row_indices or not color_hints else 'red')
+        for idx, hint in enumerate(reversed(self.col_hints[col])):
+            hint.set_color('black' if idx in satisfied_col_indices or not color_hints else 'red')
+        
+        # Refresh canvas
         self.canvas.draw_idle()
 
     def _on_leftclick_rowhint(self, row: int) -> None:
-        nonogram = self.nonogram_handler.get_nonogram()
-        if not nonogram:
-            return
+        nonogram = self.nonogram_handler.get_curr_nonogram()
         
         old_hint = nonogram.row_hints[row]
         new_hint = self._open_hint_edit_dialog(old_hint, nonogram.width)
@@ -445,7 +440,7 @@ class NonogramGUI(tk.Tk):
         self.canvas.draw_idle()
 
     def _on_leftclick_colhint(self, col: int) -> None:
-        nonogram = self.nonogram_handler.get_nonogram()
+        nonogram = self.nonogram_handler.get_curr_nonogram()
         if not nonogram:
             return
         
@@ -473,7 +468,7 @@ class NonogramGUI(tk.Tk):
                 self.col_hints[col].append(hint)
         self.canvas.draw_idle()
 
-    def _open_hint_edit_dialog(self, hint: list[int], length: int) -> List[int]:
+    def _open_hint_edit_dialog(self, hint: list[int], length: int) -> LineHint:
         self.block_hover = True
         # Load the current string
         current_string = ' '.join(map(str, hint)) if hint else "0"
@@ -532,12 +527,10 @@ class NonogramGUI(tk.Tk):
 
         self.block_hover = False
 
-        return result[0]
+        return cast(LineHint, result[0])
 
-    def _on_del_window(self) -> None:
-        self.quit()
-
-    def draw_nonogram(self, nonogram: Nonogram):
+    def _draw_nonogram(self, nonogram: Nonogram):
+        self._clear_all()
         # Adjust the window size
         win_width = nonogram.width*SQUARE_SIZE
         win_height = nonogram.height*SQUARE_SIZE
@@ -546,7 +539,13 @@ class NonogramGUI(tk.Tk):
 
         # Draw the nonogram fully filled and save each pixel as a separate object, then hide them
         # The pixels are indexed by [row][column], starting at index 0!
-        self.pixels: list[list[patches.Patch]] = [
+        # Slower!
+        # self.grid = np.full((nonogram.height, nonogram.width), 255, dtype=np.uint8)
+        # plt.imshow(self.grid, 'gray', vmin=0, vmax=1)#, origin='upper', extent=(1, nonogram.width, nonogram.height, 1))
+
+        # Ensure the aspect ratio is equal to avoid distortion
+        self.axes.set_aspect('equal')
+        self.pixels = [
             [
                 patches.Rectangle((col, nonogram.height - row - 1), 1, 1, linewidth=0, facecolor='black', alpha=0.8)
                 for col in range(nonogram.width)
@@ -560,38 +559,34 @@ class NonogramGUI(tk.Tk):
                 pixel.set_visible(False)
 
         # Draw row hints to the left of the grid
-        self.row_hints: list[list[Text]] = []
         for i, hints in enumerate(nonogram.row_hints):
             if not hints:
                 hint = [self.axes.text(-0.66, nonogram.height - i - 0.6, "0", va='center', ha='center', fontsize=18, color='red')]
-                if not self.show_hint_feedback_var.get() or self.solution_handler.solves_row(i):
-                    hint[0].set_color('black')
+                hint[0].set_color('black')
                 self.row_hints.append(hint)
                 continue
 
             self.row_hints.append([])
             for j, l in enumerate(reversed(hints)):
                 hint = self.axes.text(-0.66-j*0.7, nonogram.height - i - 0.6, str(l), va='center', ha='center', fontsize=18 if l < 10 else 13, color='red')
-                if not self.show_hint_feedback_var.get() or self.solution_handler.solves_row(i):
+                if not self.show_hint_feedback_var.get() or l == 0:
                     hint.set_color('black')
-                self.row_hints[-1].append(hint)
+                self.row_hints[i].append(hint)
 
         # Draw column hints above the grid, stacked vertically
-        self.col_hints: list[list[Text]] = []
         for j, hints in enumerate(nonogram.col_hints):
             if not hints:
                 hint = [self.axes.text(j + 0.5, nonogram.height + 0.33, "0", va='center', ha='center', fontsize=18, color='red')]
-                if not self.show_hint_feedback_var.get() or self.solution_handler.solves_col(j):
-                    hint[0].set_color('black')
+                hint[0].set_color('black')
                 self.col_hints.append(hint)
                 continue
 
             self.col_hints.append([])
             for i, l in enumerate(reversed(hints)):
                 hint = self.axes.text(j + 0.5, nonogram.height + 0.33 + i*0.8, str(l), va='center', ha='center', fontsize=18 if l < 10 else 13, color='red')
-                if not self.show_hint_feedback_var.get() or self.solution_handler.solves_col(j):
+                if not self.show_hint_feedback_var.get() or l == 0:
                     hint.set_color('black')
-                self.col_hints[-1].append(hint)
+                self.col_hints[j].append(hint)
 
         # Setup the grid and ticks and cell index numbers
         self.axes.set_xticks(range(0, nonogram.width+1 ),
@@ -619,22 +614,46 @@ class NonogramGUI(tk.Tk):
         self.canvas.draw_idle()
         self.highlighted_x, self.highlighted_y = -1, -1
 
-    def draw_solution(self, solution: NonogramSoln):
-        color_hints = self.show_hint_feedback_var.get()
-        for r, row in enumerate(solution.fill):
-            for c, filled in enumerate(row):
-                self.pixels[r][c].set_visible(filled)
+        size = nonogram.width * nonogram.height
+        self.show_hint_highlight_var.set(size <= 20*20)
 
-        for r, _ in enumerate(solution.fill):
-            for hint in self.row_hints[r]:
-                hint.set_color('black' if not color_hints or self.solution_handler.solves_row(r) else 'red')
-        for c, _ in enumerate(solution.fill[0]):
-            for hint in self.col_hints[c]:
-                hint.set_color('black' if not color_hints or self.solution_handler.solves_col(c) else 'red')
+    def _draw_solution(self):
+        grid = self.solution_handler.get_curr_soln().grid
+
+        true_indices = np.argwhere(grid)
+        for r, c in true_indices:
+            self.pixels[r][c].set_visible(True)
+        
+        false_indices = np.argwhere(~grid)
+        for r, c in false_indices:
+            self.pixels[r][c].set_visible(False)
+
+        # for r, row in enumerate(grid):
+        #     for c, filled in enumerate(row):
+        #         self.pixels[r][c].set_visible(filled)
+        
+        self._update_hints_feedback()
+    
+    def _update_hints_feedback(self):
+        color_hints = self.show_hint_feedback_var.get()
+
+        # Go through every hint in every line and check it
+        for row, row_hint in enumerate(self.row_hints):
+            satisfied_hint_indices = self.solution_handler.solves_row_partial(row)
+            for idx, hint in enumerate(row_hint):
+                solves_row = not color_hints or idx in satisfied_hint_indices
+                hint.set_color('black' if solves_row else 'red')
+        for col, col_hint in enumerate(self.col_hints):
+            satisfied_hint_indices = self.solution_handler.solves_col_partial(col)
+            for idx, hint in enumerate(col_hint):
+                solves_col = not color_hints or idx in satisfied_hint_indices
+                hint.set_color('black' if solves_col else 'red')
+
+        # Refresh canvas
         self.canvas.draw_idle()
 
     def _on_toggle_show_hint_feedback(self, *_):
-        self.draw_solution(self.solution_handler.get_curr_soln())
+        self._update_hints_feedback()
 
     def _on_toggle_show_hint_highlight(self, *_):
         self._highlight_hint(-1,-1)
