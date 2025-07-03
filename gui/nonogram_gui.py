@@ -160,6 +160,7 @@ class NonogramGUI(tk.Tk):
         self.drag_start = -1, -1
         self.drag_end = -1, -1
         self.drag_covered = []
+        self.drag_to_erase = False
         # self.canvas.mpl_connect('scroll_event', self._on_scroll)
 
         # Flag to freeze the currently hovered row/column when opening a dialog box (eg hint editor)
@@ -339,6 +340,7 @@ class NonogramGUI(tk.Tk):
                 self.drag_start = self.drag_end = y, x
                 self._on_leftclick_cell(*self.drag_start)
                 self.drag_covered = [self.drag_start]
+                self.drag_to_erase = self.solution_handler.get_curr_soln().grid[*self.drag_start]
             elif y >= 0 and x < 0:
                 self._on_leftclick_rowhint(y)
             elif x >= 0 and y < 0:
@@ -349,6 +351,7 @@ class NonogramGUI(tk.Tk):
             self.dragging = False
             self.drag_start = self.drag_end = -1, -1
             self.drag_covered = []
+            self.drag_to_erase = False
 
     def _on_mouse_motion(self, event: MouseEvent) -> None:
         if self.block_hover:
@@ -395,14 +398,14 @@ class NonogramGUI(tk.Tk):
                 # print("y-mode")
                 for deltay in range(abs(dy) + 1):
                     point = (y0 + deltay if dy > 0 else y0 - deltay, x0)
-                    if not grid[*point]:
+                    if grid[*point] != self.drag_to_erase:
                         self.drag_covered.append(point)
                         self._on_leftclick_cell(*point)
             else:
                 # print("x-mode")
                 for deltax in range(abs(dx) + 1):
                     point = (y0, x0+deltax if dx > 0 else x0-deltax)
-                    if not grid[*point]:
+                    if grid[*point] != self.drag_to_erase:
                         self.drag_covered.append(point)
                         self._on_leftclick_cell(*point)
             # print(self.drag_covered)
