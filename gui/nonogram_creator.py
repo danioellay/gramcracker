@@ -10,10 +10,8 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 import cv2
 import numpy as np
-from typing import List, Tuple
 
 from .common import Nonogram
-from .handlers.nonogram_handler import NonogramHandler
 from .handlers.solution_handler import SolutionHandler
 
 def spinbox_int(master, title, callback, min_value, max_value, initial_value, step=1):
