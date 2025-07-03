@@ -10,9 +10,8 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 import cv2
 import numpy as np
-from typing import List, Tuple
 
-from .handlers.nonogram_handler import NonogramHandler
+from .common import Nonogram
 from .handlers.solution_handler import SolutionHandler
 
 def spinbox_int(master, title, callback, min_value, max_value, initial_value, step=1):
@@ -69,17 +68,17 @@ class NonogramCreator(tk.Toplevel):
     width: int = 15
     height: int = 15
     bwratio: float = 0.6
-    pxcorr: float = 0.7
+    pxcorr: float = 0.8
     threshold: int = 127
     im_file_path: str = ""
     grid = np.full((height, width), 255, dtype=np.uint8)
     success: bool = True
 
-    def get(self) -> Tuple[int, int, List[List[int]]] | None:
+    def get(self) -> np.ndarray | None:
         # Wait for the dialog to close
         self.wait_window()
         if self.success:
-            return self.width, self.height, (self.grid != 255).tolist()
+            return self.grid != 255
         else:
             return None
         
@@ -123,11 +122,9 @@ class NonogramCreator(tk.Toplevel):
             _, self.grid = cv2.threshold(im_scaled, self.threshold, 255, cv2.THRESH_BINARY)
 
         # Convert grid to nonogram, then solve it to check uniqueness
-        nono_handler = NonogramHandler()
-        nono_handler.hints_from_grid((self.grid != 255).tolist())
+        nonogram = Nonogram()
+        nonogram.init_from_grid(self.grid != 255)
         soln_handler = SolutionHandler()
-        nonogram = nono_handler.get_nonogram()
-        assert(nonogram)
         soln_handler.give_nonogram(nonogram)
         _ = soln_handler.run_solver("sbs-improved", True, False)
         assert(soln_handler.solutions)
