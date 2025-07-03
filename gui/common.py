@@ -78,57 +78,99 @@ class NonogramSoln:
 
     def row_matches_hint(self, row_index: int, linehint: LineHint) -> bool:
         row = self.grid[row_index, :]
-        generated_hint = hint_from_line(row)
+        curr_hint = hint_from_line(row)
 
-        if linehint == [0] and generated_hint == [] \
-            or generated_hint == [0] and linehint == []:
+        # Treat empty and single zero hints as the same
+        if linehint == [0] and curr_hint == [] \
+            or curr_hint == [0] and linehint == []:
             return True
         
-        return generated_hint == linehint
+        return curr_hint == linehint
     
     def col_matches_hint(self, col_index: int, linehint: LineHint) -> bool:
         col = self.grid[:, col_index]
-        generated_hint = hint_from_line(col)
+        curr_hint = hint_from_line(col)
 
-        if linehint == [0] and generated_hint == [] \
-            or generated_hint == [0] and linehint == []:
+        # Treat empty and single zero hints as the same
+        if linehint == [0] and curr_hint == [] \
+            or curr_hint == [0] and linehint == []:
             return True
         
-        return generated_hint == linehint
+        return curr_hint == linehint
     
     def row_matches_hint_partial(self, row_index: int, linehint: LineHint) -> List[int]:
         row = self.grid[row_index, :]
-        current_hint = hint_from_line(row)
-        matched_indices = []
-
-        if linehint == [0] and current_hint == [] \
-            or current_hint == [0] and linehint == []:
-            return [0]
-        
-        if linehint == current_hint:
-           return [i for i in range(len(linehint))]
-        
-        for i in range(len(linehint)):
-            if i < len(current_hint) and current_hint[i] == linehint[i]:
-                matched_indices.append(i)
-        return matched_indices
+        curr_hint = hint_from_line(row)
+        return matching_indices(linehint, curr_hint)
 
     def col_matches_hint_partial(self, col_index: int, linehint: LineHint) -> List[int]:
         col = self.grid[:, col_index]
-        current_hint = hint_from_line(col)
-        matched_indices = []
-        
-        if linehint == [0] and current_hint == [] \
-            or current_hint == [0] and linehint == []:
-            return [0]
-        
-        if linehint == current_hint:
-           return [i for i in range(len(linehint))]
-        
-        for i in range(len(linehint)):
-            if i < len(current_hint) and current_hint[i] == linehint[i]:
-                matched_indices.append(i)
-        return matched_indices
+        curr_hint = hint_from_line(col)
+        return matching_indices(linehint, curr_hint)
+
+def matching_indices(expected: List[int], actual: List[int]) -> List[int]:
+    len_actual = len(actual)
+    len_expected = len(expected)
+
+    if len_actual > len_expected or sum(actual) > sum(expected):
+        return []
+
+    if len_actual == len_expected:
+        return [i for i in range(len_actual) if actual[i] == expected[i]]
+
+    # Check if front block matches entirely
+    front_matches_all = True
+    for i in range(len_actual):
+        if actual[i] != expected[i]:
+            front_matches_all = False
+            break
+    if front_matches_all:
+        return list(range(len_actual))
+
+    # Check if back block matches entirely
+    back_matches_all = True
+    for k in range(len_actual):
+        i_actual = len_actual - 1 - k
+        i_expected = len_expected - 1 - k
+        if actual[i_actual] != expected[i_expected]:
+            back_matches_all = False
+            break
+    if back_matches_all:
+        back_start = len_expected - len_actual
+        return list(range(back_start, len_expected))
+
+    # If neither full block matches, look for individual matches
+    # Compute front matches (individual)
+    front_matches = []
+    for i in range(len_actual):
+        if actual[i] == expected[i]:
+            front_matches.append(i)
+
+    # Compute back matches (individual)
+    back_matches = []
+    for k in range(len_actual):
+        i_actual = len_actual - 1 - k
+        i_expected = len_expected - 1 - k
+        if actual[i_actual] == expected[i_expected]:
+            back_matches.append(i_expected)
+
+    # Combine by taking all back matches first, then fill from front matches
+    result = back_matches.copy()
+    needed_from_front = len_actual - len(result)
+    if needed_from_front > 0:
+        result.extend(front_matches[:needed_from_front])
+
+    # Remove duplicates
+    seen = set()
+    deduped = []
+    for idx in result:
+        if idx not in seen:
+            seen.add(idx)
+            deduped.append(idx)
+    result = deduped
+
+    # Ensure we have exactly len_actual indices; if not, return what we have
+    return sorted(result)
 
 def format_time(t: float) -> str:
     if t > 60.0*60.0:
