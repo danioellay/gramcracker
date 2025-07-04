@@ -31,7 +31,7 @@ class SolutionHandler:
         self.curr_soln_idx = -1
 
     def run_nonogrid_solver(self, check_unique: bool = True, all_models: bool = False) -> str:
-        with open("in.temp", 'w') as f:
+        with open("nono.temp", 'w') as f:
             nonogram = self.given_nonogram
             for hints in nonogram.row_hints:
                 for l in hints:
@@ -50,10 +50,10 @@ class SolutionHandler:
             args = ["-m", "1"]
 
         start_time = time.time()
-        result = subprocess.run(["./nonogrid/target/release/nonogrid",  "in.temp"] + args, stdout=subprocess.PIPE)
+        result = subprocess.run(["./nonogrid/target/release/nonogrid",  "nono.temp"] + args, stdout=subprocess.PIPE)
         end_time = time.time()
 
-        os.remove("in.temp")
+        os.remove("nono.temp")
         result = result.stdout.decode('utf-8')
 
         self.solutions = []
@@ -93,6 +93,7 @@ class SolutionHandler:
                 tokens = line.split()
                 if not tokens:
                     continue
+                tokens = [token[-1] for token in tokens]
                 # Find the first non-digit token
                 hint_end = 0
                 for i, token in enumerate(tokens):
@@ -119,9 +120,114 @@ class SolutionHandler:
                 self.solutions.append(soln)
         if self.solutions:
             self.curr_soln_idx = 0
-        res = f"nonogrid needed {format_time(end_time-start_time)} to find {len(self.solutions)} solutions"
+        
+        res = f"Solver 'nonogrid' took {format_time(end_time-start_time)} to find "
+        if len(self.solutions) == 0:
+            res += "no solutions"
+        elif len(self.solutions) == 1:
+            res += "a unique solution"
+        elif all_models:
+            res += f"{len(self.solutions)} solutions"
+        else:
+            res += f"{len(self.solutions)}+ solutions"
+        
         print(res)
         return res
+    
+    def run_pbn_solver(self, check_unique: bool = True, all_models: bool = False) -> str:
+        with open("nono.temp", 'w') as f:
+            nonogram = self.given_nonogram
+            f.write(f"{nonogram.height} {nonogram.width}\n")
+            for hints in nonogram.row_hints:
+                for l in hints:
+                    f.write(str(l) + ' ')
+                f.write("\n")
+            f.write("#\n")
+            for hints in nonogram.col_hints:
+                for l in hints:
+                    f.write(str(l) + ' ')
+                f.write("\n")
+        args = []
+        if check_unique:
+            args = ["-u"]
+        # if all_models:
+            # Not supported?
+        
+        start_time = time.time()
+        result = subprocess.run(["./../pbnsolve-1.09/pbnsolve",  "nono.temp"] + args, stdout=subprocess.PIPE)
+        end_time = time.time()
+
+        # os.remove("nono.temp")
+        result = result.stdout.decode('utf-8')
+        lines = [line.strip() for line in result.split('\n') if line.strip()]
+
+        def parse_grid(grid_lines: List[str], nonogram: Nonogram):
+            if len(grid_lines) != nonogram.height:
+                raise ValueError(f"Expected {nonogram.height} lines, got {len(grid_lines)}")
+            grid = []
+            for line in grid_lines:
+                if len(line) != nonogram.width:
+                    raise ValueError(f"Expected line length {nonogram.width}, got {len(line)}")
+                row = []
+                for c in line:
+                    if c == 'X':
+                        row.append(True)
+                    else:  # assuming '.'
+                        row.append(False)
+                grid.append(row)
+            return grid
+
+        def fill_grid(soln: NonogramSoln, grid: List[List[bool]]):
+            for i in range(len(grid)):
+                for j in range(len(grid[i])):
+                    soln.grid[i, j] = grid[i][j]
+
+        self.solutions = []
+        if lines[0].startswith("FOUND MULTIPLE SOLUTIONS:"):
+            grid_lines = []
+            for line in lines[1:]:
+                if line.startswith("ALTERNATE SOLUTION"):
+                    if grid_lines:
+                        grid = parse_grid(grid_lines, self.given_nonogram)
+                        soln = NonogramSoln(self.given_nonogram)
+                        fill_grid(soln, grid)
+                        self.solutions.append(soln)
+                        grid_lines = []
+                else:
+                    grid_lines.append(line)
+            # Add the last grid
+            if grid_lines:
+                grid = parse_grid(grid_lines, self.given_nonogram)
+                soln = NonogramSoln(self.given_nonogram)
+                fill_grid(soln, grid)
+                self.solutions.append(soln)
+        elif lines[0].startswith("UNIQUE"):
+            soln = NonogramSoln(self.given_nonogram)
+            print(lines)
+            grid_lines = lines[1:]
+            print(grid_lines)
+            if grid_lines:
+                grid = parse_grid(grid_lines, self.given_nonogram)
+                fill_grid(soln, grid)
+                self.solutions = [soln]
+        else: #No solution case
+            self.solutions = []
+
+        if self.solutions:
+            self.curr_soln_idx = 0
+
+        res = f"Solver 'pbnsolve' took {format_time(end_time-start_time)} to find "
+        if len(self.solutions) == 0:
+            res += "no solutions"
+        elif len(self.solutions) == 1:
+            res += "a unique solution"
+        else:
+            res += f"{len(self.solutions)}+ solutions"
+            if all_models:
+                res += " (finding all not supported)"
+        print(res)
+        return res
+        
 
     def run_solver(self, solver_path: str, check_unique: bool = True, all_models: bool = False) -> str:
         """Run the logic program at the given path, assume it is a nonogram solver and try to find one/two models, depending on the check_unique flag"""
@@ -133,6 +239,8 @@ class SolutionHandler:
         
         if solver_path == "nonogrid":
             return self.run_nonogrid_solver(check_unique, all_models)
+        if solver_path == "pbnsolve":
+            return self.run_pbn_solver(check_unique, all_models)
 
         # Initialize the clingo control and give the dimensional constants
         ctl = Control([f"{0 if check_unique else 1}", 

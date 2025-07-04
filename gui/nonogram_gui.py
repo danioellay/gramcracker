@@ -102,14 +102,15 @@ class NonogramGUI(tk.Tk):
         self.solver_menu.add_separator()
 
         solvers = [f for f in listdir("solvers/") if isfile(join("solvers/", f)) and f.endswith(".lp")]
+        solvers += ["nonogrid.xx", "pbnsolve.xx", "copris.xx", "bgu.xx"] #needs some pseudo filename extension
         for i, solver in enumerate(solvers):
             # Create a lambda function that calls _on_solver with the correct solver
             self.solver_menu.add_command(label=solver.split(".")[0], accelerator=f"Ctrl+{i+1}", command=lambda s=solver: self._on_solver(s))
             self.bind_all(f"<Control-Key-{i+1}>", lambda e, s=solver: self._on_solver(s))
         
-        num = len(solvers) + 1
-        self.solver_menu.add_command(label="nonogrid", accelerator=f"Ctrl+{num}", command=lambda: self._on_solver("nonogrid.rs"))
-        self.bind_all(f"<Control-Key-{num}>", lambda e: self._on_solver("nonogrid.rs"))
+        # num = len(solvers) + 1
+        # self.solver_menu.add_command(label="nonogrid", accelerator=f"Ctrl+{num}", command=lambda: self._on_solver("nonogrid.rs"))
+        # self.bind_all(f"<Control-Key-{num}>", lambda e: self._on_solver("nonogrid.rs"))
 
         # View menu
         self.view_menu = tk.Menu(self.menubar, tearoff=False)
