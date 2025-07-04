@@ -203,9 +203,7 @@ class SolutionHandler:
                 self.solutions.append(soln)
         elif lines[0].startswith("UNIQUE") or lines[0].startswith("STOPPED"):
             soln = NonogramSoln(self.given_nonogram)
-            print(lines)
             grid_lines = lines[1:]
-            print(grid_lines)
             if grid_lines:
                 grid = parse_grid(grid_lines, self.given_nonogram)
                 fill_grid(soln, grid)
@@ -295,6 +293,8 @@ class SolutionHandler:
             return self.run_nonogrid_solver(check_unique, all_models)
         if solver_path == "pbnsolve":
             return self.run_pbn_solver(check_unique, all_models)
+        if solver_path == "copris":
+            return "copris not implemented"
         if solver_path == "bgu":
             return self.run_bgu_solver(check_unique, all_models)
 
