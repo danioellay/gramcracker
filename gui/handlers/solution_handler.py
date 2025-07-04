@@ -280,6 +280,55 @@ class SolutionHandler:
         
         print(res)
         return res
+    
+    def run_copris_solver(self, check_unique: bool = True, all_models: bool = False) -> str:
+        with open("nono.temp", 'w') as f:
+            nonogram = self.given_nonogram
+            f.write(f"{nonogram.height}\n{nonogram.width}\n")
+            for hints in nonogram.row_hints:
+                for l in hints:
+                    f.write(str(l) + ' ')
+                f.write("\n")
+            f.write("#\n")
+            for hints in nonogram.col_hints:
+                for l in hints:
+                    f.write(str(l) + ' ')
+                f.write("\n")
+        
+        start_time = time.time()
+        # result = subprocess.run(["java", "-jar", "-Xmx2048m", "../copris-nonogram-v1-2/target/scala-2.10/copris-nonogram-assembly-1.2.jar", "-s1", "clasp", "nono.temp"], stdout=subprocess.PIPE)
+        result = subprocess.run(["./../copris-nonogram-v1-2/copris-nonogram-v1-2-graal", "nono.temp"], stdout=subprocess.PIPE)
+        end_time = time.time()
+
+        os.remove("nono.temp")
+        result = result.stdout.decode('utf-8')
+        self.solutions = []
+        # print(result)
+        if "Unique solution" in result:
+            self.solutions = [NonogramSoln(self.given_nonogram)]
+        elif "Multiple solutions" in result:
+            self.solutions = [NonogramSoln(self.given_nonogram), NonogramSoln(self.given_nonogram)]
+        else:
+            self.solutions = []
+
+        if self.solutions:
+            lines = [line for line in result.split('\n')]
+            grid_lines = [line for line in lines if '#' in line or '.' in line]
+            for i, line in enumerate(grid_lines):
+                for j in range(len(line)):
+                    self.solutions[0].grid[i, j] = line[j] == '#'
+            self.curr_soln_idx = 0
+
+        res = f"Solver 'copris' took {format_time(end_time-start_time)} to find "
+        if len(self.solutions) == 0:
+            res += "no solutions"
+        elif check_unique and len(self.solutions) == 1:
+            res += "a unique solution"
+        else:
+            res += f"a solution"
+        
+        print(res)
+        return res
 
     def run_solver(self, solver_path: str, check_unique: bool = True, all_models: bool = False) -> str:
         """Run the logic program at the given path, assume it is a nonogram solver and try to find one/two models, depending on the check_unique flag"""
@@ -294,7 +343,7 @@ class SolutionHandler:
         if solver_path == "pbnsolve":
             return self.run_pbn_solver(check_unique, all_models)
         if solver_path == "copris":
-            return "copris not implemented"
+            return self.run_copris_solver(check_unique, all_models)
         if solver_path == "bgu":
             return self.run_bgu_solver(check_unique, all_models)
 

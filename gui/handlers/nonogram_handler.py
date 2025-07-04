@@ -100,7 +100,7 @@ class NonogramHandler:
             try:
                 hints = list(map(int, line.split()))
                 for hint in hints:
-                    assert(hint > 0)
+                    assert(hint >= 0)
             except:
                 raise Warning(f"Invalid hint in row {row_index}: {line}")
             nonogram.row_hints.append(cast(LineHint, hints))
@@ -109,7 +109,7 @@ class NonogramHandler:
             try:
                 hints = list(map(int, line.split()))
                 for hint in hints:
-                    assert(hint > 0)
+                    assert(hint >= 0)
             except:
                 raise Warning(f"Invalid hint in column {col_index}: {line}")
             nonogram.col_hints.append(cast(LineHint, hints))
