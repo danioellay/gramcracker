@@ -157,8 +157,9 @@ class SolutionHandler:
         result = subprocess.run(["./../pbnsolve-1.09/pbnsolve",  "nono.temp"] + args, stdout=subprocess.PIPE)
         end_time = time.time()
 
-        # os.remove("nono.temp")
+        os.remove("nono.temp")
         result = result.stdout.decode('utf-8')
+        self.solutions = []
         lines = [line.strip() for line in result.split('\n') if line.strip()]
 
         def parse_grid(grid_lines: List[str], nonogram: Nonogram):
@@ -182,7 +183,6 @@ class SolutionHandler:
                 for j in range(len(grid[i])):
                     soln.grid[i, j] = grid[i][j]
 
-        self.solutions = []
         if lines[0].startswith("FOUND MULTIPLE SOLUTIONS:"):
             grid_lines = []
             for line in lines[1:]:
@@ -210,8 +210,6 @@ class SolutionHandler:
                 grid = parse_grid(grid_lines, self.given_nonogram)
                 fill_grid(soln, grid)
                 self.solutions = [soln]
-        else: #No solution case
-            self.solutions = []
 
         if self.solutions:
             self.curr_soln_idx = 0
@@ -228,6 +226,62 @@ class SolutionHandler:
         print(res)
         return res
         
+    def run_bgu_solver(self, check_unique: bool = True, all_models: bool = False) -> str:
+        with open("nono.temp", 'w') as f:
+            nonogram = self.given_nonogram
+            f.write(f"{nonogram.height} {nonogram.width}\n")
+            for hints in nonogram.row_hints:
+                for l in hints:
+                    f.write(str(l) + ' ')
+                f.write("\n")
+            # f.write("#\n")
+            for hints in nonogram.col_hints:
+                for l in hints:
+                    f.write(str(l) + ' ')
+                f.write("\n")
+                
+        if not (check_unique and all_models):
+            args = ["-maxsolutions", "0"]
+        elif check_unique and not all_models:
+            args = ["-maxsolutions", "2"]
+        else:
+            args = ["-maxsolutions", "1"]
+        
+        start_time = time.time()
+        result = subprocess.run(["java", "-jar", "./../bgusolver_cmd_102.jar", "-file", "nono.temp"] + args, stdout=subprocess.PIPE)
+        end_time = time.time()
+
+        os.remove("nono.temp")
+        result = result.stdout.decode('utf-8')
+        self.solutions = []
+        # print(result)
+        lines = [line for line in result.split('\n')]
+        grid_lines = []
+        for line in lines:
+            if line.startswith("Solutions :"):
+                num = int(line.split()[-1])
+                for _ in range(num):
+                    self.solutions.append(NonogramSoln(self.given_nonogram))
+            elif '#' in line:
+                grid_lines.append(line)
+        if self.solutions:
+            for i, line in enumerate(grid_lines):
+                for j in range(len(line)):
+                    self.solutions[0].grid[i, j] = line[j] == '#'
+            self.curr_soln_idx = 0
+
+        res = f"Solver 'bgu' took {format_time(end_time-start_time)} to find "
+        if len(self.solutions) == 0:
+            res += "no solutions"
+        elif len(self.solutions) == 1:
+            res += "a unique solution"
+        elif all_models:
+            res += f"{len(self.solutions)} solutions"
+        else:
+            res += f"{len(self.solutions)}+ solutions"
+        
+        print(res)
+        return res
 
     def run_solver(self, solver_path: str, check_unique: bool = True, all_models: bool = False) -> str:
         """Run the logic program at the given path, assume it is a nonogram solver and try to find one/two models, depending on the check_unique flag"""
@@ -241,6 +295,8 @@ class SolutionHandler:
             return self.run_nonogrid_solver(check_unique, all_models)
         if solver_path == "pbnsolve":
             return self.run_pbn_solver(check_unique, all_models)
+        if solver_path == "bgu":
+            return self.run_bgu_solver(check_unique, all_models)
 
         # Initialize the clingo control and give the dimensional constants
         ctl = Control([f"{0 if check_unique else 1}", 
