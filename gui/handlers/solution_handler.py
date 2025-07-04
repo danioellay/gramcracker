@@ -124,7 +124,7 @@ class SolutionHandler:
         res = f"Solver 'nonogrid' took {format_time(end_time-start_time)} to find "
         if len(self.solutions) == 0:
             res += "no solutions"
-        elif len(self.solutions) == 1:
+        elif check_unique and len(self.solutions) == 1:
             res += "a unique solution"
         elif all_models:
             res += f"{len(self.solutions)} solutions"
@@ -201,7 +201,7 @@ class SolutionHandler:
                 soln = NonogramSoln(self.given_nonogram)
                 fill_grid(soln, grid)
                 self.solutions.append(soln)
-        elif lines[0].startswith("UNIQUE"):
+        elif lines[0].startswith("UNIQUE") or lines[0].startswith("STOPPED"):
             soln = NonogramSoln(self.given_nonogram)
             print(lines)
             grid_lines = lines[1:]
@@ -217,7 +217,7 @@ class SolutionHandler:
         res = f"Solver 'pbnsolve' took {format_time(end_time-start_time)} to find "
         if len(self.solutions) == 0:
             res += "no solutions"
-        elif len(self.solutions) == 1:
+        elif check_unique and len(self.solutions) == 1:
             res += "a unique solution"
         else:
             res += f"{len(self.solutions)}+ solutions"
@@ -240,12 +240,12 @@ class SolutionHandler:
                     f.write(str(l) + ' ')
                 f.write("\n")
                 
-        if not (check_unique and all_models):
-            args = ["-maxsolutions", "0"]
+        if not check_unique and not all_models:
+            args = ["-maxsolutions", "1"]
         elif check_unique and not all_models:
             args = ["-maxsolutions", "2"]
         else:
-            args = ["-maxsolutions", "1"]
+            args = ["-maxsolutions", "0"]
         
         start_time = time.time()
         result = subprocess.run(["java", "-jar", "./../bgusolver_cmd_102.jar", "-file", "nono.temp"] + args, stdout=subprocess.PIPE)
@@ -273,7 +273,7 @@ class SolutionHandler:
         res = f"Solver 'bgu' took {format_time(end_time-start_time)} to find "
         if len(self.solutions) == 0:
             res += "no solutions"
-        elif len(self.solutions) == 1:
+        elif check_unique and len(self.solutions) == 1:
             res += "a unique solution"
         elif all_models:
             res += f"{len(self.solutions)} solutions"
