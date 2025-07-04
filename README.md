@@ -48,7 +48,7 @@ This solver written in Rust has been added as a submodule to the repository; it 
 
 > cd nonogrid
 > 
-> cargo build release
+> cargo build --release --features="args std_time sat"
 
 The solver expects an input file consisting of one line of whitespace separated hints per row, an empty line, then one line of whitespace separated hints per column. 
 It is wrapped by the 'SolutionHandler.run_nonogrid_solver(..)' function and supports both uniqueness checking and enumeration of all solutions (but it is pretty slow at finding more than a handful of solutions).
