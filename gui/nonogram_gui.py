@@ -102,8 +102,10 @@ class NonogramGUI(tk.Tk):
         self.solver_menu.add_separator()
 
         solvers = [f for f in listdir("solvers/") if isfile(join("solvers/", f)) and f.endswith(".lp")]
-        solvers += ["nonogrid.xx", "pbnsolve.xx", "copris.xx", "bgu.xx"] #needs some pseudo filename extension
+        solvers += ["nonogrid.xx", "pbnsolve.xx", "copris.xx", "copris_aot.xx", "bgu.xx", "bgu_aot.xx"] #needs some pseudo filename extension
         for i, solver in enumerate(solvers):
+            if i == 9:
+                i = -1
             # Create a lambda function that calls _on_solver with the correct solver
             self.solver_menu.add_command(label=solver.split(".")[0], accelerator=f"Ctrl+{i+1}", command=lambda s=solver: self._on_solver(s))
             self.bind_all(f"<Control-Key-{i+1}>", lambda e, s=solver: self._on_solver(s))

@@ -39,3 +39,45 @@ Then you can pick between three options:
 3. Load an image file and convert it to a nonogram - you can adjust the brightness threshold of the black and white image.
 
 When you are happy with the preview on the right and the uniqueness properties of you nonogram, you can press OK (or hit 'Enter') to load it into the _Nonogram GUI_.
+
+## Integrating other Nonogram Solvers into the GUI
+We integrated four existing nonogram solvers into the project; most need to be compiled separately. We do not claim ownership or autorship over any of these source files and have only copied them into the repository for convenience.
+
+### Nonogrid (https://github.com/tsionyx/nonogrid)
+This solver written in Rust has been added as a submodule to the repository; it can be compiled using
+> cd nonogrid
+> cargo build release
+
+The solver expects an input file consisting of one line of whitespace separated hints per row, an empty line, then one line of whitespace separated hints per column. 
+It is wrapped by the 'SolutionHandler.run_nonogrid_solver(..)' function and supports both uniqueness checking and enumeration of all solutions (but it is pretty slow at finding more than a handful of solutions).
+
+### pbnsolve (https://code.google.com/archive/p/pbnsolve/downloads)
+Version 1.09 of this solver written in C can be found in the 'pbnsolve' directory.
+It requires installation of the zlib1g-dev and libxml2-dev packages, then it can be compiled with
+> cd pbnsolve
+> make pbnsolve
+
+For more information about this sovler, see the pbnsolve/README file. 
+It is wrapped by the 'SolutionHandler.run_pbn_solver' function and supports uniqueness checking, but not finding of more than two solutions.
+
+### copris-nonogram (https://cspsat.gitlab.io/copris-puzzles/nonogram/)
+Version 2.0 of this nonogram solver is included in the 'solvers' directory.
+It is quite slow to start since it is running in a JVM.
+For us, we had success in making it faster (at least for small nonograms) by compiling the source, which we have included in the 'copris' directory, into a .jar archive with
+> cd copris
+> sbt assembly
+and then we used AOT compilation to transform it into an executable using the GraalVM and 'native image' tool:
+> native-image -cp "target/scala-2.10/copris-nonogram-assembly-1.2.jar" -H:+ReportExceptionStackTraces  -H:IncludeResources=".*" -H:Class=nonogram.Solver -H:Name=copris-aot --no-fallback
+which were installed before using
+> sdk install java 21.0.0.r11-grl
+> gu install native-image
+
+It is wrapped by the 'SolutionHandler.run_copris_solver' function, which calls either the scala or the aot version. It supports uniqueness checking, but not enumerating all solutions.
+
+### Ben-Gurion University (bgu) solver (http://www.cs.bgu.ac.il/~benr/nonograms/)
+Version 1.02 of this solver is included in the 'solvers' directory.
+Similar to copris, we had success in using AOT compilation to make it considerably faster:
+> cd solvers
+> native-image -cp "bgusolver_cmd_102.jar" -H:+ReportExceptionStackTraces  -H:IncludeResources=".*" -H:Class=JCIndependantSolver -H:Name=bgu-aot --no-fallback
+
+It is wrapped by the 'SolutionHandler.run_bgu_solver' function. It supports uniqueness checking, and finding the number of solution, but always just returns a single solution to look at.

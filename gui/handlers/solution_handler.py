@@ -154,7 +154,7 @@ class SolutionHandler:
             # Not supported?
         
         start_time = time.time()
-        result = subprocess.run(["./../pbnsolve-1.09/pbnsolve",  "nono.temp"] + args, stdout=subprocess.PIPE)
+        result = subprocess.run(["./pbnsolve/pbnsolve",  "nono.temp"] + args, stdout=subprocess.PIPE)
         end_time = time.time()
 
         os.remove("nono.temp")
@@ -219,12 +219,10 @@ class SolutionHandler:
             res += "a unique solution"
         else:
             res += f"{len(self.solutions)}+ solutions"
-            if all_models:
-                res += " (finding all not supported)"
         print(res)
         return res
         
-    def run_bgu_solver(self, check_unique: bool = True, all_models: bool = False) -> str:
+    def run_bgu_solver(self, check_unique: bool = True, all_models: bool = False, use_aot: bool = False) -> str:
         with open("nono.temp", 'w') as f:
             nonogram = self.given_nonogram
             f.write(f"{nonogram.height} {nonogram.width}\n")
@@ -246,7 +244,10 @@ class SolutionHandler:
             args = ["-maxsolutions", "0"]
         
         start_time = time.time()
-        result = subprocess.run(["java", "-jar", "./../bgusolver_cmd_102.jar", "-file", "nono.temp"] + args, stdout=subprocess.PIPE)
+        if use_aot:
+            result = subprocess.run(["./solvers/bgu-aot", "-file", "nono.temp"] + args, stdout=subprocess.PIPE)
+        else:
+            result = subprocess.run(["java", "-jar", "solvers/bgusolver_cmd_102.jar", "-file", "nono.temp"] + args, stdout=subprocess.PIPE)
         end_time = time.time()
 
         os.remove("nono.temp")
@@ -268,7 +269,7 @@ class SolutionHandler:
                     self.solutions[0].grid[i, j] = line[j] == '#'
             self.curr_soln_idx = 0
 
-        res = f"Solver 'bgu' took {format_time(end_time-start_time)} to find "
+        res = f"Solver 'bgu{"_aot" if use_aot else ""}' took {format_time(end_time-start_time)} to find "
         if len(self.solutions) == 0:
             res += "no solutions"
         elif check_unique and len(self.solutions) == 1:
@@ -281,7 +282,7 @@ class SolutionHandler:
         print(res)
         return res
     
-    def run_copris_solver(self, check_unique: bool = True, all_models: bool = False) -> str:
+    def run_copris_solver(self, check_unique: bool = True, all_models: bool = False, use_aot = False) -> str:
         with open("nono.temp", 'w') as f:
             nonogram = self.given_nonogram
             f.write(f"{nonogram.height}\n{nonogram.width}\n")
@@ -297,7 +298,12 @@ class SolutionHandler:
         
         start_time = time.time()
         # result = subprocess.run(["java", "-jar", "-Xmx2048m", "../copris-nonogram-v1-2/target/scala-2.10/copris-nonogram-assembly-1.2.jar", "-s1", "clasp", "nono.temp"], stdout=subprocess.PIPE)
-        result = subprocess.run(["./../copris-nonogram-v1-2/copris-nonogram-v1-2-graal", "nono.temp"], stdout=subprocess.PIPE)
+        # result = subprocess.run(["../copris/copris", "nono.temp"], stdout=subprocess.PIPE)
+        if use_aot:
+            result = subprocess.run(["./copris/copris-aot", "-s1", "clasp", "nono.temp"], stdout=subprocess.PIPE)
+        else:
+            result = subprocess.run(["scala", "-cp", "solvers/copris-puzzles-2.0.jar", "nonogram.Solver", "-s1", "clasp", "nono.temp"], stdout=subprocess.PIPE)
+
         end_time = time.time()
 
         os.remove("nono.temp")
@@ -319,13 +325,15 @@ class SolutionHandler:
                     self.solutions[0].grid[i, j] = line[j] == '#'
             self.curr_soln_idx = 0
 
-        res = f"Solver 'copris' took {format_time(end_time-start_time)} to find "
+        res = f"Solver 'copris{"_aot" if use_aot else ""}' took {format_time(end_time-start_time)} to find "
         if len(self.solutions) == 0:
             res += "no solutions"
         elif check_unique and len(self.solutions) == 1:
             res += "a unique solution"
+        elif len(self.solutions) > 1:
+            res += "a non-unique solution"
         else:
-            res += f"a solution"
+            res += "a solution"
         
         print(res)
         return res
@@ -344,8 +352,12 @@ class SolutionHandler:
             return self.run_pbn_solver(check_unique, all_models)
         if solver_path == "copris":
             return self.run_copris_solver(check_unique, all_models)
+        if solver_path == "copris_aot":
+            return self.run_copris_solver(check_unique, all_models, True)
         if solver_path == "bgu":
             return self.run_bgu_solver(check_unique, all_models)
+        if solver_path == "bgu_aot":
+            return self.run_bgu_solver(check_unique, all_models, True)
 
         # Initialize the clingo control and give the dimensional constants
         ctl = Control([f"{0 if check_unique else 1}", 
