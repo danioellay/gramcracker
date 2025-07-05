@@ -58,7 +58,7 @@
  * the supported non-xml file formats are pathetic, but that's life.
  */
 
-/* #define NOXML /**/
+#define NOXML /**/
 
 /* DEBUG LEVEL - This controls how much debugging code is compiled into the
  * program.  If debugging code is included in the program, then it is turned

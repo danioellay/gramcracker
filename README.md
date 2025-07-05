@@ -65,19 +65,19 @@ For more information about this sovler, see the pbnsolve/README file.
 It is wrapped by the 'SolutionHandler.run_pbn_solver' function and supports uniqueness checking, but not finding of more than two solutions.
 
 ### copris-nonogram (https://cspsat.gitlab.io/copris-puzzles/nonogram/)
-Version 2.0 of this nonogram solver is included in the 'solvers' directory.
+Version 2.0 of this nonogram solver written in Copris and embedded in Scala is included in the 'solvers' directory.
 It is quite slow to start since it is running in a JVM.
-For us, we had success in making it faster (at least for small nonograms) by compiling the source, which we have included in the 'copris' directory, into a .jar archive with
+We had success in making it faster (at least for small nonograms) by compiling the source, which we have included in the 'copris' directory, into a .jar archive with
 
 > cd copris
 > 
 > sbt assembly
 
-and then we used AOT compilation to transform it into an executable using the GraalVM and 'native image' tool:
+and then we used AOT compilation to transform it into an executable using the 'native image' tool from GraalVM:
 
 > native-image -cp "target/scala-2.10/copris-nonogram-assembly-1.2.jar" -H:+ReportExceptionStackTraces  -H:IncludeResources=".*" -H:Class=nonogram.Solver -H:Name=copris-aot --no-fallback
 
-which were installed before using
+which was installed before using
 
 > sdk install java 21.0.0.r11-grl
 > 
@@ -93,4 +93,4 @@ Similar to copris, we had success in using AOT compilation to make it considerab
 > 
 > native-image -cp "bgusolver_cmd_102.jar" -H:+ReportExceptionStackTraces  -H:IncludeResources=".*" -H:Class=JCIndependantSolver -H:Name=bgu-aot --no-fallback
 
-It is wrapped by the 'SolutionHandler.run_bgu_solver' function. It supports uniqueness checking, and finding the number of solution, but always just returns a single solution to look at.
+It is wrapped by the 'SolutionHandler.run_bgu_solver' function, which calls either the java or the aot version. It supports uniqueness checking, and finding the number of solution, but can only return a single solution to look at.
