@@ -86,7 +86,7 @@ which was installed before using
 It is wrapped by the 'SolutionHandler.run_copris_solver' function, which calls either the scala or the aot version. It supports uniqueness checking, but not enumerating all solutions.
 
 ### Ben-Gurion University (bgu) solver (http://www.cs.bgu.ac.il/~benr/nonograms/)
-Version 1.02 of this solver is included in the 'solvers' directory.
+Version 1.02 of this solver written in Java is included in the 'solvers' directory.
 Similar to copris, we had success in using AOT compilation to make it considerably faster:
 
 > cd solvers
