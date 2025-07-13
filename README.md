@@ -1,7 +1,6 @@
-## gramcracker
-An ASP-based Nonogram Solver & GUI
+An ASP-based Nonogram Solver with uniqueness checking, as well as a GUI for creating, viewing, solving and editing Nonograms, with an integrated Image-to-Nonogram converter.
 
-## Nonogram GUI
+# Nonogram GUI
 You can start the interactive GUI with 
 > python -m gui
 
@@ -27,7 +26,7 @@ You can change any row or column hint directly by clicking on it and entering a 
 You can also fill the grid arbitrarily and then turn that grid into a nonogram by pressing Ctrl + Shift + N, or by using the 'File/New from current solution' menu option.
 Resizing the nonogram is not supported, you need to use the _Nonogram Generator_ to create a new one. 
 
-## Nonogram Generator
+## Nonogram Generator & Image-to-Nonogram converter
 The _Nonogram Generator_ opens when you launch the application without parameters, or by pressing Ctrl + N from inside the _Nonogram GUI_.
 Here you can create a nonogram yourself using the controls on the left hand side.
 On the right hand side, you see a preview of the image encoded in your nonogram.
@@ -39,3 +38,17 @@ Then you can pick between three options:
 3. Load an image file and convert it to a nonogram - you can adjust the brightness threshold of the black and white image.
 
 When you are happy with the preview on the right and the uniqueness properties of you nonogram, you can press OK (or hit 'Enter') to load it into the _Nonogram GUI_.
+
+# Integrating other Nonogram Solvers into the GUI
+We integrated four existing nonogram solvers into the UI to compare them to our solvers:
+1. nonogrid (https://github.com/tsionyx/nonogrid)
+2. pbnsolve (https://webpbn.com/pbnsolve.html)
+3. copris-nonogram (https://cspsat.gitlab.io/copris-puzzles/nonogram/)
+4. BGU solver (http://www.cs.bgu.ac.il/~benr/nonograms/)
+
+These solvers can be found in the 'other_solvers' branch of this repository:
+> git checkout other_solvers
+
+We do not claim ownership or authorship over any of these source files and have only copied them into the repository for convenience.
+
+Most need to be compiled separately. See the extended readme on that branch for details on how to setup each solver.

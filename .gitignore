@@ -8,3 +8,12 @@ gui/__pycache__
 gui/handlers/__pycache__
 images/*
 !images/qrcode.png
+nono.temp
+*.o
+pbnsolve/pbnsolve
+copris/target
+copris/project/target
+copris/project/project
+copris/copris-aot
+solvers/bgu-aot
+.vscode/settings.json
