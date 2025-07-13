@@ -49,16 +49,63 @@ Then you can pick between three options:
 
 When you are happy with the preview on the right and the uniqueness properties of you nonogram, you can press OK (or hit 'Enter') to load it into the _Nonogram GUI_.
 
-# Integrating other Nonogram Solvers into the GUI
-We integrated four existing nonogram solvers into the UI to compare them to our solvers:
-1. nonogrid (https://github.com/tsionyx/nonogrid)
-2. pbnsolve (https://webpbn.com/pbnsolve.html)
-3. copris-nonogram (https://cspsat.gitlab.io/copris-puzzles/nonogram/)
-4. BGU solver (http://www.cs.bgu.ac.il/~benr/nonograms/)
+## Integrating other Nonogram Solvers into the GUI
+We integrated four existing nonogram solvers into the project; most need to be compiled separately. We do not claim ownership or authorship over any of these source files and have only copied them into the repository for convenience.
 
-These solvers can be found in the 'other_solvers' branch of this repository:
-> git checkout other_solvers
+### Nonogrid (https://github.com/tsionyx/nonogrid)
+This solver written in Rust has been added as a submodule to the repository; it requires the rustup package and can be compiled using
 
-We do not claim ownership or authorship over any of these source files and have only copied them into the repository for convenience.
+> git submodule init nonogrid
+>
+> cd nonogrid
+> 
+> cargo build --release --features="args std_time sat"
 
-Most need to be compiled separately. See the extended readme on that branch for details on how to setup each solver.
+The solver expects an input file consisting of one line of whitespace separated hints per row, an empty line, then one line of whitespace separated hints per column. 
+It is wrapped by the 'SolutionHandler.run_nonogrid_solver(..)' function and supports both uniqueness checking and enumeration of all solutions.
+
+### pbnsolve (https://webpbn.com/pbnsolve.html, https://code.google.com/archive/p/pbnsolve/downloads)
+Version 1.09 of this solver written in C can be found in the 'pbnsolve' directory.
+It requires installation of the zlib1g-dev and libxml2-dev packages, then it can be compiled with
+
+> cd pbnsolve
+> 
+> make pbnsolve
+
+For more information about this sovler, see the pbnsolve/README file. 
+It is wrapped by the 'SolutionHandler.run_pbn_solver' function and supports uniqueness checking, but not finding of more than two solutions.
+
+### copris-nonogram (https://cspsat.gitlab.io/copris-puzzles/nonogram/)
+Version 2.0 of this nonogram solver written in Copris and embedded in Scala is included in the 'solvers' directory.
+Running it requires a local installation of scala 2.12.12:
+> sdk install scala 2.12.12
+
+It is quite slow to start since it is running in a JVM.
+We had success in making it run faster (at least for small nonograms) by compiling the source, which we have included in the 'copris' directory, into a .jar archive with
+
+> cd copris
+> 
+> sbt assembly
+
+and then we used AOT compilation to transform it into an executable using the 'native image' tool from GraalVM:
+
+> native-image -cp "target/scala-2.10/copris-nonogram-assembly-1.2.jar" -H:+ReportExceptionStackTraces  -H:IncludeResources=".*" -H:Class=nonogram.Solver -H:Name=copris-aot --no-fallback
+
+which was installed before using
+
+> sdk install java 21.0.0.r11-grl
+> 
+> gu install native-image
+
+It is wrapped by the 'SolutionHandler.run_copris_solver' function, which calls either the scala or the aot version. It supports uniqueness checking, but not enumerating all solutions.
+
+### Ben-Gurion University (bgu) solver (http://www.cs.bgu.ac.il/~benr/nonograms/)
+Version 1.02 of this solver written in Java is included in the 'solvers' directory.
+It requires a local installation of java.
+Similar to copris, we had success in using AOT compilation to make it considerably faster:
+
+> cd solvers
+> 
+> native-image -cp "bgusolver_cmd_102.jar" -H:+ReportExceptionStackTraces  -H:IncludeResources=".*" -H:Class=JCIndependantSolver -H:Name=bgu-aot --no-fallback
+
+It is wrapped by the 'SolutionHandler.run_bgu_solver' function, which calls either the java or the aot version. It supports uniqueness checking, and finding the number of solution, but can only return a single solution to look at.

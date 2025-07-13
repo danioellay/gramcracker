@@ -30,6 +30,14 @@ WINDOW_WIDTH = 800
 WINDOW_HEIGHT = 600
 SQUARE_SIZE = 50 #default side length of a grid cell, in pixels
 
+def istool(name):
+    """Check whether `name` is on PATH and marked as executable."""
+
+    # from whichcraft import which
+    from shutil import which
+
+    return which(name) is not None
+
 class NonogramGUI(QMainWindow):
 
     def __init__(self, args) -> None:
@@ -114,7 +122,7 @@ class NonogramGUI(QMainWindow):
         self.set_status("Solving nonogram...")
         self.status_label.update()
         self.update()
-        res = self.solution_handler.run_solver(name.split(".")[0], 
+        res, _ = self.solution_handler.run_solver(name.split(".")[0], 
                                                self.check_uniqueness_var, 
                                                self.find_all_solns_var) if name != "auto" else self.solution_handler.run_solver_auto(self.check_uniqueness_var, self.find_all_solns_var)
         self.set_status(res + ".")
@@ -123,7 +131,7 @@ class NonogramGUI(QMainWindow):
     
     def _on_file_open(self, *_) -> None:
         """Open a file dialog and let the user load a file"""
-        file_types = "Text format (*.txt);;ASP encoding (*.lp)"
+        file_types = "Text format (*.txt);;ASP encoding (*.lp);;NIN format (*.nin)"
         init_dir = "nonograms"
 
         # Open file dialog
@@ -344,6 +352,83 @@ class NonogramGUI(QMainWindow):
             action.triggered.connect(lambda _, s=solver: self._on_solver(s))
             solver_menu.addAction(action)
 
+        # Add non ASP solvers
+        other_solvers = []
+        if isfile("nonogrid/target/release/nonogrid"):
+            # print("nonogrid solver found")
+            other_solvers.append("nonogrid.x")
+        else:
+            print("nonogrid solver not found")
+            print("\tCompile it with:")
+            print("\tgit submodule init nonogrid")
+            print("\tcd nonogrid")
+            print("\tcargo build --release --features=\"args std_time sat\"")
+            print("")
+        
+        if isfile("pbnsolve/pbnsolve"):
+            # print("pbnsovler solver found")
+            other_solvers.append("pbnsolve.x")
+        else:
+            print("pbnsovler solver not found")
+            print("\tCompile it with:")
+            print("\tcd pbnsolve")
+            print("\tmake pbnsolve")
+            print()
+
+        if isfile("solvers/copris-puzzles-2.0.jar"):
+            if istool("scala"):
+                # print("copris solver and scala installation found")
+                other_solvers.append("copris.x")
+            else:
+                print("copris solver dependency 'scala' not found")
+                print("\tInstall it with:")
+                print("\tsdk install scala 2.12.12")
+                print()
+        else:
+            print("copris solver not found")
+
+        if isfile("copris/copris-aot"):
+            # print("copris_aot solver found")
+            other_solvers.append("copris_aot.x")
+        else:
+            print("copris_aot solver not found")
+            print("\tCompile it with:")
+            print("\tcd copris")
+            print("\tsbt assembly")
+            print("\tnative-image -cp \"target/scala-2.10/copris-nonogram-assembly-1.2.jar\" -H:+ReportExceptionStackTraces  -H:IncludeResources=\".*\" -H:Class=nonogram.Solver -H:Name=copris-aot --no-fallback")
+            print()
+
+        if isfile("solvers/bgusolver_cmd_102.jar"):
+            if istool("java"):
+                # print("bgu solver and java installation found")
+                other_solvers.append("bgu.x")
+            else:
+                print("bgu solver dependency 'java' not found")
+                print("\tInstall it with:")
+                print("\tsdk install java 21.0.0.r11-grl")
+        else:
+            print("bgu solver not found")
+
+        if isfile("solvers/bgu-aot"):
+            # print("bgu_aot solver found")
+            other_solvers.append("bgu_aot.x")
+        else:
+            print("bgu_aot solver not found")
+            print("\tCompile it with:")
+            print("\tcd solvers")
+            print("\tnative-image -cp \"bgusolver_cmd_102.jar\" -H:+ReportExceptionStackTraces  -H:IncludeResources=\".*\" -H:Class=JCIndependantSolver -H:Name=bgu-aot --no-fallback")
+            print()
+            
+        for i, solver in enumerate(other_solvers, start=len(solvers)):
+            if i == 9:
+                i = -1
+            # Create a lambda function that calls _on_solver with the correct solver
+            action = QAction(solver.split(".")[0], self)
+            action.setShortcut(QKeySequence(f"Ctrl+{i+1}"))
+            action.triggered.connect(lambda _, s=solver: self._on_solver(s))
+            solver_menu.addAction(action)
+
+
         # View menu
         view_menu = menubar.addMenu("&View")
         assert(view_menu)
@@ -425,8 +510,9 @@ class NonogramGUI(QMainWindow):
     def _on_button_press(self, event):
         if event.inaxes != self.axes:
             return
-
+        
         self.solution_handler.use_working_soln()
+    
         nonogram = self.nonogram_handler.get_curr_nonogram()
 
         # Convert y-coordinate properly for your nonogram grid
@@ -449,8 +535,6 @@ class NonogramGUI(QMainWindow):
                 self.drag_to_erase = self.crosses[y][x].get_visible()
         elif y >= 0 and x < 0 and event.button == 1:
             self._on_leftclick_rowhint(y)
-        elif x >= 0 and y < 0 and event.button == 1:
-            self._on_leftclick_colhint(x)
         # remaining case: x, y == -1, -1
 
     def _on_button_release(self, event):

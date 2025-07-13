@@ -19,7 +19,7 @@ class NonogramHandler:
             lines = file.readlines()
         # check which file ending the filename has and switch between parsers
         lpfile = path.split('.')[-1] == 'lp'
-        if not lpfile and path.split('.')[-1] != 'txt':
+        if not lpfile and not path.split('.')[-1] in ['txt', 'nin']:
             raise Warning("File Format not supported")
         
         self.loaded_nonogram = self._load_lp_format(lines) if lpfile else self._load_txt_format(lines)
@@ -100,7 +100,7 @@ class NonogramHandler:
             try:
                 hints = list(map(int, line.split()))
                 for hint in hints:
-                    assert(hint > 0)
+                    assert(hint >= 0)
             except:
                 raise Warning(f"Invalid hint in row {row_index}: {line}")
             nonogram.row_hints.append(cast(LineHint, hints))
@@ -109,7 +109,7 @@ class NonogramHandler:
             try:
                 hints = list(map(int, line.split()))
                 for hint in hints:
-                    assert(hint > 0)
+                    assert(hint >= 0)
             except:
                 raise Warning(f"Invalid hint in column {col_index}: {line}")
             nonogram.col_hints.append(cast(LineHint, hints))
