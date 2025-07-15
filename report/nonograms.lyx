@@ -508,7 +508,7 @@ status open
 \begin_inset Caption Standard
 
 \begin_layout Plain Layout
-Time needed to solve the 'PBN28' nonogams and decide the uniqueness for our two solvers,
+Time needed to solve and decide the uniqueness for the 'PBN28' nonogams for our ASP-based solvers,
  compared to the performance of six other solvers.
 \end_layout
 
@@ -545,7 +545,7 @@ status open
 \begin_inset Caption Standard
 
 \begin_layout Plain Layout
-Time needed to solve and decide the uniqueness for the 1000 random nonogams from the TAAI11 nonogram competition for our two solvers,
+Time needed to solve and decide the uniqueness for the 1000 random nonogams from the TAAI11 nonogram competition for our ASP-based solvers,
  compared to the performance of six other solvers.
 \end_layout
 
@@ -581,7 +581,7 @@ status open
 \begin_inset Caption Standard
 
 \begin_layout Plain Layout
-Time needed to solve and decide the uniqueness for the 300 difficult nonogams from the TAAI11 nonogram competition for our two solvers,
+Time needed to solve and decide the uniqueness for the 300 difficult nonogams from the TAAI11 nonogram competition for our ASP-based solvers,
  compared to the performance of six other solvers.
 \end_layout
 
