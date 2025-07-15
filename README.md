@@ -1,5 +1,12 @@
 An ASP-based Nonogram Solver with uniqueness checking, as well as a GUI for creating, viewing, solving and editing Nonograms, with an integrated Image-to-Nonogram converter.
 
+# Setup
+We recommend running this python application in a virtual environment.
+For example, you can do the following to set this up:
+> python -m venv .venv
+> source .venv/bin/activate
+> pip install -r requirements.txt
+
 # Nonogram GUI
 You can start the interactive GUI with 
 > python -m gui
