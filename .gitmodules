@@ -1,0 +1,3 @@
+[submodule "nonogrid"]
+	path = nonogrid
+	url = https://github.com/tsionyx/nonogrid
