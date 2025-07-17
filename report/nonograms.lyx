@@ -953,6 +953,17 @@ reference "fig:benchmark-pbn28"
  Generally,
  the further down and the flatter a curve is,
  the better the performance of the solver.
+ ...
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+TODO
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
@@ -992,13 +1003,63 @@ Time needed to solve and decide the uniqueness for the 'PBN28' nonogams for our 
 
 \end_layout
 
-\begin_layout Plain Layout
+\end_inset
 
+
+\end_layout
+
+\begin_layout Standard
+Next,
+ we needed more nonograms to evaluate the solvers in more detail,
+ and we found the datasets that were used in the TAAI nonogram solver competition from 2011 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "TAAI11"
+literal "false"
+
+\end_inset
+
+.
+ Here,
+ three solvers competed against each other across two disciplines:
+ In the first competition,
+ they all had to solve one thousand randomly generated 25x25 nonograms as quickly as possible.
+ In the second competition,
+ each participant could submit one hundred 25x25 nonograms which every other solver then had to solve as quickly as possible.
+ The fastest solver across both categories was declared the winner.
+ The three hundred nonograms submitted for the second competition should thus presents a good dataset to evaluate the performance of nonogram solvers at the high end of the nonogram difficulty spectrum.
+\end_layout
+
+\begin_layout Standard
+In 
+\begin_inset CommandInset ref
+LatexCommand formatted
+reference "fig:benchmark-taai-rand"
+
+\end_inset
+
+ we show how many of the random nonograms from the first competition each solver was able to solve how quickly,
+ and in 
+\begin_inset CommandInset ref
+LatexCommand formatted
+reference "fig:benchmark-taai-diff"
+
+\end_inset
+
+ we show the same for the three hundred difficult nonograms submitted for the second competition.
+ Here,
+ the solvers were given a maximum timeout of 60 seconds per nonogram.
+ ...
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+TODO
 \end_layout
 
 \end_inset
 
-
+ 
 \begin_inset Float figure
 placement document
 alignment document
@@ -1020,6 +1081,12 @@ status open
 \begin_inset Caption Standard
 
 \begin_layout Plain Layout
+\begin_inset CommandInset label
+LatexCommand label
+name "fig:benchmark-taai-rand"
+
+\end_inset
+
 Time needed to solve and decide the uniqueness for the 1000 random nonogams from the TAAI11 nonogram competition for our ASP-based solvers,
  compared to the performance of the six other solvers.
 \end_layout
@@ -1056,6 +1123,12 @@ status open
 \begin_inset Caption Standard
 
 \begin_layout Plain Layout
+\begin_inset CommandInset label
+LatexCommand label
+name "fig:benchmark-taai-diff"
+
+\end_inset
+
 Time needed to solve and decide the uniqueness for the 300 difficult nonogams from the TAAI11 nonogram competition for our ASP-based solvers,
  compared to the performance of the six other solvers.
 \end_layout
