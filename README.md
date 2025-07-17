@@ -1,9 +1,6 @@
 An ASP-based Nonogram Solver with uniqueness checking, as well as a GUI for creating, viewing, solving and editing Nonograms, with an integrated Image-to-Nonogram converter.
-
 ![image](generator_preview.webp)
-
 ![image](ui_preview.webp)
-
 # Setup
 We recommend running this python application in a virtual environment.
 For example, you can do the following to set this up:
