@@ -471,6 +471,7 @@ class NonogramCreator(QDialog):
         self.im_original = cv2.imread(self.im_file_path, cv2.IMREAD_GRAYSCALE)
         try:
             _ = self.im_original.size
+            _ = cv2.resize(self.im_original, (100, 100))
         except:
             self.im_original = None
 
