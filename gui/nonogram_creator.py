@@ -51,13 +51,12 @@ def spinbox_float(master, title, callback, min_value, max_value, initial_value, 
         return callback(num)
     
     var.trace_add("write", pseudo_callback)
-    max_strlen = max(len(str(max_value)), len(str(min_value)))
 
     sb = tk.Spinbox(master,
                     from_=min_value,
                     to=max_value,
                     increment=step,
-                    width = 2 * max_strlen + 2,
+                    width = 5,
                     textvariable=var)
     sb.pack(side=tk.RIGHT, padx=5, pady=1)
     
@@ -73,6 +72,7 @@ class NonogramCreator(tk.Toplevel):
     im_file_path: str = ""
     grid = np.full((height, width), 255, dtype=np.uint8)
     success: bool = True
+    timeout: float = 1.0
 
     def get(self) -> np.ndarray | None:
         # Wait for the dialog to close
@@ -126,10 +126,12 @@ class NonogramCreator(tk.Toplevel):
         nonogram.init_from_grid(self.grid != 255)
         soln_handler = SolutionHandler()
         soln_handler.give_nonogram(nonogram)
+        soln_handler.set_timeout(self.timeout)
         _ = soln_handler.run_solver("sbs-improved", True, False)
-        assert(soln_handler.solutions)
-        assert(len(soln_handler.solutions) > 0)
-        if len(soln_handler.solutions) > 1:
+        if not soln_handler.solutions:
+            self.uniqueness_label.configure(text="Could not verify")
+            self.uniqueness_counter.configure(text="(Timed out)")
+        elif len(soln_handler.solutions) > 1:
             self.uniqueness_label.configure(text="Nonogram is not unique!")
             self.uniqueness_counter.configure(text=f"({len(soln_handler.solutions)}+ Solutions)")
         else:
@@ -220,6 +222,9 @@ class NonogramCreator(tk.Toplevel):
         separator.pack(side=tk.TOP, fill=tk.X, pady=17)
 
         tk.Label(leftframe, text="Uniqueness", font=("",12)).pack()
+        frame2 = tk.Frame(leftframe)
+        frame2.pack()
+        self.timeout_sb = spinbox_float(frame2, "Timeout:", self._on_set_timeout, 0.1, 10000.0, 1.0, 1.0)
         self.uniqueness_label = tk.Label(leftframe, text="Nonogram is unique!")
         self.uniqueness_label.pack()
         self.uniqueness_counter = tk.Label(leftframe, text="(1 Solution)")
@@ -247,6 +252,9 @@ class NonogramCreator(tk.Toplevel):
     def _on_cancel(self, *_):
         self.success = False
         self.destroy()
+
+    def _on_set_timeout(self, input):
+        self.timeout = float(input)
         
     def _on_set_width(self, input):
         if self.width == input:
