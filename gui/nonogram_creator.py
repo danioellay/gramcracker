@@ -298,8 +298,7 @@ class NonogramCreator(QDialog):
     def update_plot(self):
         """Re-draw the preview image"""
         self.axes.clear()
-        # Calculate aspect ratios
-        # Get grid dimensions if available
+        
         grid_width = self.grid.shape[1]
         grid_height = self.grid.shape[0]
         extent = (0.0, grid_width, grid_height, 0.0)
@@ -366,17 +365,11 @@ class NonogramCreator(QDialog):
             self.uniqueness_label.setText("   ✓ Nonogram is unique")
             self.uniqueness_label.setStyleSheet("color: green; font-size: 11px;")
 
-    def _invert(self):
-        """Invert the nonogram image (swap black and white)"""
-        self.grid = 255 - self.grid
-        self.update_plot()
-
     def get(self) -> np.ndarray | None:
         """Wait for dialog to close and return result (similar to Tkinter version)"""
         exec_result = self.exec_()
 
         if exec_result == QDialog.Accepted and self.success:
-            # Convert grid to the format you want
             if self.grid is not None:
                 return (self.grid != 255).astype(np.uint8)
         return None
@@ -384,9 +377,16 @@ class NonogramCreator(QDialog):
     def _on_ok(self):
         """Handle OK button click - store the result and close dialog"""
         self.success = True
-        # Store your current grid in self.grid here
-        # self.grid = self.current_grid_data
         self.accept()
+
+    def _on_cancel(self, *_):
+        self.success = False
+        self.reject()
+
+    def _invert(self):
+        """Invert the nonogram image (swap black and white)"""
+        self.grid = 255 - self.grid
+        self.update_plot()
 
     def eventFilter(self, a0, a1):
         """Handle key press events for the dialog"""
@@ -426,10 +426,6 @@ class NonogramCreator(QDialog):
 
             self.reload()
 
-    def _on_cancel(self, *_):
-        self.success = False
-        self.reject()
-
     def _on_set_timeout(self, input):
         self.timeout = float(input)
         
@@ -437,7 +433,6 @@ class NonogramCreator(QDialog):
         if self.width_ == input:
             return
         self.width_ = input
-        # print(f"width = {self.width}.. resizing mat")
         self.mat = np.zeros((self.height_, self.width_), dtype=np.uint8)
         self.reload()
 
@@ -445,7 +440,6 @@ class NonogramCreator(QDialog):
         if self.height_ == input:
             return
         self.height_ = input
-        # print(f"height = {self.height}.. resizing mat")
         self.mat = np.zeros((self.height_, self.width_), dtype=np.uint8)
         self.reload()
 
@@ -453,54 +447,55 @@ class NonogramCreator(QDialog):
         if self.bwratio == input:
             return
         self.bwratio = input
-        # print(f"bwdist = {self.bwratio}")
         self.reload()
         
     def _on_set_pxcorr(self, input):
         if self.pxcorr == input:
             return
         self.pxcorr = input
-        # print(f"pxcorr = {self.pxcorr}")
         self.reload()
 
     def _on_set_threshold(self, input):
         if self.threshold == input:
             return
         self.threshold = input
-        # print(f"threshold = {self.threshold}")
         self.reload()
 
     def _on_select_image_file(self, *_):
         """Open a filedialog to select an image and save it, then reload"""
-        file_path, _ = QFileDialog.getOpenFileName(self, "Select Image File", "images",
-                                                  "Images (*.png *.xpm *.jpg *.jpeg *.bmp)")
+        file_path, _ = QFileDialog.getOpenFileName(self, "Select Image File", "images")
         
         if not file_path or self.im_file_path == file_path:
             return
         self.im_file_path = file_path
         self.im_original = cv2.imread(self.im_file_path, cv2.IMREAD_GRAYSCALE)
+        try:
+            _ = self.im_original.size
+        except:
+            self.im_original = None
 
         if self.im_original is None:
             print("Error: Could not read image at " + self.im_file_path)
             self.file_select_bt.setText("Error loading image")
-        else:
-            # Get the dimensions of the image
-            height, width = self.im_original.shape
+            return
+        
+        # Get the dimensions of the image
+        height, width = self.im_original.shape
 
-            # Check if the image is very large and should to be resized
-            if width > 1000 or height > 1000:
-                # print("image is very large, rescaling...")
-                # Calculate the scaling factor
-                scaling_factor = min(1000.0 / width, 1000.0 / height)
+        # Check if the image is very large and should to be resized
+        if width > 1000 or height > 1000:
+            # print("image is very large, rescaling...")
+            # Calculate the scaling factor
+            scaling_factor = min(1000.0 / width, 1000.0 / height)
 
-                # Calculate new dimensions
-                new_width = int(width * scaling_factor)
-                new_height = int(height * scaling_factor)
+            # Calculate new dimensions
+            new_width = int(width * scaling_factor)
+            new_height = int(height * scaling_factor)
 
-                # Resize the image
-                self.im_original = cv2.resize(self.im_original, (new_width, new_height), interpolation=cv2.INTER_AREA)
-                
-            h, w = self.im_original.shape
-            self.file_select_bt.setText(''.join(file_path.split("/")[-1].split(".")[:-1]) + f"({w}x{h})")
+            # Resize the image
+            self.im_original = cv2.resize(self.im_original, (new_width, new_height), interpolation=cv2.INTER_AREA)
+            
+        h, w = self.im_original.shape
+        self.file_select_bt.setText(''.join(file_path.split("/")[-1].split(".")[:-1]) + f"({w}x{h})")
 
         self.reload()
