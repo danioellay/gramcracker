@@ -41,7 +41,7 @@ class NonogramCreator(QDialog):
         self.timeout: float = 1.0
 
         # Setup the window and layout
-        self.setWindowTitle("gramcracker Nonogram Generator")
+        self.setWindowTitle("Nonogram Generator")
         self.setMinimumSize(WINDOW_WIDTH, WINDOW_HEIGHT)
 
         main_layout = QHBoxLayout(self)
