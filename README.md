@@ -2,7 +2,7 @@ An ASP-based Nonogram Solver with uniqueness checking, as well as a GUI for crea
 
 ![image](generator_preview.webp)
 
-![image](ui_preview.webp)
+![image](ui_preview.png)
 
 # Setup
 We recommend running this python application in a virtual environment.
