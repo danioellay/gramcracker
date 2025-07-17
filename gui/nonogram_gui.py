@@ -58,7 +58,7 @@ class NonogramGUI(QMainWindow):
 
         # Setup window
         self.setMinimumSize(WINDOW_WIDTH, WINDOW_HEIGHT)
-        self.setWindowTitle("gramcracker Nonogram GUI")
+        self.setWindowTitle("Nonogram Viewer, Editor & Solver")
 
         # Setup window widgets
         self._setup_menubar()
