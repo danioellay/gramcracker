@@ -38,7 +38,7 @@ figs-within-sections
 \output_sync 0
 \bibtex_command default
 \index_command default
-\float_placement class
+\float_placement H
 \float_alignment center
 \paperfontsize 11
 \spacing single
@@ -111,7 +111,7 @@ figs-within-sections
 \begin_body
 
 \begin_layout Title
-Solving Nonograms with ASP (working title)
+Solving Difficult Nonograms with ASP
 \end_layout
 
 \begin_layout Author
@@ -133,6 +133,16 @@ and
 
 \begin_layout Abstract
 ...
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+TODO
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
@@ -152,20 +162,17 @@ LatexCommand tableofcontents
 \end_layout
 
 \begin_layout Section
-Introduction to Nonograms
+Introduction
 \end_layout
 
 \begin_layout Standard
 ...
-\end_layout
+\begin_inset Note Note
+status open
 
-\begin_layout Standard
-test citation:
- 
-\begin_inset CommandInset citation
-LatexCommand cite
-key "NonogramRelaxationsPaper09"
-literal "false"
+\begin_layout Plain Layout
+TODO
+\end_layout
 
 \end_inset
 
@@ -232,6 +239,12 @@ status open
 \begin_inset Caption Standard
 
 \begin_layout Plain Layout
+\begin_inset CommandInset label
+LatexCommand label
+name "fig:example-nonogram-encoding"
+
+\end_inset
+
 The 5x5 nonogram encoded below:
  The left nonogram is unsolved and shows only the hints at the top and the right hand side in red.
  The nonogram in the center is partially solved,
@@ -257,7 +270,18 @@ The 5x5 nonogram encoded below:
 
 \begin_layout Standard
 We encode nonograms by adding a predicate corresponding to every line and column hint.
- Shown below is an example of a 5x5 nonogram encoding:
+ Shown below is an example of the encoding of the 5x5 nonogram shown in 
+\begin_inset CommandInset ref
+LatexCommand formatted
+reference "fig:example-nonogram-encoding"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+:
 \begin_inset CommandInset include
 LatexCommand lstinputlisting
 filename "../nonograms/example_01.lp"
@@ -272,20 +296,6 @@ literal "false"
 \begin_layout Standard
 Empty columns and rows can either be omitted entirely from the list,
  or may have a single hint of length zero to indicate that no pixel in this line is black.
-\end_layout
-
-\begin_layout Standard
-\begin_inset Note Note
-status open
-
-\begin_layout Plain Layout
-TODO:
- add image of this example nonogram
-\end_layout
-
-\end_inset
-
-
 \end_layout
 
 \begin_layout Subsection
@@ -475,6 +485,18 @@ This has the advantage of only needing to formulate each constraint once,
  instead of one variant for rows and one variant for columns.
 \end_layout
 
+\begin_layout Subsection
+Symbolic Block Start
+\end_layout
+
+\begin_layout Subsection
+Improved Symbolic Block Start
+\end_layout
+
+\begin_layout Subsection
+Heuristics
+\end_layout
+
 \begin_layout Standard
 \begin_inset Newpage newpage
 \end_inset
@@ -483,7 +505,454 @@ This has the advantage of only needing to formulate each constraint once,
 \end_layout
 
 \begin_layout Section
-Performance Analysis
+Performance Comparison
+\end_layout
+
+\begin_layout Standard
+We wanted to evaluate the speed of our ASP-based solvers and compare their performance to other solvers.
+ For this we needed (a) datasets of nonograms and (b) other nonogram solvers.
+ We found a good initial source of both online at 
+\begin_inset CommandInset href
+LatexCommand href
+name "webpbn.com"
+target "https://webpbn.com/"
+literal "false"
+
+\end_inset
+
+:
+ This website contains a database of over thirty thousand user-created nonograms and was a great place to find nonograms of varying difficulty and size.
+ It also has a lengthy performance analysis of over twenty different nonogram solvers 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "PBNSurvey"
+literal "false"
+
+\end_inset
+
+.
+ However,
+ that report is over ten years old and many of the links to nonogram solvers are no longer available.
+\end_layout
+
+\begin_layout Standard
+We selected three of the best performing solvers as presented in 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "PBNSurvey"
+literal "false"
+
+\end_inset
+
+ whose sources are still available:
+ 
+\emph on
+copris
+\emph default
+,
+ 
+\emph on
+pbnsolve
+\emph default
+ and 
+\emph on
+bgu
+\emph default
+.
+ We also included a fourth,
+ more recent solver called 
+\emph on
+nonogrid
+\emph default
+.
+ All four solvers have the ability to check the uniqueness of their solution.
+ In 
+\begin_inset CommandInset ref
+LatexCommand formatted
+reference "tab:List-of-nonogram-sovlers"
+
+\end_inset
+
+ you can find a summary of the solvers we analyzed.
+ All solvers' code and settings,
+ as well as a more detailed description of their setup can be found on a dedicated branch of the project repository
+\begin_inset Foot
+status open
+
+\begin_layout Plain Layout
+\begin_inset CommandInset href
+LatexCommand href
+name "github.com/danioellay/gramcracker/tree/other_solvers"
+target "https://github.com/danioellay/gramcracker/tree/other_solvers"
+literal "false"
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float table
+placement document
+alignment document
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\begin_inset Tabular
+<lyxtabular version="3" rows="5" columns="4">
+<features tabularvalignment="middle">
+<column alignment="center" valignment="top">
+<column alignment="center" valignment="top">
+<column alignment="center" valignment="top">
+<column alignment="center" valignment="top">
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Solver Name
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Reference
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Language
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Strategy description,
+ other notes
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+bgu (1.0.2)
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+\begin_inset CommandInset citation
+LatexCommand cite
+key "bgusolver"
+literal "false"
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Java
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Uses a tree-based search and backtracking
+\begin_inset Newline newline
+\end_inset
+
+Runs in 
+\emph on
+java
+\emph default
+ 21.0 (we used 
+\emph on
+GraalVM
+\emph default
+)
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+copris (2.0)
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+\begin_inset CommandInset citation
+LatexCommand cite
+key "Copris"
+literal "false"
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Scala
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Uses a constraint satisfaction approach
+\begin_inset Newline newline
+\end_inset
+
+Runs in 
+\emph on
+scala
+\emph default
+ 2.12.12 and uses 
+\emph on
+clang
+\emph default
+ 18.1.3
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+nonogrid (0.7.3)
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+\begin_inset CommandInset citation
+LatexCommand cite
+key "nonogrid"
+literal "false"
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Rust
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Employs a customized SAT solver
+\begin_inset Newline newline
+\end_inset
+
+Compiled with 
+\emph on
+rustc
+\emph default
+ 1.88.0 (release mode)
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+pbnsolve (1.09)
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+\begin_inset CommandInset citation
+LatexCommand cite
+key "pbnsolve"
+literal "false"
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+C
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Combines several solving strategies and heuristics
+\begin_inset Newline newline
+\end_inset
+
+Compiled with 
+\emph on
+cc
+\emph default
+ 13.3 (-Ofast)
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+\begin_inset CommandInset label
+LatexCommand label
+name "tab:List-of-nonogram-sovlers"
+
+\end_inset
+
+List of nonogram solvers we benchmarked our ASP-based solvers against.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The 
+\emph on
+copris 
+\emph default
+and 
+\emph on
+bgu 
+\emph default
+solvers both run in a JVM and are thus very slow to start,
+ we were successful in creating alternate versions of these two solvers with ahead-of-time (AOT) compilation.
+ All benchmarks were performed on a 5.3 GHz AMD R7-9800X3D CPU using a single thread.
+\end_layout
+
+\begin_layout Subsection
+Uniqueness Checking
+\end_layout
+
+\begin_layout Standard
+The first benchmark we performed was done on the same nonograms that were tested in 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "PBNSurvey"
+literal "false"
+
+\end_inset
+
+.
+ These 28 nonograms (hereafter referred to as 'PBN28') supposedly represent a cross-section across the range of user-created nonograms,
+ from tiny to very large,
+ and from easy to extremely difficult.
+ All nonograms in PBN28 encode human-recognizable images/shapes,
+ and have a unique (or nearly unique) solution.
+\end_layout
+
+\begin_layout Standard
+In 
+\begin_inset CommandInset ref
+LatexCommand formatted
+reference "fig:benchmark-pbn28"
+
+\end_inset
+
+ we show how many of the nonograms in PBN28 each solver was able to solve in how much time.
+ The solvers were given a maximum timeout of 1000 seconds (
+\begin_inset Formula $\approx$
+\end_inset
+
+17 minutes) for each nonogram.
+ Generally,
+ the further down and the flatter a curve is,
+ the better the performance of the solver.
 \end_layout
 
 \begin_layout Standard
@@ -508,8 +977,14 @@ status open
 \begin_inset Caption Standard
 
 \begin_layout Plain Layout
+\begin_inset CommandInset label
+LatexCommand label
+name "fig:benchmark-pbn28"
+
+\end_inset
+
 Time needed to solve and decide the uniqueness for the 'PBN28' nonogams for our ASP-based solvers,
- compared to the performance of six other solvers.
+ compared to the performance of the six other solvers.
 \end_layout
 
 \end_inset
@@ -546,7 +1021,7 @@ status open
 
 \begin_layout Plain Layout
 Time needed to solve and decide the uniqueness for the 1000 random nonogams from the TAAI11 nonogram competition for our ASP-based solvers,
- compared to the performance of six other solvers.
+ compared to the performance of the six other solvers.
 \end_layout
 
 \end_inset
@@ -582,7 +1057,7 @@ status open
 
 \begin_layout Plain Layout
 Time needed to solve and decide the uniqueness for the 300 difficult nonogams from the TAAI11 nonogram competition for our ASP-based solvers,
- compared to the performance of six other solvers.
+ compared to the performance of the six other solvers.
 \end_layout
 
 \end_inset
