@@ -13,7 +13,7 @@ class SolutionHandler:
         self.solutions: List[NonogramSoln] = []
         self.curr_soln_idx: int = -1 # == -1 if in working solution
         self.working_soln: NonogramSoln
-        self.timeout: float = 0.1
+        self.timeout: float = 1.0
 
     def give_nonogram(self, nonogram: Nonogram) -> None:
         """Give a reference to a nonogram that will be solved when run_solver is called"""
@@ -94,7 +94,7 @@ class SolutionHandler:
         timed_out = False
 
         with ctl.solve(async_=True, on_model=self._on_model) as handle:
-            while not handle.wait(0.1):
+            while not handle.wait(1.0):
                 if time.time() - ground_time > self.timeout:
                     handle.cancel()
                     timed_out = True

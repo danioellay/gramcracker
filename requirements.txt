@@ -2,3 +2,6 @@ matplotlib==3.10.3
 clingo==5.8.0
 opencv-python==4.11.0.86
 numpy==2.3.1
+requests==2.32.4
+pyqt5==5.15.11
+pyqtwebengine==5.15.7
