@@ -116,7 +116,7 @@ class NonogramGUI(QMainWindow):
         self.update()
         res = self.solution_handler.run_solver(name.split(".")[0], 
                                                self.check_uniqueness_var, 
-                                               self.find_all_solns_var)
+                                               self.find_all_solns_var) if name != "auto" else self.solution_handler.run_solver_auto(self.check_uniqueness_var, self.find_all_solns_var)
         self.set_status(res + ".")
 
         self._draw_solution()
@@ -333,6 +333,11 @@ class NonogramGUI(QMainWindow):
         solver_menu.addSeparator()
 
         # Add solver actions
+        action = QAction("&Auto-select Solver", self)
+        action.setShortcut(QKeySequence("Ctrl+A"))
+        action.triggered.connect(lambda _: self._on_solver("auto"))
+        solver_menu.addAction(action)
+
         solvers = [f for f in listdir("solvers/") if isfile(join("solvers/", f)) and f.endswith(".lp")]
         for i, solver in enumerate(solvers):
             action = QAction(solver.split(".")[0], self)
@@ -713,11 +718,11 @@ class NonogramGUI(QMainWindow):
         # Update all hints
         for hint in self.row_hints:
             for text in hint:
-                text.set_fontsize(font_size if int(text.get_text()) <= 9 else font_size//2)
+                text.set_fontsize(font_size if int(text.get_text()) <= 9 else 2 * font_size//3)
 
         for hint in self.col_hints:
             for text in hint:
-                text.set_fontsize(font_size if int(text.get_text()) <= 9 else font_size//2)
+                text.set_fontsize(font_size if int(text.get_text()) <= 9 else 2 * font_size//3)
 
         # Update all x's
         for row in self.crosses:

@@ -5,6 +5,7 @@ from gui.common import *
 from clingo import Control
 import time
 from copy import deepcopy
+from typing import List, Tuple
 
 class SolutionHandler:
     def __init__(self):
@@ -14,6 +15,7 @@ class SolutionHandler:
         self.curr_soln_idx: int = -1 # == -1 if in working solution
         self.working_soln: NonogramSoln
         self.timeout: float = 1.0
+        self.found_all = False
 
     def give_nonogram(self, nonogram: Nonogram) -> None:
         """Give a reference to a nonogram that will be solved when run_solver is called"""
@@ -54,6 +56,21 @@ class SolutionHandler:
         self.curr_soln_idx -= 1
         if self.curr_soln_idx < 0:
             self.curr_soln_idx = len(self.solutions) - 1
+
+    def get_cautious_pixels(self) -> np.ndarray:
+        """Find all solutions if not done already and return the coordinates of the pixels that are filled in every solution"""
+        if not self.found_all:
+            # If we did not find all solutions previously, do it now
+            self.run_solver_auto(True, True)
+
+        grids = [solution.grid for solution in self.solutions]
+        stacked_grids = np.stack(grids, axis=0)
+        common_grid = np.logical_and.reduce(stacked_grids, axis=0)
+        return common_grid
+    
+    def run_solver_auto(self, check_unique: bool = True, all_models: bool = False) -> str:
+        """Auto-select the best solver and run it"""
+        return self.run_solver("sbs-improved", check_unique, all_models)
 
     def run_solver(self, solver_path: str, check_unique: bool = True, all_models: bool = False) -> str:
         """Run the logic program at the given path, assume it is a nonogram solver and try to find one/two models, depending on the check_unique flag"""
@@ -104,6 +121,11 @@ class SolutionHandler:
 
         if self.solutions:
             self.curr_soln_idx = 0
+
+        if all_models:
+            self.found_all = True
+        else:
+            self.found_all = False
 
         # Status bar output
         form_time = format_time(end_time - start_time)

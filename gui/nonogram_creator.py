@@ -39,6 +39,8 @@ class NonogramCreator(QDialog):
         self.im_file_path: str = ""
         self.success: bool = True
         self.timeout: float = 1.0
+        self.cautious_pixels: np.ndarray | None = None
+        self.unique = False
 
         # Setup the window and layout
         self.setWindowTitle("Nonogram Generator")
@@ -165,7 +167,7 @@ class NonogramCreator(QDialog):
                 # Add threshold control
                 threshold_frame = QFrame()
                 threshold_layout = QHBoxLayout(threshold_frame)
-                threshold_label = QLabel("Brightness Threshold:")
+                threshold_label = QLabel("Brightness threshold [0-255]:")
                 self.threshold_sb = QSpinBox()
                 self.threshold_sb.setRange(0, 255)
                 self.threshold_sb.setValue(self.threshold)
@@ -196,7 +198,7 @@ class NonogramCreator(QDialog):
         check_button = QPushButton("Check")
         check_button.clicked.connect(self._check_uniqueness)
 
-        timeout_label = QLabel("Timeout [sec]:")
+        timeout_label = QLabel("Timeout [seconds]:")
         self.timeout_sb = QSpinBox()
         self.timeout_sb.setRange(1, 10000)
         self.timeout_sb.setValue(1)
@@ -211,6 +213,12 @@ class NonogramCreator(QDialog):
         self.uniqueness_label = QLabel("   ✓ Nonogram is unique")
         self.uniqueness_label.setStyleSheet("color: green; font-size: 11px;")
         left_layout.addWidget(self.uniqueness_label)
+
+        # Make unique button
+        self.make_unique_button = QPushButton("Make unique (remove red pixels)")
+        self.make_unique_button.pressed.connect(self._on_make_unique)
+        self.make_unique_button.setDisabled(True)
+        left_layout.addWidget(self.make_unique_button)
 
         # Add separator
         separator3 = QFrame()
@@ -292,6 +300,8 @@ class NonogramCreator(QDialog):
             # Apply a binary threshold to the image
             _, self.grid = cv2.threshold(im_scaled, self.threshold, 255, cv2.THRESH_BINARY)
 
+        self.cautious_pixels = None
+        self.unique = False
         self.update_plot()
         self.uniqueness_label.setText("")
 
@@ -332,8 +342,9 @@ class NonogramCreator(QDialog):
         height, width = grid.shape
         rgba = np.zeros((height, width, 4), dtype=np.uint8)
 
-        # Set colors based on grid values
-        black = np.array([150 if bg else 0, 0, 0, 140 if bg else 255])
+        # Set colors based on grid values and uniqueness properties
+        red = np.array([150, 0, 0, 140 if bg else 255])
+        green = np.array([0, 150, 0, 140 if bg else 255])
         transparent = np.array([0, 0, 0, 0]) 
 
         # Create masks for black and white pixels
@@ -341,7 +352,9 @@ class NonogramCreator(QDialog):
         white_mask = (grid == 255)
 
         # Apply colors
-        rgba[black_mask] = black
+        rgba[black_mask] = red if not self.unique and self.cautious_pixels is None else green
+        if self.cautious_pixels is not None:
+            rgba[~self.cautious_pixels] = red
         rgba[white_mask] = transparent
 
         return rgba
@@ -354,16 +367,41 @@ class NonogramCreator(QDialog):
         soln_handler = SolutionHandler()
         soln_handler.give_nonogram(nonogram)
         soln_handler.set_timeout(self.timeout)
-        _ = soln_handler.run_solver("sbs-improved", True, False)
+        _ = soln_handler.run_solver_auto(True, True)
         if not soln_handler.solutions:
             self.uniqueness_label.setText("   Uniqueness check timed out")
             self.uniqueness_label.setStyleSheet("color: default; font-size: 11px;")
+            self.cautious_pixels = None
+            self.unique = False
+            self.make_unique_button.setDisabled(True)        
         elif len(soln_handler.solutions) > 1:
-            self.uniqueness_label.setText(f"   ✗ Nonogram is not unique! ({len(soln_handler.solutions)}+ Solutions)")
+            self.uniqueness_label.setText(f"   ✗ Nonogram is not unique! ({len(soln_handler.solutions)} Solutions)")
             self.uniqueness_label.setStyleSheet("color: red; font-size: 11px;")
+            self.cautious_pixels = soln_handler.get_cautious_pixels()
+            self.unique = False
+            self.make_unique_button.setDisabled(False)
         else:
             self.uniqueness_label.setText("   ✓ Nonogram is unique")
             self.uniqueness_label.setStyleSheet("color: green; font-size: 11px;")
+            self.cautious_pixels = None
+            self.unique = True
+            self.make_unique_button.setDisabled(True)
+
+        self.update_plot()
+
+    def _on_make_unique(self):
+        if self.cautious_pixels is None or self.unique:
+            return
+        
+        mask = (self.grid == 0) & (~self.cautious_pixels)
+
+        # Set the selected pixels to white (255)
+        self.grid[mask] = 255
+
+        self.make_unique_button.setDisabled(True)
+        self.uniqueness_label.setText("   ✓ Nonogram is unique")
+        self.uniqueness_label.setStyleSheet("color: green; font-size: 11px;")
+        self.update_plot()
 
     def get(self) -> np.ndarray | None:
         """Wait for dialog to close and return result (similar to Tkinter version)"""
