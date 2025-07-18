@@ -8,6 +8,7 @@ gui/__pycache__
 gui/handlers/__pycache__
 images/*
 !images/qrcode.png
+!images/moon.jpeg
 nono.temp
 *.o
 pbnsolve/pbnsolve
