@@ -323,9 +323,8 @@ class NonogramGUI(QMainWindow):
             timeout_action_group.addAction(action)
             self.timeout_actions[display_text] = action
 
-        # Initialize timeout if not already set
-        if not hasattr(self, 'timeout'):
-            self.timeout = 60.0  # Default timeout
+        self.timeout = 60.0  # Default timeout
+        self.solution_handler.set_timeout(self.timeout)
 
         # Update the actions to reflect the current timeout
         self.update_timeout_actions()
