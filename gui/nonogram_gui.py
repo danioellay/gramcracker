@@ -11,9 +11,7 @@ from typing import List
 import numpy as np
 
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import (QMainWindow, QDialog, QWidget, QFileDialog,
-                             QAction, QVBoxLayout, 
-                             QLabel, QLineEdit, QHBoxLayout, QPushButton)
+from PyQt5.QtWidgets import *
 from PyQt5.QtGui import QKeySequence
 
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg
@@ -114,6 +112,8 @@ class NonogramGUI(QMainWindow):
     def _on_solver(self, name: str, *_) -> None:
         """Run the solver, identified by its name"""
         self.set_status("Solving nonogram...")
+        self.status_label.update()
+        self.update()
         res = self.solution_handler.run_solver(name.split(".")[0], 
                                                self.check_uniqueness_var, 
                                                self.find_all_solns_var)
@@ -293,6 +293,42 @@ class NonogramGUI(QMainWindow):
         self.find_all_solns_action.setChecked(self.find_all_solns_var)
         self.find_all_solns_action.triggered.connect(self._on_toggle_find_all)
         solver_menu.addAction(self.find_all_solns_action)
+
+        # Timeout menu
+        self.timeout_var = 1.0
+        self.timeout_menu = solver_menu.addMenu("&Timout")
+        assert(self.timeout_menu)
+        timeout_options = [
+            ("1s", 1.0),
+            ("10s", 10.0),
+            ("30s", 30.0),
+            ("60s", 60.0),
+            ("10min", 10 * 60.0),
+            ("30min", 30 * 60.0),
+            ("60min", 60 * 60.0),
+            ("unlimited", float('inf')) 
+            ]
+        # Create an action group for mutual exclusivity
+        timeout_action_group = QActionGroup(self)
+        timeout_action_group.setExclusive(True)
+
+        # Store actions to update their state later
+        self.timeout_actions = {}
+
+        for display_text, value in timeout_options:
+            action = QAction(display_text, self, checkable=True)
+            action.setData(value)  # Store the timeout value
+            action.triggered.connect(self.on_timeout_selected)
+            self.timeout_menu.addAction(action)
+            timeout_action_group.addAction(action)
+            self.timeout_actions[display_text] = action
+
+        # Initialize timeout if not already set
+        if not hasattr(self, 'timeout'):
+            self.timeout = 60.0  # Default timeout
+
+        # Update the actions to reflect the current timeout
+        self.update_timeout_actions()
 
         solver_menu.addSeparator()
 
@@ -650,12 +686,50 @@ class NonogramGUI(QMainWindow):
         self.block_hover = False
         return result[0]
 
+    def update_hint_font_sizes(self):
+        # Get the axes' bounding box in display coordinates (pixels)
+        bbox = self.axes.get_window_extent().transformed(self.figure.dpi_scale_trans.inverted())
+        width_inches, height_inches = bbox.width, bbox.height
+        dpi = self.figure.get_dpi()
+
+        # Axes size in pixels
+        ax_width_pixels = width_inches * dpi
+        ax_height_pixels = height_inches * dpi
+
+        # Data range
+        grid_width = self.nonogram_handler.get_curr_nonogram().width
+        grid_height = self.nonogram_handler.get_curr_nonogram().height
+
+        # Cell size in pixels
+        cell_width_pixels = ax_width_pixels / grid_width
+        cell_height_pixels = ax_height_pixels / grid_height
+
+        # Desired font size in pixels
+        desired_font_size_pixels = 0.75 * min(cell_width_pixels, cell_height_pixels)
+
+        # Convert to points
+        font_size = (desired_font_size_pixels * 72) / dpi
+
+        # Update all hints
+        for hint in self.row_hints:
+            for text in hint:
+                text.set_fontsize(font_size if int(text.get_text()) <= 9 else font_size//2)
+
+        for hint in self.col_hints:
+            for text in hint:
+                text.set_fontsize(font_size if int(text.get_text()) <= 9 else font_size//2)
+
+        # Update all x's
+        for row in self.crosses:
+            for cross in row:
+                cross.set_fontsize(font_size)
+
     def _draw_nonogram(self, nonogram: Nonogram):
         self._clear_all()
         # Adjust the window size
-        # win_width = nonogram.width*SQUARE_SIZE
-        # win_height = nonogram.height*SQUARE_SIZE
-        # self.setMinimumSize(win_width, win_height)
+        win_width = nonogram.width*SQUARE_SIZE
+        win_height = nonogram.height*SQUARE_SIZE
+        self.setMinimumSize(win_width, win_height)
 
         # Ensure the aspect ratio is equal to avoid distortion
         self.axes.set_aspect('equal')
@@ -677,7 +751,7 @@ class NonogramGUI(QMainWindow):
         # Draw a 'x' in every cell then hide it
         self.crosses = [
             [
-                Text(col + 0.5, nonogram.height - row - 0.5, 'x', color='grey', va='center', ha='center', fontsize=10)
+                Text(col + 0.5, nonogram.height - row - 0.5, 'x', color='grey', va='center', ha='center')
                 for col in range(nonogram.width)
             ]
             for row in range(nonogram.height)
@@ -691,14 +765,14 @@ class NonogramGUI(QMainWindow):
         # Draw row hints to the left of the grid
         for i, hints in enumerate(nonogram.row_hints):
             if not hints:
-                hint = [self.axes.text(-0.66, nonogram.height - i - 0.6, "0", va='center', ha='center', fontsize=9, color='red')]
+                hint = [self.axes.text(-0.66, nonogram.height - i - 0.6, "0", va='center', ha='center', color='red')]
                 hint[0].set_color('black')
                 self.row_hints.append(hint)
                 continue
 
             self.row_hints.append([])
             for j, l in enumerate(reversed(hints)):
-                hint = self.axes.text(-0.66-j*0.7, nonogram.height - i - 0.6, str(l), va='center', ha='center', fontsize=9 if l < 10 else 5, color='red')
+                hint = self.axes.text(-0.66-j*0.7, nonogram.height - i - 0.6, str(l), va='center', ha='center', color='red')
                 if not self.show_hint_feedback_var or l == 0:
                     hint.set_color('black')
                 self.row_hints[i].append(hint)
@@ -706,23 +780,26 @@ class NonogramGUI(QMainWindow):
         # Draw column hints above the grid, stacked vertically
         for j, hints in enumerate(nonogram.col_hints):
             if not hints:
-                hint = [self.axes.text(j + 0.5, nonogram.height + 0.33, "0", va='center', ha='center', fontsize=9, color='red')]
+                hint = [self.axes.text(j + 0.5, nonogram.height + 0.33, "0", va='center', ha='center', color='red')]
                 hint[0].set_color('black')
                 self.col_hints.append(hint)
                 continue
 
             self.col_hints.append([])
             for i, l in enumerate(reversed(hints)):
-                hint = self.axes.text(j + 0.5, nonogram.height + 0.33 + i*0.8, str(l), va='center', ha='center', fontsize=9 if l < 10 else 5, color='red')
+                hint = self.axes.text(j + 0.5, nonogram.height + 0.33 + i*0.8, str(l), va='center', ha='center', color='red')
                 if not self.show_hint_feedback_var or l == 0:
                     hint.set_color('black')
                 self.col_hints[j].append(hint)
 
+        self.update_hint_font_sizes()
+        self.figure.canvas.mpl_connect('resize_event', lambda _: self.update_hint_font_sizes())
+
         # Setup the grid and ticks and cell index numbers
         self.axes.set_xticks(range(0, nonogram.width+1 ),
-                             [""] + list(map(str, range(1, nonogram.width + 1))), fontsize=7)
+                             [""] + ["" for _ in range(1, nonogram.width + 1)])
         self.axes.set_yticks(range(0, nonogram.height+1), 
-                             list(map(str, reversed(range(1, nonogram.height + 1)))) + [""], fontsize=7) # enumerate rows from top to bottom
+                             ["" for _ in range(1, nonogram.height + 1)] + [""]) # enumerate rows from top to bottom
 
         # Further customize the plots appearance, like adding a grid and removing the frame
         self.axes.yaxis.set_label_position('right')
@@ -823,3 +900,16 @@ class NonogramGUI(QMainWindow):
 
     def _on_toggle_find_all(self, *_):
         self.find_all_solns_var = not self.find_all_solns_var
+        if self.find_all_solns_var:
+            self.check_uniqueness_var = True
+            self.check_uniqueness_action.setChecked(True)
+
+    def on_timeout_selected(self):
+        action = self.sender()
+        if action.isChecked():
+            self.timeout = action.data()
+            self.solution_handler.set_timeout(self.timeout)
+
+    def update_timeout_actions(self):
+        for action in self.timeout_actions.values():
+            action.setChecked(action.data() == self.timeout)
