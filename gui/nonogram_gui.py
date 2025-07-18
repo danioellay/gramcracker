@@ -727,8 +727,8 @@ class NonogramGUI(QMainWindow):
     def _draw_nonogram(self, nonogram: Nonogram):
         self._clear_all()
         # Adjust the window size
-        win_width = nonogram.width*SQUARE_SIZE
-        win_height = nonogram.height*SQUARE_SIZE
+        win_width = min(nonogram.width*SQUARE_SIZE, WINDOW_WIDTH)
+        win_height = min(nonogram.height*SQUARE_SIZE, WINDOW_HEIGHT)
         self.setMinimumSize(win_width, win_height)
 
         # Ensure the aspect ratio is equal to avoid distortion
@@ -816,8 +816,8 @@ class NonogramGUI(QMainWindow):
         self.canvas.draw()
 
         # Set the xy limits so that the entire nonogram plus hints are visible
-        self.axes.set_xlim(-0.2 -0.75*max([len(rh) for rh in nonogram.row_hints]), nonogram.width)
-        self.axes.set_ylim(-0, 0.2 + nonogram.height + 0.75*max([len(ch) for ch in nonogram.col_hints]))
+        self.axes.set_xlim(-max([len(rh) for rh in nonogram.row_hints]), nonogram.width)
+        self.axes.set_ylim(0, nonogram.height + max([len(ch) for ch in nonogram.col_hints]))
         self.canvas.draw_idle()
         self.highlighted_x, self.highlighted_y = -1, -1
 
