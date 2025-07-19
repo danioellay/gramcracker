@@ -399,8 +399,7 @@ class NonogramCreator(QDialog):
         self.grid[mask] = 255
 
         self.make_unique_button.setDisabled(True)
-        self.uniqueness_label.setText("   ✓ Nonogram is unique")
-        self.uniqueness_label.setStyleSheet("color: green; font-size: 11px;")
+        self.uniqueness_label.setText("")
         self.update_plot()
 
     def get(self) -> np.ndarray | None:

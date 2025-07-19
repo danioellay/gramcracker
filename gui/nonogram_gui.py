@@ -90,7 +90,7 @@ class NonogramGUI(QMainWindow):
         self._draw_nonogram(nonogram)
         size = nonogram.width * nonogram.height
         self.show_hint_highlight_var = (size <= 20*20)
-        self.show_hint_feedback_action.setChecked(self.show_hint_highlight_var)
+        self.show_hint_highlight_action.setChecked(self.show_hint_highlight_var)
         self.menuBar
 
         self.solved_on_start = False
@@ -717,7 +717,7 @@ class NonogramGUI(QMainWindow):
         # Update all hints
         for hint in self.row_hints:
             for text in hint:
-                text.set_fontsize(font_size if int(text.get_text()) <= 9 else 2 * font_size//3)
+                text.set_fontsize(font_size if int(text.get_text()) <= 9 else font_size//2)
 
         for hint in self.col_hints:
             for text in hint:
@@ -827,7 +827,7 @@ class NonogramGUI(QMainWindow):
 
         size = nonogram.width * nonogram.height
         self.show_hint_highlight_var = (size <= 20*20)
-        self.show_hint_feedback_action.setChecked(self.show_hint_highlight_var)
+        self.show_hint_highlight_action.setChecked(self.show_hint_highlight_var)
 
     def _draw_solution(self):
         grid = self.solution_handler.get_curr_soln().grid
